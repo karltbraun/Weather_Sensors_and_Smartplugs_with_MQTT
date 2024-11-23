@@ -1,0 +1,1046 @@
+{
+    "1": {
+        "name": "Remote Control",
+        "protocol_description": "Silvercrest Remote Control"
+    },
+    "2": {
+        "name": "Rubicson/InFactory PT-310",
+        "protocol_description": "Rubicson, TFA 30.3197 or InFactory PT-310 Temperature Sensor"
+    },
+    "3": {
+        "name": "Prologue/FreeTec",
+        "protocol_description": "Prologue, FreeTec NC-7104, NC-7159-675 temperature sensor"
+    },
+    "4": {
+        "name": "Switch Tx",
+        "protocol_description": "Waveman Switch Transmitter"
+    },
+    "6": {
+        "name": "ELV",
+        "protocol_description": "ELV EM 1000"
+    },
+    "7": {
+        "name": "ELV",
+        "protocol_description": "ELV WS 2000"
+    },
+    "8": {
+        "name": "LaCross TX",
+        "protocol_description": "LaCrosse TX Temperature / Humidity Sensor"
+    },
+    "10": {
+        "name": "Acurite Rain Guage",
+        "protocol_description": "Acurite 896 Rain Gauge"
+    },
+    "11": {
+        "name": "Acurate Temp and Humidity",
+        "protocol_description": "Acurite 609TXC Temperature and Humidity Sensor"
+    },
+    "12": {
+        "name": "Oregon Sci. Weather",
+        "protocol_description": "Oregon Scientific Weather Sensor"
+    },
+    "13": {
+        "name": "Mebus 433",
+        "protocol_description": "Mebus 433"
+    },
+    "14": {
+        "name": "Intertechno 433",
+        "protocol_description": "Intertechno 433"
+    },
+    "15": {
+        "name": "Wireless Switch",
+        "protocol_description": "KlikAanKlikUit Wireless Switch"
+    },
+    "16": {
+        "name": "TBD",
+        "protocol_description": "AlectoV1 Weather Sensor (Alecto WS3500 WS4500 Ventus W155/W044 Oregon)"
+    },
+    "17": {
+        "name": "TBD",
+        "protocol_description": "Cardin S466-TX2"
+    },
+    "18": {
+        "name": "TBD",
+        "protocol_description": "Fine Offset Electronics, WH2, WH5, Telldus Temperature/Humidity/Rain Sensor"
+    },
+    "19": {
+        "name": "TBD",
+        "protocol_description": "Nexus, FreeTec NC-7345, NX-3980, Solight TE82S, TFA 30.3209 temperature/humidity sensor"
+    },
+    "20": {
+        "name": "TBD",
+        "protocol_description": "Ambient Weather F007TH, TFA 30.3208.02, SwitchDocLabs F016TH temperature sensor"
+    },
+    "21": {
+        "name": "TBD",
+        "protocol_description": "Calibeur RF-104 Sensor"
+    },
+    "22": {
+        "name": "X10 RF",
+        "protocol_description": "X10 RF"
+    },
+    "23": {
+        "name": "dsc_security",
+        "protocol_description": "DSC Security Contact"
+    },
+    "24": {
+        "name": "TBD",
+        "protocol_description": "Brennenstuhl RCS 2044"
+    },
+    "25": {
+        "name": "GlobalTronics",
+        "protocol_description": "Globaltronics GT-WT-02 Sensor"
+    },
+    "26": {
+        "name": "Danfoss Thermostat",
+        "protocol_description": "Danfoss CFR Thermostat"
+    },
+    "27": {
+        "name": "Unknown_27",
+        "protocol_description": "Unknown device ID 27"
+    },
+    "28": {
+        "name": "Unknown_28",
+        "protocol_description": "Unknown weather sensor ID 28"
+    },
+    "29": {
+        "name": "Chuango Security",
+        "protocol_description": "Chuango Security Technology"
+    },
+    "30": {
+        "name": "Generic Remote",
+        "protocol_description": "Generic Remote SC226x EV1527"
+    },
+    "31": {
+        "name": "TBD",
+        "protocol_description": "TFA-Twin-Plus-30.3049, Conrad KW9010, Ea2 BL999"
+    },
+    "32": {
+        "name": "TBD",
+        "protocol_description": "Fine Offset Electronics WH1080/WH3080 Weather Station"
+    },
+    "33": {
+        "name": "TBD",
+        "protocol_description": "WT450, WT260H, WT405H"
+    },
+    "34": {
+        "name": "LaCross WS",
+        "protocol_description": "LaCrosse WS-2310 / WS-3600 Weather Station"
+    },
+    "35": {
+        "name": "TBD",
+        "protocol_description": "Esperanza EWS"
+    },
+    "36": {
+        "name": "TBD",
+        "protocol_description": "Efergy e2 classic"
+    },
+    "37": {
+        "name": "TBD",
+        "protocol_description": "Inovalley kw9015b, TFA Dostmann 30.3161 (Rain and temperature sensor)"
+    },
+    "38": {
+        "name": "Generic Temperature",
+        "protocol_description": "Generic temperature sensor 1"
+    },
+    "39": {
+        "name": "TBD",
+        "protocol_description": "WG-PB12V1 Temperature Sensor"
+    },
+    "40": {
+        "name": "Many Weather Devices",
+        "protocol_description": "Acurite 592TXR temp/humidity, 592TX temp, 5n1, 3n1, Atlas weather station, 515 fridge/freezer, 6045 lightning, 899 rain, 1190/1192 leak"
+    },
+    "41": {
+        "name": "Fridge",
+        "protocol_description": "Acurite 986 Refrigerator / Freezer Thermometer"
+    },
+    "42": {
+        "name": "Hideki Weather Sensor",
+        "protocol_description": "HIDEKI TS04 Temperature, Humidity, Wind and Rain Sensor"
+    },
+    "43": {
+        "name": "TBD",
+        "protocol_description": "Watchman Sonic / Apollo Ultrasonic / Beckett Rocket oil tank monitor"
+    },
+    "44": {
+        "name": "TBD",
+        "protocol_description": "CurrentCost Current Sensor"
+    },
+    "45": {
+        "name": "TBD",
+        "protocol_description": "emonTx OpenEnergyMonitor"
+    },
+    "46": {
+        "name": "HT680 Remote",
+        "protocol_description": "HT680 Remote control"
+    },
+    "47": {
+        "name": "TBD",
+        "protocol_description": "Conrad S3318P, FreeTec NC-5849-913 temperature humidity sensor, ORIA WA50 ST389 temperature sensor"
+    },
+    "48": {
+        "name": "TBD",
+        "protocol_description": "Akhan 100F14 remote keyless entry"
+    },
+    "49": {
+        "name": "TBD",
+        "protocol_description": "Quhwa"
+    },
+    "50": {
+        "name": "OSv1 Temperature Sensor",
+        "protocol_description": "OSv1 Temperature Sensor"
+    },
+    "51": {
+        "name": "Wireless Switch",
+        "protocol_description": "Proove / Nexa / KlikAanKlikUit Wireless Switch"
+    },
+    "52": {
+        "name": "TBD",
+        "protocol_description": "Bresser Thermo-/Hygro-Sensor 3CH"
+    },
+    "53": {
+        "name": "Temp & Hydro",
+        "protocol_description": "Springfield Temperature and Soil Moisture"
+    },
+    "54": {
+        "name": "Oregon Sci Hygro",
+        "protocol_description": "Oregon Scientific SL109H Remote Thermal Hygro Sensor"
+    },
+    "55": {
+        "name": "Acurite 606TX",
+        "protocol_description": "Acurite 606TX Temperature Sensor"
+    },
+    "56": {
+        "name": "TBD",
+        "protocol_description": "TFA pool temperature sensor"
+    },
+    "57": {
+        "name": "TBD",
+        "protocol_description": "Kedsum Temperature & Humidity Sensor, Pearl NC-7415"
+    },
+    "58": {
+        "name": "TBD",
+        "protocol_description": "Blyss DC5-UK-WH"
+    },
+    "59": {
+        "name": "TBD",
+        "protocol_description": "Steelmate TPMS"
+    },
+    "60": {
+        "name": "Schrader TPMS",
+        "protocol_description": "Schrader TPMS"
+    },
+    "61": {
+        "name": "TBD",
+        "protocol_description": "LightwaveRF"
+    },
+    "62": {
+        "name": "TBD",
+        "protocol_description": "Elro DB286A Doorbell"
+    },
+    "63": {
+        "name": "TBD",
+        "protocol_description": "Efergy Optical"
+    },
+    "64": {
+        "name": "TBD",
+        "protocol_description": "Honda Car Key"
+    },
+    "65": {
+        "name": "Unknown_65",
+        "protocol_description": "Unknown device ID 65"
+    },
+    "66": {
+        "name": "Unknown_66",
+        "protocol_description": "Unknown device ID 66"
+    },
+    "67": {
+        "name": "TBD",
+        "protocol_description": "Radiohead ASK"
+    },
+    "68": {
+        "name": "TBD",
+        "protocol_description": "Kerui PIR / Contact Sensor"
+    },
+    "69": {
+        "name": "TBD",
+        "protocol_description": "Fine Offset WH1050 Weather Station"
+    },
+    "70": {
+        "name": "TBD",
+        "protocol_description": "Honeywell Door/Window Sensor, 2Gig DW10/DW11, RE208 repeater"
+    },
+    "71": {
+        "name": "TBD",
+        "protocol_description": "Maverick ET-732/733 BBQ Sensor"
+    },
+    "72": {
+        "name": "TBD",
+        "protocol_description": "RF-tech"
+    },
+    "73": {
+        "name": "TBD",
+        "protocol_description": "LaCrosse TX141-Bv2, TX141TH-Bv2, TX141-Bv3, TX141W, TX145wsdth, (TFA, ORIA) sensor"
+    },
+    "74": {
+        "name": "TBD",
+        "protocol_description": "Acurite 00275rm,00276rm Temp/Humidity with optional probe"
+    },
+    "75": {
+        "name": "TBD",
+        "protocol_description": "LaCrosse TX35DTH-IT, TFA Dostmann 30.3155 Temperature/Humidity sensor"
+    },
+    "76": {
+        "name": "TBD",
+        "protocol_description": "LaCrosse TX29IT, TFA Dostmann 30.3159.IT Temperature sensor"
+    },
+    "77": {
+        "name": "TBD",
+        "protocol_description": "Vaillant calorMatic VRT340f Central Heating Control"
+    },
+    "78": {
+        "name": "TBD",
+        "protocol_description": "Fine Offset Electronics, WH25, WH32, WH32B, WN32B, WH24, WH65B, HP1000, Misol WS2320 Temperature/Humidity/Pressure Sensor"
+    },
+    "79": {
+        "name": "TBD",
+        "protocol_description": "Fine Offset Electronics, WH0530 Temperature/Rain Sensor"
+    },
+    "80": {
+        "name": "TBD",
+        "protocol_description": "IBIS beacon"
+    },
+    "81": {
+        "name": "TBD",
+        "protocol_description": "Oil Ultrasonic STANDARD FSK"
+    },
+    "82": {
+        "name": "Citroen TPMS",
+        "protocol_description": "Citroen TPMS"
+    },
+    "83": {
+        "name": "Oil Tank Sensor",
+        "protocol_description": "Oil Ultrasonic STANDARD ASK"
+    },
+    "84": {
+        "name": "TBD",
+        "protocol_description": "Thermopro TP11 Thermometer"
+    },
+    "85": {
+        "name": "TBD",
+        "protocol_description": "Solight TE44/TE66, EMOS E0107T, NX-6876-917"
+    },
+    "86": {
+        "name": "TBD",
+        "protocol_description": "Wireless Smoke and Heat Detector GS 558"
+    },
+    "87": {
+        "name": "TBD",
+        "protocol_description": "Generic wireless motion sensor"
+    },
+    "88": {
+        "name": "Toyota TPMS",
+        "protocol_description": "Toyota TPMS"
+    },
+    "89": {
+        "name": "Ford TPMS",
+        "protocol_description": "Ford TPMS"
+    },
+    "90": {
+        "name": "Renault TPMS",
+        "protocol_description": "Renault TPMS"
+    },
+    "91": {
+        "name": "Multiple Temp & Humidty",
+        "protocol_description": "inFactory, nor-tec, FreeTec NC-3982-913 temperature humidity sensor"
+    },
+    "92": {
+        "name": "TBD",
+        "protocol_description": "FT-004-B Temperature Sensor"
+    },
+    "93": {
+        "name": "Ford Car Key",
+        "protocol_description": "Ford Car Key"
+    },
+    "94": {
+        "name": "TBD",
+        "protocol_description": "Philips outdoor temperature sensor (type AJ3650)"
+    },
+    "95": {
+        "name": "Schrader TPMS",
+        "protocol_description": "Schrader TPMS EG53MA4, PA66GF35"
+    },
+    "96": {
+        "name": "Nexa",
+        "protocol_description": "Nexa"
+    },
+    "97": {
+        "name": "TBD",
+        "protocol_description": "ThermoPro TP08/TP12/TP20 thermometer"
+    },
+    "98": {
+        "name": "TBD",
+        "protocol_description": "GE Color Effects"
+    },
+    "99": {
+        "name": "TBD",
+        "protocol_description": "X10 Security"
+    },
+    "100": {
+        "name": "TBD",
+        "protocol_description": "Interlogix GE UTC Security Devices"
+    },
+    "101": {
+        "name": "TBD",
+        "protocol_description": "Dish remote 6.3"
+    },
+    "102": {
+        "name": "TBD",
+        "protocol_description": "SimpliSafe Home Security System (May require disabling automatic gain for KeyPad decodes)"
+    },
+    "103": {
+        "name": "TBD",
+        "protocol_description": "Sensible Living Mini-Plant Moisture Sensor"
+    },
+    "104": {
+        "name": "TBD",
+        "protocol_description": "Wireless M-Bus, Mode C&T, 100kbps (-f 868.95M -s 1200k)"
+    },
+    "105": {
+        "name": "TBD",
+        "protocol_description": "Wireless M-Bus, Mode S, 32.768kbps (-f 868.3M -s 1000k)"
+    },
+    "106": {
+        "name": "TBD",
+        "protocol_description": "Wireless M-Bus, Mode R, 4.8kbps (-f 868.33M)"
+    },
+    "107": {
+        "name": "TBD",
+        "protocol_description": "Wireless M-Bus, Mode F, 2.4kbps"
+    },
+    "108": {
+        "name": "TBD",
+        "protocol_description": "Hyundai WS SENZOR Remote Temperature Sensor"
+    },
+    "109": {
+        "name": "TBD",
+        "protocol_description": "WT0124 Pool Thermometer"
+    },
+    "110": {
+        "name": "TBD",
+        "protocol_description": "PMV-107J (Toyota) TPMS"
+    },
+    "111": {
+        "name": "Emos TTX201",
+        "protocol_description": "Emos TTX201 Temperature Sensor"
+    },
+    "112": {
+        "name": "TBD",
+        "protocol_description": "Ambient Weather TX-8300 Temperature/Humidity Sensor"
+    },
+    "113": {
+        "name": "TBD",
+        "protocol_description": "Ambient Weather WH31E Thermo-Hygrometer Sensor, EcoWitt WH40 rain gauge, WS68 weather station"
+    },
+    "114": {
+        "name": "TBD",
+        "protocol_description": "Maverick et73"
+    },
+    "115": {
+        "name": "TBD",
+        "protocol_description": "Honeywell ActivLink, Wireless Doorbell"
+    },
+    "116": {
+        "name": "TBD",
+        "protocol_description": "Honeywell ActivLink, Wireless Doorbell (FSK)"
+    },
+    "117": {
+        "name": "TBD",
+        "protocol_description": "ESA1000 / ESA2000 Energy Monitor"
+    },
+    "118": {
+        "name": "TBD",
+        "protocol_description": "Biltema rain gauge"
+    },
+    "119": {
+        "name": "TBD",
+        "protocol_description": "Bresser Weather Center 5-in-1"
+    },
+    "120": {
+        "name": "TBD",
+        "protocol_description": "Digitech XC-0324 / AmbientWeather FT005TH temp/hum sensor"
+    },
+    "121": {
+        "name": "Soil Moisture",
+        "protocol_description": "Opus/Imagintronix XT300 Soil Moisture"
+    },
+    "122": {
+        "name": "TBD",
+        "protocol_description": "FS20 / FHT"
+    },
+    "123": {
+        "name": "TBD",
+        "protocol_description": "Jansite TPMS Model TY02S"
+    },
+    "124": {
+        "name": "TBD",
+        "protocol_description": "LaCrosse/ELV/Conrad WS7000/WS2500 weather sensors"
+    },
+    "125": {
+        "name": "TBD",
+        "protocol_description": "TS-FT002 Wireless Ultrasonic Tank Liquid Level Meter With Temperature Sensor"
+    },
+    "126": {
+        "name": "TBD",
+        "protocol_description": "Companion WTR001 Temperature Sensor"
+    },
+    "127": {
+        "name": "TBD",
+        "protocol_description": "Ecowitt Wireless Outdoor Thermometer WH53/WH0280/WH0281A"
+    },
+    "128": {
+        "name": "TBD",
+        "protocol_description": "DirecTV RC66RX Remote Control"
+    },
+    "129": {
+        "name": "TBD",
+        "protocol_description": "Eurochron temperature and humidity sensor"
+    },
+    "130": {
+        "name": "TBD",
+        "protocol_description": "IKEA Sparsnas Energy Meter Monitor"
+    },
+    "131": {
+        "name": "Microchip Remote",
+        "protocol_description": "Microchip HCS200/HCS300 KeeLoq Hopping Encoder based remotes"
+    },
+    "132": {
+        "name": "TBD",
+        "protocol_description": "TFA Dostmann 30.3196 T/H outdoor sensor"
+    },
+    "133": {
+        "name": "TBD",
+        "protocol_description": "Rubicson 48659 Thermometer"
+    },
+    "134": {
+        "name": "TBD",
+        "protocol_description": "AOK Weather Station rebrand Holman Industries iWeather WS5029, Conrad AOK-5056, Optex 990018"
+    },
+    "135": {
+        "name": "TBD",
+        "protocol_description": "Philips outdoor temperature sensor (type AJ7010)"
+    },
+    "136": {
+        "name": "TBD",
+        "protocol_description": "ESIC EMT7110 power meter"
+    },
+    "137": {
+        "name": "TBD",
+        "protocol_description": "Globaltronics QUIGG GT-TMBBQ-05"
+    },
+    "138": {
+        "name": "TBD",
+        "protocol_description": "Globaltronics GT-WT-03 Sensor"
+    },
+    "139": {
+        "name": "TBD",
+        "protocol_description": "Norgo NGE101"
+    },
+    "140": {
+        "name": "TBD",
+        "protocol_description": "Elantra2012 TPMS"
+    },
+    "141": {
+        "name": "TBD",
+        "protocol_description": "Auriol HG02832, HG05124A-DCF, Rubicson 48957 temperature/humidity sensor"
+    },
+    "142": {
+        "name": "TBD",
+        "protocol_description": "Fine Offset Electronics/ECOWITT WH51, SwitchDoc Labs SM23 Soil Moisture Sensor"
+    },
+    "143": {
+        "name": "TBD",
+        "protocol_description": "Holman Industries iWeather WS5029 weather station (older PWM)"
+    },
+    "144": {
+        "name": "TBD",
+        "protocol_description": "TBH weather sensor"
+    },
+    "145": {
+        "name": "TBD",
+        "protocol_description": "WS2032 weather station"
+    },
+    "146": {
+        "name": "TBD",
+        "protocol_description": "Auriol AFW2A1 temperature/humidity sensor"
+    },
+    "147": {
+        "name": "TBD",
+        "protocol_description": "TFA Drop Rain Gauge 30.3233.01"
+    },
+    "148": {
+        "name": "TBD",
+        "protocol_description": "DSC Security Contact (WS4945)"
+    },
+    "149": {
+        "name": "TBD",
+        "protocol_description": "ERT Standard Consumption Message (SCM)"
+    },
+    "150": {
+        "name": "TBD",
+        "protocol_description": "Klimalogg"
+    },
+    "151": {
+        "name": "TBD",
+        "protocol_description": "Visonic powercode"
+    },
+    "152": {
+        "name": "TBD",
+        "protocol_description": "Eurochron EFTH-800 temperature and humidity sensor"
+    },
+    "153": {
+        "name": "Cotech/SwitchDocLabs Weather",
+        "protocol_description": "Cotech 36-7959, SwitchDocLabs FT020T wireless weather station with USB"
+    },
+    "154": {
+        "name": "TBD",
+        "protocol_description": "Standard Consumption Message Plus (SCMplus)"
+    },
+    "155": {
+        "name": "TBD",
+        "protocol_description": "Fine Offset Electronics WH1080/WH3080 Weather Station (FSK)"
+    },
+    "156": {
+        "name": "Spider TPMS",
+        "protocol_description": "Abarth 124 Spider TPMS"
+    },
+    "157": {
+        "name": "TBD",
+        "protocol_description": "Missil ML0757 weather station"
+    },
+    "158": {
+        "name": "TBD",
+        "protocol_description": "Sharp SPC775 weather station"
+    },
+    "159": {
+        "name": "TBD",
+        "protocol_description": "Insteon"
+    },
+    "160": {
+        "name": "TBD",
+        "protocol_description": "ERT Interval Data Message (IDM)"
+    },
+    "161": {
+        "name": "TBD",
+        "protocol_description": "ERT Interval Data Message (IDM) for Net Meters"
+    },
+    "162": {
+        "name": "TBD",
+        "protocol_description": "ThermoPro-TX2 temperature sensor"
+    },
+    "163": {
+        "name": "TBD",
+        "protocol_description": "Acurite 590TX Temperature with optional Humidity"
+    },
+    "164": {
+        "name": "TBD",
+        "protocol_description": "Security+ 2.0 (Keyfob)"
+    },
+    "165": {
+        "name": "TBD",
+        "protocol_description": "TFA Dostmann 30.3221.02 T/H Outdoor Sensor"
+    },
+    "166": {
+        "name": "TBD",
+        "protocol_description": "LaCrosse Technology View LTV-WSDTH01 Breeze Pro Wind Sensor"
+    },
+    "167": {
+        "name": "TBD",
+        "protocol_description": "Somfy RTS"
+    },
+    "168": {
+        "name": "TBD",
+        "protocol_description": "Schrader TPMS SMD3MA4 (Subaru) 3039 (Infiniti, Nissan, Renault)"
+    },
+    "169": {
+        "name": "TBD",
+        "protocol_description": "Nice Flor-s remote control for gates"
+    },
+    "170": {
+        "name": "TBD",
+        "protocol_description": "LaCrosse Technology View LTV-WR1 Multi Sensor"
+    },
+    "171": {
+        "name": "TBD",
+        "protocol_description": "LaCrosse Technology View LTV-TH Thermo/Hygro Sensor"
+    },
+    "172": {
+        "name": "TBD",
+        "protocol_description": "Bresser Weather Center 6-in-1, 7-in-1 indoor, soil, new 5-in-1, 3-in-1 wind gauge, Froggit WH6000, Ventus C8488A"
+    },
+    "173": {
+        "name": "TBD",
+        "protocol_description": "Bresser Weather Center 7-in-1, Air Quality PM2.5/PM10 7009970, CO2 7009977, HCHO/VOC 7009978 sensors"
+    },
+    "174": {
+        "name": "TBD",
+        "protocol_description": "EcoDHOME Smart Socket and MCEE Solar monitor"
+    },
+    "175": {
+        "name": "TBD",
+        "protocol_description": "LaCrosse Technology View LTV-R1, LTV-R3 Rainfall Gauge, LTV-W1/W2 Wind Sensor"
+    },
+    "176": {
+        "name": "TBD",
+        "protocol_description": "BlueLine Innovations Power Cost Monitor"
+    },
+    "177": {
+        "name": "TBD",
+        "protocol_description": "Burnhard BBQ thermometer"
+    },
+    "178": {
+        "name": "keyfob",
+        "protocol_description": "Security+ (Keyfob)"
+    },
+    "179": {
+        "name": "TBD",
+        "protocol_description": "Cavius smoke, heat and water detector"
+    },
+    "180": {
+        "name": "TBD",
+        "protocol_description": "Jansite TPMS Model Solar"
+    },
+    "181": {
+        "name": "TBD",
+        "protocol_description": "Amazon Basics Meat Thermometer"
+    },
+    "182": {
+        "name": "TBD",
+        "protocol_description": "TFA Marbella Pool Thermometer"
+    },
+    "183": {
+        "name": "TBD",
+        "protocol_description": "Auriol AHFL temperature/humidity sensor"
+    },
+    "184": {
+        "name": "TBD",
+        "protocol_description": "Auriol AFT 77 B2 temperature sensor"
+    },
+    "185": {
+        "name": "Honeywell Room Thermostat",
+        "protocol_description": "Honeywell CM921 Wireless Programmable Room Thermostat"
+    },
+    "186": {
+        "name": "Hyundai TPMS",
+        "protocol_description": "Hyundai TPMS (VDO)"
+    },
+    "187": {
+        "name": "TBD",
+        "protocol_description": "RojaFlex shutter and remote devices"
+    },
+    "188": {
+        "name": "TBD",
+        "protocol_description": "Marlec Solar iBoost+ sensors"
+    },
+    "189": {
+        "name": "TBD",
+        "protocol_description": "Somfy io-homecontrol"
+    },
+    "190": {
+        "name": "TBD",
+        "protocol_description": "Ambient Weather WH31L (FineOffset WH57) Lightning-Strike sensor"
+    },
+    "191": {
+        "name": "curtains",
+        "protocol_description": "Markisol, E-Motion, BOFU, Rollerhouse, BF-30x, BF-415 curtain remote"
+    },
+    "192": {
+        "name": "TBD",
+        "protocol_description": "Govee Water Leak Detector H5054, Door Contact Sensor B5023"
+    },
+    "193": {
+        "name": "TBD",
+        "protocol_description": "Clipsal CMR113 Cent-a-meter power meter"
+    },
+    "194": {
+        "name": "TBD",
+        "protocol_description": "Inkbird ITH-20R temperature humidity sensor"
+    },
+    "195": {
+        "name": "TBD",
+        "protocol_description": "RainPoint soil temperature and moisture sensor"
+    },
+    "196": {
+        "name": "TBD",
+        "protocol_description": "Atech-WS308 temperature sensor"
+    },
+    "197": {
+        "name": "TBD",
+        "protocol_description": "Acurite Grill/Meat Thermometer 01185M"
+    },
+    "198": {
+        "name": "TBD",
+        "protocol_description": "EnOcean ERP1"
+    },
+    "199": {
+        "name": "Garage/Gate Remote",
+        "protocol_description": "Linear Megacode Garage/Gate Remotes"
+    },
+    "200": {
+        "name": "TBD",
+        "protocol_description": "Auriol 4-LD5661/4-LD5972/4-LD6313 temperature/rain sensors"
+    },
+    "201": {
+        "name": "Solar TPMS",
+        "protocol_description": "Unbranded SolarTPMS for trucks"
+    },
+    "202": {
+        "name": "TBD",
+        "protocol_description": "Funkbus / Instafunk (Berker, Gira, Jung)"
+    },
+    "203": {
+        "name": "TBD",
+        "protocol_description": "Porsche Boxster/Cayman TPMS"
+    },
+    "204": {
+        "name": "TBD",
+        "protocol_description": "Jasco/GE Choice Alert Security Devices"
+    },
+    "205": {
+        "name": "TBD",
+        "protocol_description": "Telldus weather station FT0385R sensors"
+    },
+    "206": {
+        "name": "TBD",
+        "protocol_description": "LaCrosse TX34-IT rain gauge"
+    },
+    "207": {
+        "name": "TBD",
+        "protocol_description": "SmartFire Proflame 2 remote control"
+    },
+    "208": {
+        "name": "TBD",
+        "protocol_description": "AVE TPMS"
+    },
+    "209": {
+        "name": "Simplisafe",
+        "protocol_description": "SimpliSafe Gen 3 Home Security System"
+    },
+    "210": {
+        "name": "TBD",
+        "protocol_description": "Yale HSA (Home Security Alarm), YES-Alarmkit"
+    },
+    "211": {
+        "name": "TBD",
+        "protocol_description": "Regency Ceiling Fan Remote (-f 303.75M to 303.96M)"
+    },
+    "212": {
+        "name": "TBD",
+        "protocol_description": "Renault 0435R TPMS"
+    },
+    "213": {
+        "name": "TBD",
+        "protocol_description": "Fine Offset Electronics WS80 weather station"
+    },
+    "214": {
+        "name": "TBD",
+        "protocol_description": "EMOS E6016 weatherstation with DCF77"
+    },
+    "215": {
+        "name": "TBD",
+        "protocol_description": "Emax W6, rebrand Altronics x7063/4, Optex 990040/50/51, Orium 13093/13123, Infactory FWS-1200, Newentor Q9, Otio 810025, Protmex PT3390A, Jula Marquant 014331/32, TechniSat IMETEO X6 76-4924-00, Weather Station or temperature/humidity sensor"
+    },
+    "216": {
+        "name": "TBD",
+        "protocol_description": "ANT and ANT+ devices"
+    },
+    "217": {
+        "name": "TBD",
+        "protocol_description": "EMOS E6016 rain gauge"
+    },
+    "218": {
+        "name": "TBD",
+        "protocol_description": "Microchip HCS200/HCS300 KeeLoq Hopping Encoder based remotes (FSK)"
+    },
+    "219": {
+        "name": "TBD",
+        "protocol_description": "Fine Offset Electronics WH45 air quality sensor"
+    },
+    "220": {
+        "name": "TBD",
+        "protocol_description": "Maverick XR-30 BBQ Sensor"
+    },
+    "221": {
+        "name": "TBD",
+        "protocol_description": "Fine Offset Electronics WN34S/L/D and Froggit DP150/D35 temperature sensor"
+    },
+    "222": {
+        "name": "TBD",
+        "protocol_description": "Rubicson Pool Thermometer 48942"
+    },
+    "223": {
+        "name": "TBD",
+        "protocol_description": "Badger ORION water meter, 100kbps (-f 916.45M -s 1200k)"
+    },
+    "224": {
+        "name": "TBD",
+        "protocol_description": "GEO minim+ energy monitor"
+    },
+    "225": {
+        "name": "TBD",
+        "protocol_description": "TyreGuard 400 TPMS"
+    },
+    "226": {
+        "name": "TBD",
+        "protocol_description": "Kia TPMS (-s 1000k)"
+    },
+    "227": {
+        "name": "TBD",
+        "protocol_description": "SRSmith Pool Light Remote Control SRS-2C-TX (-f 915M)"
+    },
+    "228": {
+        "name": "TBD",
+        "protocol_description": "Neptune R900 flow meters"
+    },
+    "229": {
+        "name": "TBD",
+        "protocol_description": "WEC-2103 temperature/humidity sensor"
+    },
+    "230": {
+        "name": "TBD",
+        "protocol_description": "Vauno EN8822C"
+    },
+    "231": {
+        "name": "TBD",
+        "protocol_description": "Govee Water Leak Detector H5054"
+    },
+    "232": {
+        "name": "TBD",
+        "protocol_description": "TFA Dostmann 14.1504.V2 Radio-controlled grill and meat thermometer"
+    },
+    "233": {
+        "name": "TBD",
+        "protocol_description": "CED7000 Shot Timer"
+    },
+    "234": {
+        "name": "TBD",
+        "protocol_description": "Watchman Sonic Advanced / Plus, Tekelek"
+    },
+    "235": {
+        "name": "TBD",
+        "protocol_description": "Oil Ultrasonic SMART FSK"
+    },
+    "236": {
+        "name": "Mean Thermometer",
+        "protocol_description": "Gasmate BA1008 meat thermometer"
+    },
+    "237": {
+        "name": "TBD",
+        "protocol_description": "Flowis flow meters"
+    },
+    "238": {
+        "name": "TBD",
+        "protocol_description": "Wireless M-Bus, Mode T, 32.768kbps (-f 868.3M -s 1000k)"
+    },
+    "239": {
+        "name": "TBD",
+        "protocol_description": "Revolt NC-5642 Energy Meter"
+    },
+    "240": {
+        "name": "TBD",
+        "protocol_description": "LaCrosse TX31U-IT, The Weather Channel WS-1910TWC-IT"
+    },
+    "241": {
+        "name": "TBD",
+        "protocol_description": "EezTire E618, Carchet TPMS, TST-507 TPMS"
+    },
+    "242": {
+        "name": "TBD",
+        "protocol_description": "Baldr / RainPoint rain gauge."
+    },
+    "243": {
+        "name": "TBD",
+        "protocol_description": "Celsia CZC1 Thermostat"
+    },
+    "244": {
+        "name": "TBD",
+        "protocol_description": "Fine Offset Electronics WS90 weather station"
+    },
+    "245": {
+        "name": "TBD",
+        "protocol_description": "ThermoPro TX-2C Thermometer and Humidity sensor"
+    },
+    "246": {
+        "name": "TBD",
+        "protocol_description": "TFA 30.3151 Weather Station"
+    },
+    "247": {
+        "name": "TBD",
+        "protocol_description": "Bresser water leakage"
+    },
+    "248": {
+        "name": "TBD",
+        "protocol_description": "Nissan TPMS"
+    },
+    "249": {
+        "name": "TBD",
+        "protocol_description": "Bresser lightning"
+    },
+    "250": {
+        "name": "TBD",
+        "protocol_description": "Schou 72543 Day Rain Gauge, Motonet MTX Rain, MarQuant Rain Gauge, TFA Dostmann 30.3252.01/47.3006.01 Rain Gauge and Thermometer, ADE WS1907"
+    },
+    "251": {
+        "name": "TBD",
+        "protocol_description": "Fine Offset / Ecowitt WH55 water leak sensor"
+    },
+    "252": {
+        "name": "TBD",
+        "protocol_description": "BMW Gen4-Gen5 TPMS and Audi TPMS Pressure Alert, multi-brand HUF/Beru, Continental, Schrader/Sensata, Audi"
+    },
+    "253": {
+        "name": "TBD",
+        "protocol_description": "Watts WFHT-RF Thermostat"
+    },
+    "254": {
+        "name": "TBD",
+        "protocol_description": "Thermor DG950 weather station"
+    },
+    "255": {
+        "name": "TBD",
+        "protocol_description": "Mueller Hot Rod water meter"
+    },
+    "256": {
+        "name": "TBD",
+        "protocol_description": "ThermoPro TP28b Super Long Range Wireless Meat Thermometer for Smoker BBQ Grill"
+    },
+    "257": {
+        "name": "TBD",
+        "protocol_description": "BMW Gen3 TPMS"
+    },
+    "258": {
+        "name": "TBD",
+        "protocol_description": "Chamberlain CWPIRC PIR Sensor"
+    },
+    "259": {
+        "name": "TBD",
+        "protocol_description": "ThermoPro TP829b Meat Thermometer 4 coated probes"
+    },
+    "260": {
+        "name": "TBD",
+        "protocol_description": "Arad/Master Meter Dialog3G water utility meter"
+    },
+    "261": {
+        "name": "TBD",
+        "protocol_description": "Geevon TX16-3 outdoor sensor"
+    },
+    "262": {
+        "name": "TBD",
+        "protocol_description": "Fine Offset Electronics WH46 air quality sensor"
+    },
+    "263": {
+        "name": "TBD",
+        "protocol_description": "Vevor Wireless Weather Station 7-in-1"
+    }
+}
