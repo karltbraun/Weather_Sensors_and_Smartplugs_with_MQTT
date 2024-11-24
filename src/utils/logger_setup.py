@@ -1,15 +1,15 @@
 """
-ktb_logger.py
+logger_setup.py
 
 This module provides a function to set up logging for the application.
 It allows configuring logging levels for both console and file handlers,
 and optionally clears existing loggers.
 
 Functions:
-    ktb_logger(
-        clear_logger: bool, 
-        console_level: int, 
-        file_level: int, 
+    logger_setup(
+        clear_logger: bool,
+        console_level: int,
+        file_level: int,
         file_handler: str
     ) -> logging.Logger
 """
@@ -17,7 +17,7 @@ Functions:
 import logging
 
 
-def ktb_logger(
+def logger_setup(
     clear_logger: bool = False,
     console_level: int = logging.INFO,
     file_level: int = logging.ERROR,

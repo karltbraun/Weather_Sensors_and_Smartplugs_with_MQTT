@@ -48,7 +48,7 @@ from src.models import devices
 from src.utils.device_maps import my_sensors_id_map
 
 # custom logger
-from src.utils.ktb_logger import ktb_logger
+from src.utils.logger_setup import logger_setup
 
 # utility functions
 from src.utils.misc_utils import (  # get_pub_root,
@@ -71,7 +71,7 @@ protocol_manager = ProtocolManager()
 # ###################################################################### #
 
 
-logger = ktb_logger(
+logger = logger_setup(
     clear_logger=True,
     console_level=logging.DEBUG,
     file_level=logging.DEBUG,
