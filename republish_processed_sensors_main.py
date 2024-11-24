@@ -73,8 +73,8 @@ protocol_manager = ProtocolManager()
 
 logger = logger_setup(
     clear_logger=True,
-    console_level=logging.DEBUG,
-    file_level=logging.DEBUG,
+    # console_level=logging.DEBUG,
+    # file_level=logging.DEBUG,
     file_handler="logs/republish_processed_sensors.log",
 )
 

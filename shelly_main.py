@@ -33,8 +33,8 @@ def main() -> None:
 
     logger = logger_setup(
         clear_logger=True,
-        console_level=logging.DEBUG,
-        file_level=logging.DEBUG,
+        # console_level=logging.DEBUG,
+        # file_level=logging.DEBUG,
         file_handler="logs/shelly.log",
     )
 
