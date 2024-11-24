@@ -53,7 +53,7 @@ from src.utils.ktb_logger import ktb_logger
 # utility functions
 from src.utils.misc_utils import (  # get_pub_root,
     get_pub_source,
-    get_sub_topics_republish,
+    get_sub_topics,
 )
 
 # ###################################################################### #
@@ -75,7 +75,7 @@ logger = ktb_logger(
     clear_logger=True,
     console_level=logging.DEBUG,
     file_level=logging.DEBUG,
-    file_handler="Data/republish_processed_sensors.log",
+    file_handler="logs/republish_processed_sensors.log",
 )
 
 # TODO: Move these to broker_config.py
@@ -277,7 +277,7 @@ def main() -> None:
     SLEEP_TIME_S = 5  # pylint: disable=invalid-name
 
     # MQTT Topic(s)
-    sub_topics: list = get_sub_topics_republish()
+    sub_topics: list = get_sub_topics("SUB_TOPICS_REPUBLISH")
     # pub_root = get_pub_root()
     pub_source = get_pub_source()
     pub_topics = generate_pub_topics(pub_source)

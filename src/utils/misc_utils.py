@@ -77,3 +77,21 @@ def get_sub_topics_republish() -> list:
         sub_topics = env_sub_topics.split(",")
 
     return sub_topics
+
+
+# ###################################################################### #
+#                             get_sub_topics
+# ###################################################################### #
+
+
+def get_sub_topics(env_var_name: str) -> list:
+    """Get the subscription topics from the specified environment variable."""
+
+    env_sub_topics = os.getenv(env_var_name, None)
+    if env_sub_topics is None:
+        # Default to subscribing to all topics
+        sub_topics = ["#"]
+    else:
+        sub_topics = env_sub_topics.split(",")
+
+    return sub_topics

@@ -13,7 +13,7 @@ from src.utils.ktb_logger import ktb_logger
 from src.utils.misc_utils import (
     get_pub_root,
     get_pub_source,
-    get_sub_topics_shelly,
+    get_sub_topics,
 )
 
 # ###################################################################### #
@@ -35,7 +35,7 @@ def main() -> None:
         clear_logger=True,
         console_level=logging.DEBUG,
         file_level=logging.DEBUG,
-        file_handler="Data/shelly.log",
+        file_handler="logs/shelly.log",
     )
 
     # ############################ MQTT Setup ############################ #
@@ -45,7 +45,7 @@ def main() -> None:
     broker_name = broker_config["MQTT_BROKER_ADDRESS"]
 
     # MQTT Topic(s)
-    sub_topics: list = get_sub_topics_shelly()
+    sub_topics: list = get_sub_topics("SUB_TOPICS_SHELLY")
     pub_topic_root = get_pub_root()
     pub_source = get_pub_source()
 

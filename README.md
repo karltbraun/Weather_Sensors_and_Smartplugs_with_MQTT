@@ -47,13 +47,17 @@ The current version assumes the same broker for subscribing and publishing; but 
 
 This file
 
-#### republish_processed_sensors.py
+#### republish_processed_sensors_main.py
 
 The main entry point for the routines which consume topics from the RTL_433 program publishing flat mqtt data, gathers the data into a dictionary of devices, and then republishes the data in a json package for each device.
 
 #### shelly_main.py
 
 The main entry point for the routines which consume the data published by the shelly smartplugs and republishes the data in flat MQTT fashion for easy analysis.
+
+### logs
+
+This directory is where the log files are written.
 
 ### config
 

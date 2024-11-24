@@ -5,6 +5,10 @@ Archive/*
 mqtt_secrets.py
 data/*
 Data/*
+log/*
+logs/*
+Log/*
+Logs/*
 # *.json
 
 ### macOS ###
