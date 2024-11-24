@@ -6,7 +6,7 @@ import subprocess
 # ###################################################################### #
 
 
-def celsius_to_fahrenheit(self, celsius: float) -> float:
+def celsius_to_fahrenheit(celsius: float) -> float:
     """convert celsius to fahrenheit"""
     return (celsius * 9 / 5) + 32
 

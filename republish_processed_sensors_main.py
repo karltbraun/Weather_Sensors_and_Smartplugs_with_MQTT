@@ -4,20 +4,20 @@ republish_processed_sensors_main.py - 20241119
 main entry point for the code to consume flat MQTT messages about sensors and
 republish them as devices with json payloads.
 
-This script subscribes to raw sensor data from an MQTT broker. 
+This script subscribes to raw sensor data from an MQTT broker.
 The raw data consists of attributes published in their own subtopics for each device,
 e.g., KTBMES/raw/1234/temperature_C, KTBMES/raw/1234/channel, KTBMES/raw/1234/noise, etc.
 
-The script collects attributes for each device (identified by device ID) and stores them 
-in a dictionary indexed by the device ID. The value includes the time the data was last 
+The script collects attributes for each device (identified by device ID) and stores them
+in a dictionary indexed by the device ID. The value includes the time the data was last
 received, the protocol_id (which indicates how to parse the rest of the data),
 and the rest of the data as a sub-dictionary.
 
-Periodically, the dictionary of devices is written to a JSON file for further use. 
+Periodically, the dictionary of devices is written to a JSON file for further use.
 At startup, if the JSON file exists, it initializes the dictionary with the data from the file.
 
-The script handles known temperature sensors and other discovered devices, analyzing their data 
-for potential use. The JSON file can be used to either republish the data to a new topic or 
+The script handles known temperature sensors and other discovered devices, analyzing their data
+for potential use. The JSON file can be used to either republish the data to a new topic or
 display it on a web page.
 """
 
@@ -34,7 +34,7 @@ from dotenv import load_dotenv
 from config.broker_config import BROKER_CONFIG, load_broker_config
 
 # transforms input data into device attributes
-from src.managers.message_manager import MessageManager
+from src.managers.message_manager_republish import MessageManager
 
 # handles all MQTT specific functions
 from src.managers.mqtt_manager import MQTTManager
@@ -73,6 +73,7 @@ logger = ktb_logger(
     file_handler="Data/republish_processed_sensors.log",
 )
 
+# TODO: Move these to broker_config.py
 load_dotenv()
 load_broker_config()
 
@@ -173,7 +174,10 @@ def get_topic_for_device(
 
 
 def publish_device(
-    device_id: int, device_data: dict, topic: str, mqtt_manager: MQTTManager
+    device_id: int,
+    device_data: dict,
+    topic: str,
+    mqtt_manager: MQTTManager,
 ) -> None:
     """Publish the device data"""
     my_name = "publish_device"
@@ -227,7 +231,9 @@ def device_updated(device_data: dict) -> bool:
     last_published = device_data.get("time_last_published_ts", 0)
 
     if last_seen is None or last_published is None:
-        logging.debug("%s: last_seen or last_published is None:\n", my_name)
+        logging.debug(
+            "%s: last_seen or last_published is None:\n", my_name
+        )
     elif last_seen > last_published:
         updated = True
 
@@ -333,7 +339,8 @@ def main() -> None:
             #   processing involves updating DeviceRegistry with new data
             while not message_queue.empty():
                 logging.debug(
-                    "Main: Loop: Processing %d messages", message_queue.qsize()
+                    "Main: Loop: Processing %d messages",
+                    message_queue.qsize(),
                 )
                 message_manager.process_message(
                     message_queue.get(), devices, protocol_manager
@@ -341,13 +348,17 @@ def main() -> None:
 
             # ################## publish all updated devices  ################### #
 
-            logging.debug("Main: Loop: Processing %d devices", len(devices))
+            logging.debug(
+                "Main: Loop: Processing %d devices", len(devices)
+            )
             for device_id, device_data in devices.items():
                 if device_updated(device_data):
                     topic: str = get_topic_for_device(
                         device_id, device_data, pub_topics
                     )
-                    publish_device(device_id, device_data, topic, mqtt_manager)
+                    publish_device(
+                        device_id, device_data, topic, mqtt_manager
+                    )
 
     except KeyboardInterrupt:
         print("Keyboard Interrupt received, exiting.")

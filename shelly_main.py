@@ -16,12 +16,6 @@ from src.utils.misc_utils import (
     get_sub_topics_shelly,
 )
 
-# from dotenv import load_dotenv
-
-
-# load_dotenv()
-
-
 # ###################################################################### #
 #                             Main Function
 # ###################################################################### #

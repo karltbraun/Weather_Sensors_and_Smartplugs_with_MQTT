@@ -9,6 +9,7 @@ from typing import Any, Dict, Tuple
 import paho.mqtt.client as mqtt
 
 from src.utils.device_maps import my_sensors_id_map
+from src.utils.misc_utils import celsius_to_fahrenheit
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -143,7 +144,7 @@ class MessageManager:
 
         # if the tag is "temperature_C", add in the temperature in Fahrenheit
         elif tag == "temperature_C":
-            temperature_f = self.celsius_to_fahrenheit(payload)
+            temperature_f = celsius_to_fahrenheit(payload)
             logging.debug(
                 "%s: tag is temperature_C - adding temperature_F\n"
                 "\tdevice_id: %s\n"

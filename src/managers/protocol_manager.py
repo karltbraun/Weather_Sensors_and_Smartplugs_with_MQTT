@@ -1,10 +1,10 @@
-""" protocol_manager.py
-    Protocol Manager to handle RTL_433 protocols
+"""protocol_manager.py
+Protocol Manager to handle RTL_433 protocols
 """
 
 import json
 import time
-from typing import Dict, Type
+from typing import Dict
 
 from ..models.devices import DeviceTPM, DeviceUnknown, DeviceWeather
 
@@ -24,7 +24,9 @@ def load_json_file(file_path: str) -> Dict[str, Dict]:
             f"{my_name}: Error decoding JSON from {file_path}: {ex}"
         ) from ex
     except (OSError, IOError) as ex:
-        raise ValueError(f"{my_name}: Error loading file {file_path}: {ex}") from ex
+        raise ValueError(
+            f"{my_name}: Error loading file {file_path}: {ex}"
+        ) from ex
 
 
 # ###################################################################### #
@@ -109,7 +111,9 @@ class ProtocolManager:
     def is_weather_sensor(self, protocol_id: str) -> bool:
         """Check if protocol ID is for a weather sensor"""
         self._load_configurations()
-        return protocol_id in self.categories.get("weather_sensor_protocol_ids", [])
+        return protocol_id in self.categories.get(
+            "weather_sensor_protocol_ids", []
+        )
 
     # ############################ is_unk_weather_sensor ############################ #
 
@@ -123,4 +127,6 @@ class ProtocolManager:
     def is_pressure_sensor(self, protocol_id: str) -> bool:
         """Check if protocol ID is for a pressure sensor"""
         self._load_configurations()
-        return protocol_id in self.categories.get("pressure_sensor_protocol_ids", [])
+        return protocol_id in self.categories.get(
+            "pressure_sensor_protocol_ids", []
+        )
