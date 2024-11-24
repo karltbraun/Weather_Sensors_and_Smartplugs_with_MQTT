@@ -1,4 +1,4 @@
-""" temp module docstring """
+"""temp module docstring"""
 
 import json
 import logging
@@ -20,11 +20,14 @@ class MQTTManager:
     """tmp docstring - update after code changes"""
 
     def __init__(
-        self, broker_config, subscribe_topics="#", publish_topic_root="DEFAULT_TOPIC"
+        self,
+        broker_config,
+        subscribe_topics="#",
+        publish_topic_root="DEFAULT_TOPIC",
     ):
         self.broker_config = broker_config
-        self.subscribe_topics = subscribe_topics or []
-        self.publish_topic_root = publish_topic_root
+        self.subscribe_topics: list = subscribe_topics
+        self.publish_topic_root: str = publish_topic_root
         self.message_queue_in = Queue()
         self.message_queue_out = Queue()
         self.client = self.mqtt_setup()
@@ -37,27 +40,34 @@ class MQTTManager:
         Returns:
             mqtt.Client: Configured MQTT client instance.
         """
-        # my_name = "mqtt_setup"
 
         client = mqtt.Client()
-        userdata = {
-            "message_queue": self.message_queue_in,
-            "subscribed_topics": self.subscribe_topics,
-            "publish_topic_root": self.publish_topic_root,
-        }
-        client.user_data_set(userdata)
+        # userdata = {
+        #     "message_queue": self.message_queue_in,
+        #     "subscribed_topics": self.subscribe_topics,
+        #     "publish_topic_root": self.publish_topic_root,
+        # }
+        # client.user_data_set(userdata)
+
+        # set the callback functions
         client.on_connect = self.on_connect
         client.on_message = self.on_message
         client.on_log = self.on_log
         client.on_disconnect = self.on_disconnect
+
+        # set the username and password
         client.username_pw_set(
-            self.broker_config["MQTT_USERNAME"], self.broker_config["MQTT_PASSWORD"]
+            self.broker_config["MQTT_USERNAME"],
+            self.broker_config["MQTT_PASSWORD"],
         )
+
+        # connect to the broker
         client.connect(
             self.broker_config["MQTT_BROKER_ADDRESS"],
             self.broker_config["MQTT_BROKER_PORT"],
-            60,
+            self.broker_config["MQTT_KEEPALIVE"],
         )
+
         return client
 
     # ############################ ON_CONNECT  ############################ #
@@ -67,7 +77,8 @@ class MQTTManager:
         On Connect Callback function for MQTT client.
         """
 
-        topics = userdata["subscribed_topics"]
+        # topics = userdata["subscribed_topics"]
+        topics: list = self.subscribe_topics
 
         if logging.getLogger().isEnabledFor(logging.DEBUG):
             tborder = "*" * 60
@@ -92,7 +103,10 @@ class MQTTManager:
     # ############################ ON_MESSAGE ############################ #
 
     def on_message(
-        self, client, userdata, msg: mqtt.MQTTMessage  # pylint: disable=unused-argument
+        self,
+        client,
+        userdata,
+        msg: mqtt.MQTTMessage,  # pylint: disable=unused-argument
     ) -> None:
         """
         Callback function for when a message is received from the MQTT broker.
@@ -112,7 +126,11 @@ class MQTTManager:
     # ############################ ON_LOG  ############################ #
 
     def on_log(
-        self, client, userdata, level, buf  # pylint: disable=unused-argument
+        self,
+        client,
+        userdata,
+        level,
+        buf,  # pylint: disable=unused-argument
     ) -> None:
         """
         Callback function for MQTT client logging.
@@ -139,7 +157,11 @@ class MQTTManager:
         buf_parts = buf.split(" ")
         buf_prelude = f"{buf_parts[0]} {buf_parts[1]}"
         if buf_prelude not in exclude_messages:
-            msg = f"Log Entry:\n" f"\tlevel: {int(level)}\n" f"\tmessage: {buf}\n"
+            msg = (
+                f"Log Entry:\n"
+                f"\tlevel: {int(level)}\n"
+                f"\tmessage: {buf}\n"
+            )
             logging.info(msg)
 
     # ############################ ON_DISCONNECT ############################ #
@@ -163,7 +185,9 @@ class MQTTManager:
             type: Description
         """
         if rc == 0 or rc is None:
-            emsg = f"Graceful disconnection at {datetime.now().isoformat()}"
+            emsg = (
+                f"Graceful disconnection at {datetime.now().isoformat()}"
+            )
             logging.debug(emsg)
         else:
             emsg = (
@@ -172,7 +196,7 @@ class MQTTManager:
                 f"\tReason Code: {rc}\n"
                 f"\t(type of Reason Code is: {type(rc)}\n"
                 f"\tProperties: {properties}"
-                f"\tUserdata: {userdata}"
+                # f"\tUserdata: {userdata}"
             )
             logging.debug(emsg)
 

@@ -9,6 +9,8 @@ environment variables if available.
 import json
 import os
 
+from dotenv import load_dotenv
+
 # get normal default values from mqtt_config
 from config.mqtt_config import MQTT_DEFAULT_KEEPALIVE, MQTT_DEFAULT_PORT
 
@@ -20,14 +22,21 @@ MY_NAME = "broker_config"
 
 BROKER_CONFIG = {
     "TS-VULTR1": {
-        "MQTT_BROKER_ADDRESS": "100.76.195.63",
+        "MQTT_BROKER_ADDRESS": "TS-Vultr1",
         "MQTT_BROKER_PORT": MQTT_DEFAULT_PORT,
         "MQTT_USERNAME": "",
         "MQTT_PASSWORD": "",
         "MQTT_KEEPALIVE": MQTT_DEFAULT_KEEPALIVE,
     },
     "PI-02": {
-        "MQTT_BROKER_ADDRESS": "10.24.94.78",
+        "MQTT_BROKER_ADDRESS": "pi2",
+        "MQTT_BROKER_PORT": MQTT_DEFAULT_PORT,
+        "MQTT_USERNAME": "",
+        "MQTT_PASSWORD": "",
+        "MQTT_KEEPALIVE": MQTT_DEFAULT_KEEPALIVE,
+    },
+    "mqtt.eclipse.org": {
+        "MQTT_BROKER_ADDRESS": "mqtt.eclipse.org",
         "MQTT_BROKER_PORT": MQTT_DEFAULT_PORT,
         "MQTT_USERNAME": "",
         "MQTT_PASSWORD": "",
@@ -35,12 +44,25 @@ BROKER_CONFIG = {
     },
 }
 
+# broker to use if no other is specified
+DEFAULT_BROKER_NAME = "mqtt.eclipse.org"
 
-def load_broker_config():
+
+# ###################################################################### #
+#                          load_broker_config
+# ###################################################################### #
+
+
+def load_broker_config() -> dict:
     """
     Load MQTT_CONFIG_INFO from environment variable and update BROKER_CONFIG.
     """
     my_name = "load_broker_config"
+    load_dotenv()
+
+    #
+    # configure secrets in BROKER_CONFIG from environment variables
+    #
 
     mqtt_config_info_str = os.getenv("MQTT_CONFIG_INFO")
     if mqtt_config_info_str is None:
@@ -63,3 +85,14 @@ def load_broker_config():
             config["MQTT_PASSWORD"] = mqtt_config_info[key][
                 "MQTT_PASSWORD"
             ]
+
+    #
+    # Update BROKER_NAME from environment variable
+    #
+
+    broker_name = os.getenv("BROKER_NAME", DEFAULT_BROKER_NAME)
+    broker_config = BROKER_CONFIG.get(broker_name)
+    print(f"{my_name}: Using broker {broker_name}")
+    print(f"\t{broker_config}")
+
+    return broker_config

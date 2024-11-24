@@ -1,5 +1,5 @@
-""" process_messages - routines to process incoming messages, which are individual
-    tags (attributes: values) from a sensor device.
+"""process_messages - routines to process incoming messages, which are individual
+tags (attributes: values) from a sensor device.
 """
 
 import logging
@@ -28,7 +28,10 @@ class MessageManager:
     # ##############################################################################
 
     def process_message(
-        self, msg: mqtt.MQTTMessage, devices: Dict[str, Any], protocol_manager
+        self,
+        msg: mqtt.MQTTMessage,
+        devices: Dict[str, Any],
+        protocol_manager,
     ) -> None:
         """process_message - process a single message from the message queue
         The message is on a subscribed-to topic received from the MQTT broker
@@ -78,7 +81,9 @@ class MessageManager:
         # update the device dictionary with the new data
         if device_id not in devices:
             logging.debug(
-                "%s: creating new device entry for device %s\n", my_name, device_id
+                "%s: creating new device entry for device %s\n",
+                my_name,
+                device_id,
             )
             current_time = datetime.now()
             devices[device_id] = {
@@ -120,7 +125,9 @@ class MessageManager:
         # if this is a protocol tag (a protocol ID), add the protocol name
         #   and description to the device dictionary
         if tag == "protocol_id":
-            devices[device_id]["protocol_id"] = payload  # Update protocol_id
+            devices[device_id]["protocol_id"] = (
+                payload  # Update protocol_id
+            )
             (
                 devices[device_id]["protocol_name"],
                 devices[device_id]["protocol_description"],
@@ -208,13 +215,22 @@ class MessageManager:
                 case "channel" | "battery_ok":
                     # these payloads may be a single byte integer or character
                     try:
-                        new_payload = int.from_bytes(current_payload, byteorder="big")
+                        new_payload = int.from_bytes(
+                            current_payload, byteorder="big"
+                        )
                     except ValueError:
                         # note: subsequent exceptions are caught by the
                         # outer try-except block
                         new_payload = current_payload.decode("utf-8")
 
-                case "temperature_C" | "humidity" | "freq" | "rssi" | "snr" | "noise":
+                case (
+                    "temperature_C"
+                    | "humidity"
+                    | "freq"
+                    | "rssi"
+                    | "snr"
+                    | "noise"
+                ):
                     # these payloads are floats
                     new_payload = float(current_payload.decode("utf-8"))
 
@@ -232,7 +248,9 @@ class MessageManager:
 
     # ############################ get_proto_info ############################ #
 
-    def get_proto_info(self, payload: bytes, protocol_manager) -> Tuple[str, str]:
+    def get_proto_info(
+        self, payload: bytes, protocol_manager
+    ) -> Tuple[str, str]:
         """assuming the payload is protocol ID, get the protocol name and description"""
         my_name = "get_proto_info"
 
@@ -272,22 +290,27 @@ class MessageManager:
         if p_info is None or p_info == {}:
             p_name = "**ERROR**"
             p_description = "Protocol not in protocol definitions"
-            logging.debug("%s: Error parsing message: \n\t%s\n", my_name, p_id)
+            logging.debug(
+                "%s: Error parsing message: \n\t%s\n", my_name, p_id
+            )
         else:
             try:
                 p_name = p_info["name"]
                 p_description = p_info["protocol_description"]
             except KeyError as ex:
                 raise ValueError(
-                    f"{my_name}: Error parsing protocol info: {ex}\n" f"\t{p_info}\n"
+                    f"{my_name}: Error parsing protocol info: {ex}\n"
+                    f"\t{p_info}\n"
                 ) from ex
 
-        logging.debug("%s:\n\tProtocol ID: %s\n\t: %s\n", my_name, p_id, p_name)
+        logging.debug(
+            "%s:\n\tProtocol ID: %s\n\t: %s\n", my_name, p_id, p_name
+        )
 
         return p_name, p_description
 
-    # ############################ celsius_to_fahrenheit ############################ #
+    # # ############################ celsius_to_fahrenheit ############################ #
 
-    def celsius_to_fahrenheit(self, celsius: float) -> float:
-        """convert celsius to fahrenheit"""
-        return (celsius * 9 / 5) + 32
+    # def celsius_to_fahrenheit(self, celsius: float) -> float:
+    #     """convert celsius to fahrenheit"""
+    #     return (celsius * 9 / 5) + 32

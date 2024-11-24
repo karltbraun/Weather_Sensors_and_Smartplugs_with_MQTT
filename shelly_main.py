@@ -3,137 +3,23 @@ shelly_main.py 20241116
 """
 
 import logging
-import os
-import subprocess
 import time
-from datetime import datetime
 from queue import Queue
 
-from dotenv import load_dotenv
-
-from config.broker_config import BROKER_CONFIG, load_broker_config
-from src.managers.aamqtt_manager_shelly import MQTTManager
+from config.broker_config import load_broker_config
 from src.managers.message_manager_shelly import MessageManager
-
-# from src.managers.protocol_manager import ProtocolManager
-# from src.models import devices
-# from src.utils.device_maps import my_sensors_id_map
+from src.managers.mqtt_manager import MQTTManager
 from src.utils.ktb_logger import ktb_logger
+from src.utils.misc_utils import (
+    get_pub_root,
+    get_pub_source,
+    get_sub_topics_shelly,
+)
 
-load_dotenv()
-
-
-# ###################################################################### #
-#                       normalize_payload                                #
-# ###################################################################### #
-
-
-def normalize_payload(payload: dict) -> dict:
-    """
-    Normalize the payload based on the topic.
-    This is a placeholder function in case we need to do something to
-    normalize the payload before further processing.
-    """
-    # Implement your normalization logic here
-
-    return payload
+# from dotenv import load_dotenv
 
 
-# ###################################################################### #
-#                             get_protocol_id
-# ###################################################################### #
-
-
-def get_protocol_id(device_data: dict) -> int:
-    """
-    Get the protocol ID from the device data.
-    """
-    my_name = "get_protocol_id"
-    protocol_id = device_data.get("protocol", -1)
-    if isinstance(protocol_id, str):
-        protocol_id = int(protocol_id)
-
-    if not isinstance(protocol_id, int):
-        raise ValueError(
-            "***************************************************************"
-            f"{my_name}: protocol_id is not an integer: \n"
-            f"\tProtocol_id: {protocol_id}"
-            "***************************************************************"
-        )
-
-    return protocol_id
-
-
-# ###################################################################### #
-#                             publish_device
-# ###################################################################### #
-
-# client.publish for reference:
-#   client.publish(topic, payload=None, qos=0, retain=False, properties=None)
-
-
-def publish_device(
-    device_id: int,
-    device_data: dict,
-    topic: str,
-    mqtt_manager: MQTTManager,
-) -> None:
-    """Publish the device data"""
-    my_name = "publish_device"
-
-    logging.debug(
-        "%s: Publishing to known sensor topic:\n"
-        "\tTopic: %s\n"
-        "\tDevice ID: %s\n"
-        "\tDevice Data: %s\n",
-        my_name,
-        topic,
-        device_id,
-        device_data,
-    )
-
-    # get the current time (for updating time published) before we actually
-    # publish in case new data comes in while we are processing
-    time_now = datetime.now().timestamp()
-
-    # publish and update published times
-    mqtt_manager.publish_dict(topic, device_data)
-    device_data["time_last_published_ts"] = time_now
-    device_data["time_last_published_iso"] = datetime.fromtimestamp(
-        time_now
-    ).isoformat()
-
-    emsg = (
-        f"{my_name}: Updated last published time for deviced {device_id}\n"
-        f"\ttime_last_published_ts: {device_data['time_last_published_ts']}\n"
-        f"\ttime_last_published_iso: {device_data['time_last_published_iso']}\n"
-    )
-    logging.debug(emsg)
-
-
-# ###################################################################### #
-#                             device_not_updated
-# ###################################################################### #
-
-
-def device_not_updated(device_data: dict) -> bool:
-    """
-    Check if the device has been updated since it was last seen.
-    """
-    my_name = "device_not_updated"
-
-    not_updated = False
-    last_seen = device_data.get("time_last_seen_ts", 0)
-    last_published = device_data.get("time_last_published_ts", 0)
-
-    if last_seen is None or last_published is None:
-        logging.debug(
-            "%s: last_seen or last_published is None:\n", my_name
-        )
-    elif last_seen < last_published:
-        not_updated = True
-
-    return not_updated
+# load_dotenv()
 
 
 # ###################################################################### #
@@ -145,22 +31,9 @@ def main() -> None:
     """
     Main function to set up and run the MQTT client for processing messages.
     """
-    # function constants - set config values here
-    load_broker_config()
-    BROKER_NAME = "TS-VULTR1"  # pylint: disable=invalid-name
+
+    # local constants
     SLEEP_TIME_S = 5  # pylint: disable=invalid-name
-
-    # MQTT Publication Topic(s)
-    pub_source = os.getenv("PUB_SOURCE", None)
-    if pub_source is None:
-        # get the hostname from the environment
-        pub_source = subprocess.getoutput("hostname").replace(".local", "")
-
-    pub_topic_root = f"KTBMES/{pub_source}/smartplugs"
-    pub_topic_shelly = f"{pub_topic_root}/shelly"  # pylint: disable=unused-variable
-
-    # MQTT Subscription Topic(s)
-    sub_topics: list = ["Shelly/#"]
 
     # ############################ Logger Setup ############################ #
 
@@ -173,11 +46,21 @@ def main() -> None:
 
     # ############################ MQTT Setup ############################ #
 
-    broker_name = BROKER_NAME
+    # load in broker information
+    broker_config: dict = load_broker_config()
+    broker_name = broker_config["MQTT_BROKER_ADDRESS"]
+
+    # MQTT Subscription Topic(s)
+    sub_topics: list = get_sub_topics_shelly()
+    pub_topic_root = get_pub_root()
+    pub_source = get_pub_source()
+
+    # intantiate the MQTT manager
+    #  we set the publish_topic_root to NULL because we create it in the message_manager
     mqtt_manager = MQTTManager(
-        broker_config=BROKER_CONFIG[broker_name],
+        broker_config=broker_config,
         subscribe_topics=sub_topics,
-        publish_topic_root=pub_topic_root,
+        publish_topic_root="NULL",
     )
 
     # instantiate the MQTT client and get the message queues setup

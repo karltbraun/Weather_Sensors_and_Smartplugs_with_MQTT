@@ -28,15 +28,12 @@ The main loop is fairly common between the two as well:
 
 The current version assumes the same broker for subscribing and publishing; but there are some aspects of the code which were set up so that multiple brokers could be used.
 
-
 ## Table of Contents
 
 - [Weather\_Sensors\_and\_Smartplugs\_with\_MQTT](#weather_sensors_and_smartplugs_with_mqtt)
   - [Table of Contents](#table-of-contents)
   - [Installation](#installation)
   - [Directory Structure](#directory-structure)
-
-
 
 ## Installation
 
@@ -65,7 +62,6 @@ The main entry point for the routines which consume the data published by the sh
 Setups up a dictionary with different broker configurations so that it is fairly easy to switch between brokers for testing.  Note that username and password information is kept in the .env file which is read by load_broker_config and then used to update the dictionary.
 
 I'm not using a username and password in my current testing, so this logic hasn't been very well tested.
-
 
 #### config/device_ids.json
 
@@ -106,6 +102,7 @@ This directory contains most of the code, divided up into separate subdirectorie
 Code and data which manage the more object-oriented aspects of the code.
 
 ##### message_manager.py
+
 [TODO] shelly vs republish
 
 #### mqtt_manager.py
@@ -139,6 +136,7 @@ For example, we will have a weather sensor in the garage along with one of the s
 Pretty useful routine cooked up by chatGPT to take a possibly-nested dictionary and turn it in to a series of topic-value pairs for publishing into a flat mqtt namespace.
 
 ##### ktb_loggerpy
+
 [TODO] change the name to something more generic
 
 A simple logger setup routine module

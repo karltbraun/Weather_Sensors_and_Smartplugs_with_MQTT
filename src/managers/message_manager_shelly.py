@@ -1,19 +1,18 @@
-""" process_messages - routines to process incoming messages
-        which are json payloads or single key-value pairs as put out 
-        by the Shelly devices.
-    tags (attributes: values) from a sensor device.
+"""process_messages - routines to process incoming messages
+    which are json payloads or single key-value pairs as put out
+    by the Shelly devices.
+tags (attributes: values) from a sensor device.
 """
 
 import json
 import logging
-import os
-import subprocess
 from queue import Queue
-from typing import Any, Dict, Tuple
+from typing import Dict, Tuple
 
 import paho.mqtt.client as mqtt
 
 from src.utils.flatten_json import flatten_json
+from src.utils.misc_utils import get_pub_source
 
 # from src.utils.device_maps import my_sensors_id_map
 
@@ -24,9 +23,12 @@ logging.basicConfig(level=logging.DEBUG)
 # ##############################################################################
 
 # maps device names into rooms
+# TODO: this should be moved to a json file the way other maps are done
 DEVICE_ROOM_MAP = {"Shelly_EV": "garage", "Shelly_Lab_01": "office"}
 
 # constant strings for creating publication topics
+# 'ENTERPRISE' is used as the top level topic part as I am working with
+#   ISA-95 part 2 symatnic hierarchy (ENTERPRISE/SITE/AREA/LINE/CELL/...)
 ENTERPRISE = "KTBMES"
 DEVICE_TYPE = "smartplugs"
 
@@ -60,29 +62,30 @@ def create_pub_topic(topic: str) -> str:
     """
     my_name = "create_pub_topic"
 
-    def get_source() -> str:
-        """Get the source from the hostname or environment."""
-        source = os.getenv("PUB_SOURCE", None)
-        if source is None:
-            source = subprocess.getoutput("hostname").replace(".local", "")
-        return source
-
     def get_room(device_name: str) -> str:
         """Get the room from the device name."""
-        return DEVICE_ROOM_MAP.get(device_name, f"UNK Plug Name {device_name}")
+        return DEVICE_ROOM_MAP.get(
+            device_name, f"UNK Plug Name {device_name}"
+        )
 
     topic_parts = topic.split("/")
 
     if len(topic_parts) < 3:
-        emsg = f"{my_name}: Invalid topic format"
+        emsg = (
+            f"/n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+            f"{my_name}: Invalid topic format -- too few parts: {topic}"
+            f"/n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+        )
         raise ValueError(emsg)
 
-    source = get_source()
-    device_name = topic_parts[1]
+    source = get_pub_source()  # get the hostname of the publishing device
+    device_name = topic_parts[1]  # get the device name from the topic
     room = get_room(device_name)  # EV, Lab, Office, etc
     tag = topic_parts[-1]
 
-    pub_topic = f"{ENTERPRISE}/{source}/{room}/{DEVICE_TYPE}/{device_name}/{tag}"
+    pub_topic = (
+        f"{ENTERPRISE}/{source}/{room}/{DEVICE_TYPE}/{device_name}/{tag}"
+    )
     return pub_topic
 
 
@@ -99,7 +102,9 @@ class MessageManager:
 
     # ############################ process_message  ############################ #
 
-    def process_message(self, msg: mqtt.MQTTMessage, message_queue_out: Queue) -> None:
+    def process_message(
+        self, msg: mqtt.MQTTMessage, message_queue_out: Queue
+    ) -> None:
         """process_message -
         Processes a single MQTT message and appends the processed data to the
         output message queue.  The function handles different types of payloads
@@ -132,7 +137,9 @@ class MessageManager:
                 f"{my_name}: Failed to decode payload\n\ttopic = {topic}\n\terror = {e}"
             ) from e
 
-        emsg = f"{my_name}:\n\tinbound topic = {topic}\n\tPayload = {payload}"
+        emsg = (
+            f"{my_name}:\n\tinbound topic = {topic}\n\tPayload = {payload}"
+        )
         logging.debug(emsg)
 
         # ######################### process json object ######################### #
@@ -143,14 +150,18 @@ class MessageManager:
                 json_object = json.loads(payload)
                 flattened_json: list = flatten_json(json_object)
                 logging.debug(
-                    "%s:\n\treturning flattened = %s", my_name, flattened_json
+                    "%s:\n\treturning flattened = %s",
+                    my_name,
+                    flattened_json,
                 )
 
                 for item in flattened_json:
                     payload = item[2]
                     tag = item[0]
                     pub_topic2 = f"{pub_topic}/{tag}"
-                    message_queue_out.put((pub_topic2, payload, qos, retain))
+                    message_queue_out.put(
+                        (pub_topic2, payload, qos, retain)
+                    )
 
                 logging.debug(
                     "%s:\n\treturning messages to publish:\n\t%s",
@@ -170,7 +181,9 @@ class MessageManager:
             try:
                 list_object = json.loads(payload)
                 if isinstance(list_object, list):
-                    message_queue_out.put((pub_topic, payload, qos, retain))
+                    message_queue_out.put(
+                        (pub_topic, payload, qos, retain)
+                    )
 
                     emsg = f"{my_name}:\n\treturning list = {list_object}"
                     logging.debug(emsg)
@@ -216,85 +229,11 @@ class MessageManager:
 
         message_queue_out.put((pub_topic, payload, qos, retain))
 
-    # ###################################################################### #
-    #                             normalize_payload
-    # ###################################################################### #
-
-    def normalize_payload(self, tag, current_payload: bytes) -> Any:
-        """
-        Normalize the payload based on the provided tag.
-
-        Args:
-            tag (str): The tag indicating the type of the payload.
-            current_payload (bytes): The payload data in bytes.
-
-        Returns:
-            Any: The normalized payload. The type of the returned value depends on the tag:
-                - "time": Decoded as a UTF-8 string.
-                - "protocol", "channel", "battery_ok": Decoded as an integer.
-                - "temperature_C", "humidity", "freq", "rssi", "snr", "noise": Decoded as a float.
-                - "id", "mic", "mod": Decoded as a UTF-8 string.
-                - Any other tag: Attempted to be decoded as a string,
-                    otherwise "*** BAD PAYLOAD ***".
-
-        Logs:
-            Logs an info message if the tag is unknown.
-            Logs an error message if an exception occurs during decoding.
-        """
-
-        new_payload = "*** UNKNOWN PAYLOAD ***"
-
-        match tag:
-            case "time":
-                # time payloads are strings
-                new_payload = current_payload.decode("utf-8")
-
-            case "protocol" | "channel" | "battery_ok":
-                # these payloads may be a single byte integer or character
-                new_payload_str = current_payload.decode("utf-8")
-                try:
-                    new_payload = int(new_payload_str)
-                except ValueError:
-                    new_payload = new_payload_str
-
-            case "temperature_C" | "humidity" | "freq" | "rssi" | "snr" | "noise":
-                # all of these are float conversions
-                new_payload = float(current_payload.decode("utf-8"))
-
-            case "id" | "mic" | "mod":  # string
-                # all of these are string conversions
-                new_payload = current_payload.decode("utf-8")
-
-            case _:
-                # doesn't match anything
-                try:
-                    new_payload = str(current_payload)
-                    logging.info(
-                        "\n"
-                        "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
-                        "process_message: unknown tag %s with payload %s\n"
-                        "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n",
-                        tag,
-                        new_payload,
-                    )
-                except (UnicodeDecodeError, ValueError, TypeError) as e:
-                    logging.error(
-                        "\n"
-                        "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
-                        "An error occurred: %s - %s\n"
-                        "In Process Message while trying to decode payload"
-                        "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n",
-                        type(e).__name__,
-                        e,
-                    )
-                    print(f"An error occurred: {type(e).__name__} - {e}")
-                    new_payload = "*** BAD PAYLOAD ***"
-
-        return new_payload
-
     # ############################ get_proto_info ############################ #
 
-    def get_proto_info(self, payload: bytes, protocol_manager) -> Tuple[str, str]:
+    def get_proto_info(
+        self, payload: bytes, protocol_manager
+    ) -> Tuple[str, str]:
         """assuming the payload is protocol ID, get the protocol name and description"""
         my_name = "get_proto_info"
         p_id = None
@@ -314,7 +253,9 @@ class MessageManager:
         if p_info is None:
             p_name = "**ERROR**"
             p_description = "Protocol not in protocol definitions"
-            lmsg = f"Error parsing message: \n\t{payload.decode('utf-8')}\n"
+            lmsg = (
+                f"Error parsing message: \n\t{payload.decode('utf-8')}\n"
+            )
             logging.error(lmsg)
         else:
             p_name = p_info["name"]
@@ -322,8 +263,16 @@ class MessageManager:
 
         return p_name, p_description
 
-    # ############################ celsius_to_fahrenheit ############################ #
+    # ###################################################################### #
+    #                       normalize_payload                                #
+    # ###################################################################### #
 
-    def celsius_to_fahrenheit(self, celsius: float) -> float:
-        """convert celsius to fahrenheit"""
-        return (celsius * 9 / 5) + 32
+    def normalize_payload(payload: dict) -> dict:
+        """
+        Normalize the payload based on the topic.
+        This is a placeholder function in case we need to do something to
+        normalize the payload before further processing.
+        """
+        # Implement your normalization logic here
+
+        return payload
