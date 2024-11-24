@@ -44,7 +44,7 @@ def main() -> None:
     broker_config: dict = load_broker_config()
     broker_name = broker_config["MQTT_BROKER_ADDRESS"]
 
-    # MQTT Subscription Topic(s)
+    # MQTT Topic(s)
     sub_topics: list = get_sub_topics_shelly()
     pub_topic_root = get_pub_root()
     pub_source = get_pub_source()

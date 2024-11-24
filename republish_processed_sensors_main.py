@@ -22,11 +22,10 @@ display it on a web page.
 """
 
 import logging
-import os
 import time
 from datetime import datetime
 from queue import Queue
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 from dotenv import load_dotenv
 
@@ -50,6 +49,12 @@ from src.utils.device_maps import my_sensors_id_map
 
 # custom logger
 from src.utils.ktb_logger import ktb_logger
+
+# utility functions
+from src.utils.misc_utils import (  # get_pub_root,
+    get_pub_source,
+    get_sub_topics_republish,
+)
 
 # ###################################################################### #
 #                        Global Variables and Constants
@@ -271,12 +276,11 @@ def main() -> None:
     BROKER_NAME = "TS-VULTR1"  # pylint: disable=invalid-name
     SLEEP_TIME_S = 5  # pylint: disable=invalid-name
 
-    # MQTT Topic Constants
-
-    pub_source: str = os.getenv("PUB_SOURCE", "default_source")
+    # MQTT Topic(s)
+    sub_topics: list = get_sub_topics_republish()
+    # pub_root = get_pub_root()
+    pub_source = get_pub_source()
     pub_topics = generate_pub_topics(pub_source)
-
-    sub_topics: List = ["KTBMES/+/sensors/raw/#"]
 
     # ############################ MQTT Setup ############################ #
 
