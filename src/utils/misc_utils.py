@@ -43,40 +43,40 @@ def get_pub_root() -> str:
     return pub_source
 
 
-# ###################################################################### #
-#                             get_sub_topics_shelly
-# ###################################################################### #
+# # ###################################################################### #
+# #                             get_sub_topics_shelly
+# # ###################################################################### #
 
 
-def get_sub_topics_shelly() -> list:
-    """get the subscription topics for the shelly devices"""
+# def get_sub_topics_shelly() -> list:
+#     """get the subscription topics for the shelly devices"""
 
-    env_sub_topics = os.getenv("SUB_TOPICS_SHELLY", None)
-    if env_sub_topics is None:
-        # get the hostname from the environment
-        sub_topics = ["#"]
-    else:
-        sub_topics = env_sub_topics.split(",")
+#     env_sub_topics = os.getenv("SUB_TOPICS_SHELLY", None)
+#     if env_sub_topics is None:
+#         # get the hostname from the environment
+#         sub_topics = ["#"]
+#     else:
+#         sub_topics = env_sub_topics.split(",")
 
-    return sub_topics
-
-
-# ###################################################################### #
-#                             get_sub_topics_shelly
-# ###################################################################### #
+#     return sub_topics
 
 
-def get_sub_topics_republish() -> list:
-    """get the subscription topics for the shelly devices"""
+# # ###################################################################### #
+# #                             get_sub_topics_shelly
+# # ###################################################################### #
 
-    env_sub_topics = os.getenv("SUB_TOPICS_REPUBLISH", None)
-    if env_sub_topics is None:
-        # get the hostname from the environment
-        sub_topics = ["#"]
-    else:
-        sub_topics = env_sub_topics.split(",")
 
-    return sub_topics
+# def get_sub_topics_republish() -> list:
+#     """get the subscription topics for the shelly devices"""
+
+#     env_sub_topics = os.getenv("SUB_TOPICS_REPUBLISH", None)
+#     if env_sub_topics is None:
+#         # get the hostname from the environment
+#         sub_topics = ["#"]
+#     else:
+#         sub_topics = env_sub_topics.split(",")
+
+#     return sub_topics
 
 
 # ###################################################################### #

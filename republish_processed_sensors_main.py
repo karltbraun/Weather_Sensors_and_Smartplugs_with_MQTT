@@ -49,6 +49,7 @@ from src.utils.logger_setup import logger_setup
 
 # utility functions
 from src.utils.misc_utils import (  # get_pub_root,
+    get_pub_root,
     get_pub_source,
     get_sub_topics,
 )
@@ -125,10 +126,10 @@ def get_topic_for_device(
     """
     # my_name = "get_topic_for_device"
 
-    topic_root: str = pub_topics["pub_topic_root"]
+    topic_root: str = pub_topics["pub_topic_base"]
     if device_id in my_sensors_id_map:
         # if device ID is one of my devices publish to the ktbmes sensor topic
-        topic_root: str = pub_topics["pub_topic_root"]
+        topic_root: str = pub_topics["pub_topic_base"]
         topic: str = f"{topic_root}/house_weather_sensors/{device_data['device_name']}"
 
     else:
@@ -247,13 +248,14 @@ def device_updated(device_data: dict) -> bool:
 
 def generate_pub_topics(pub_source: str) -> dict:
     """Generate a dictionary of publication topics based on the source."""
-    pub_topic_root = f"KTBMES/{pub_source}/sensors"
+    pub_root = get_pub_root()
+    pub_topic_base = f"{pub_root}/{pub_source}/sensors"
     return {
-        "pub_topic_root": pub_topic_root,
-        "my_weather_sensors": f"{pub_topic_root}/ktb_sensors",
-        "unknown_weather_sensors": f"{pub_topic_root}/unknown_weather_sensors",
-        "unknown_other_sensors": f"{pub_topic_root}/unknown_other_sensors",
-        "unknown_TPM_sensors": f"{pub_topic_root}/unknown_TPM_sensors",
+        "pub_topic_base": pub_topic_base,
+        "my_weather_sensors": f"{pub_topic_base}/ktb_sensors",
+        "unknown_weather_sensors": f"{pub_topic_base}/unknown_weather_sensors",
+        "unknown_other_sensors": f"{pub_topic_base}/unknown_other_sensors",
+        "unknown_TPM_sensors": f"{pub_topic_base}/unknown_TPM_sensors",
     }
 
 
@@ -273,7 +275,6 @@ def main() -> None:
 
     # MQTT Topic(s)
     sub_topics: list = get_sub_topics("SUB_TOPICS_REPUBLISH")
-    # pub_root = get_pub_root()
     pub_source = get_pub_source()
     pub_topics = generate_pub_topics(pub_source)
 
@@ -283,7 +284,7 @@ def main() -> None:
     mqtt_manager = MQTTManager(
         broker_config=BROKER_CONFIG[broker_name],
         subscribe_topics=sub_topics,
-        publish_topic_root=pub_topics["pub_topic_root"],
+        publish_topic_root=pub_topics["pub_topic_base"],
     )
     message_queue: Queue = mqtt_manager.message_queue_in
     client = mqtt_manager.client
