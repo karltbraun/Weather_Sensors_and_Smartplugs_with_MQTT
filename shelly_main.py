@@ -97,9 +97,11 @@ def main() -> None:
 
     try:
         while True:
-            # the on_message callback, which is asynchronous, puts messages in the queue
-            # process_message_queue empties the queue and updates items in the device registry
-            # (devices) with the new data
+            # the on_message callback, which is asynchronous, puts messages in message_queue_in
+            # if there are messages in the queue, process them and queue up the results
+            # for publishing.
+            # We check the queue somewhat redundantly so we can give up the CPU for a while
+            # if it is empty
 
             if message_queue_in.empty():
                 # If the queue is empty, pause
@@ -120,10 +122,11 @@ def main() -> None:
                 msg = message_queue_in.get()
                 message_manager.process_message(msg, message_queue_out)
 
-            # ################## publish all updated devices  ################### #
+            #
+            # publish all messages in the output queue
+            #
 
             while not message_queue_out.empty():
-                # empty the output queue and publish the updated devices
                 pub_topic, payload, qos, retain = message_queue_out.get()
                 logging.debug(
                     "Main: Loop: Publishing:\n\tTopic: %s\n\tPayload: %s\n",
