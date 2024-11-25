@@ -6,15 +6,20 @@ import logging
 import time
 from queue import Queue
 
+from dotenv import load_dotenv
+
 from config.broker_config import load_broker_config
 from src.managers.message_manager_shelly import MessageManager
 from src.managers.mqtt_manager import MQTTManager
 from src.utils.logger_setup import logger_setup
 from src.utils.misc_utils import (
+    get_logging_levels,
     get_pub_root,
     get_pub_source,
     get_sub_topics,
 )
+
+load_dotenv()
 
 # ###################################################################### #
 #                             Main Function
@@ -31,10 +36,12 @@ def main() -> None:
 
     # ############################ Logger Setup ############################ #
 
+    logging_levels: dict = get_logging_levels()
+
     logger = logger_setup(
-        clear_logger=True,
-        # console_level=logging.DEBUG,
-        # file_level=logging.DEBUG,
+        clear_logger=logging_levels["clear"],
+        console_level=logging_levels["console"],
+        file_level=logging_levels["file"],
         file_handler="logs/shelly.log",
     )
 
@@ -72,15 +79,15 @@ def main() -> None:
     # #########################  display banner  ####################### #
 
     emsg = (
-        f"\n#########################################################################\n"
+        "\n#########################################################################\n"
         f"          Starting up with the following configuration:\n"
         f"  Broker: {broker_name}\n"
         f"  Source: {pub_source}\n"
         f"  Topic Root: {pub_topic_root}\n"
         f"  Subscription Topics: {sub_topics}\n"
-        f"  Console log level: {logging.getLevelName(logging.DEBUG)}\n"
-        f"  File log level: {logging.getLevelName(logging.DEBUG)}\n"
-        f"#########################################################################\n"
+        f"  Console log level: {logging_levels["console"]}\n"
+        f"  File log level: {logging_levels["file"]}\n"
+        "#########################################################################\n"
     )
     logger.info(emsg)
 

@@ -165,15 +165,9 @@ For example, we will have a weather sensor in the garage along with one of the s
 
 Pretty useful routine cooked up by chatGPT to take a possibly-nested dictionary and turn it in to a series of topic-value pairs for publishing into a flat mqtt namespace.
 
-##### ktb_loggerpy
-
-[TODO] change the name to something more generic
+##### logger_setup.py
 
 A simple logger setup routine module
-
-##### RTL_433_Protocols.txt
-
-This comes from the RTL_433 docuementation and I recommend you update this file with the latest information from the RTL_433 web site.  It lists the protocol_id along with the description and was used to create the rto_433_protocols.json file.
 
 ## Usage
 

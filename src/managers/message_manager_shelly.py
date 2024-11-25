@@ -12,7 +12,7 @@ from typing import Dict, Tuple
 import paho.mqtt.client as mqtt
 
 from src.utils.flatten_json import flatten_json
-from src.utils.misc_utils import get_pub_source
+from src.utils.misc_utils import get_pub_root, get_pub_source
 
 # from src.utils.device_maps import my_sensors_id_map
 
@@ -79,14 +79,13 @@ def create_pub_topic(topic: str) -> str:
         )
         raise ValueError(emsg)
 
+    root = get_pub_root()
     source = get_pub_source()  # get the hostname of the publishing device
     device_name = topic_parts[1]  # get the device name from the topic
     room = get_room(device_name)  # EV, Lab, Office, etc
     tag = topic_parts[-1]
 
-    pub_topic = (
-        f"{ENTERPRISE}/{source}/{room}/{DEVICE_TYPE}/{device_name}/{tag}"
-    )
+    pub_topic = f"{root}/{source}/{room}/{DEVICE_TYPE}/{device_name}/{tag}"
     return pub_topic
 
 

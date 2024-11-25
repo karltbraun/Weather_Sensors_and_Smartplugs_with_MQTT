@@ -49,6 +49,7 @@ from src.utils.logger_setup import logger_setup
 
 # utility functions
 from src.utils.misc_utils import (  # get_pub_root,
+    get_logging_levels,
     get_pub_root,
     get_pub_source,
     get_sub_topics,
@@ -66,15 +67,16 @@ protocol_manager = ProtocolManager()
 #     setup logger, load broker configurations, load env variables       #
 # ###################################################################### #
 
+load_dotenv()
+logging_levels: dict = get_logging_levels()
 
 logger = logger_setup(
-    clear_logger=True,
-    console_level=logging.DEBUG,
-    file_level=logging.DEBUG,
+    clear_logger=logging_levels["clear"],
+    console_level=logging_levels["console"],
+    file_level=logging_levels["file"],
     file_handler="logs/republish_processed_sensors.log",
 )
 
-# TODO: Move these to broker_config.py
 load_dotenv()
 load_broker_config()
 
@@ -304,8 +306,8 @@ def main() -> None:
         f"  PUB_TOPICS:\n"
         f"    {pub_topics}\n"
         f"  Subscription Topics: {sub_topics}\n"
-        f"  Console log level: {logging.getLevelName(logging.DEBUG)}\n"
-        f"  File log level: {logging.getLevelName(logging.DEBUG)}\n"
+        f"  Console log level: {logging_levels["console"]}\n"
+        f"  File log level: {logging_levels["file"]}\n"
         f"#########################################################################\n"
     )
     logger.info(emsg)
