@@ -1,5 +1,18 @@
-"""process_messages - routines to process incoming messages, which are individual
-tags (attributes: values) from a sensor device.
+"""message_manager_republish.py
+
+This module contains the MessageManager class, which is responsible for processing incoming
+messages from an MQTT broker. The messages are individual tags (attributes: values) from
+sensor devices. The class maintains a dictionary of devices and their data, updating it with
+each incoming message. It also includes routines to normalize payloads and retrieve protocol
+information.
+
+Classes:
+    MessageManager: Manages incoming messages from the MQTT broker.
+
+Functions:
+    process_message(msg, devices, protocol_manager): Processes a single message from the message queue.
+    normalize_payload(tag, current_payload): Normalizes the payload based on the provided tag.
+    get_proto_info(payload, protocol_manager): Retrieves protocol name and description based on the protocol ID.
 """
 
 import logging
@@ -74,7 +87,7 @@ class MessageManager:
 
         # ########################## process message ########################## #
 
-        # topic will look like this: KTBMES/Pi1/sensors/raw/200/noise
+        # topic will look like this: <topic_root>/<source_host>/sensors/raw/200/noise
         #   where device_id = "200" and tag = "noise"
         device_id = msg.topic.split("/")[-2]
         tag = transform_tag(msg.topic)
@@ -121,6 +134,7 @@ class MessageManager:
         )
         devices[device_id][tag] = payload
         ts = datetime.now()
+        # TODO: redundant time stamps - consolidate (see below)
         devices[device_id]["time_last_seen_ts"] = ts.timestamp()
         devices[device_id]["time_last_seen_iso"] = ts.isoformat()
 
@@ -144,20 +158,14 @@ class MessageManager:
             )
 
         # if the tag is "temperature_C", add in the temperature in Fahrenheit
+        # NOTE: if the device natively has a temperature_F, it will also have a
+        #   temperature_C, at least as far as I have seen.  So we just do our own conversion
         elif tag == "temperature_C":
             temperature_f = celsius_to_fahrenheit(payload)
-            logging.debug(
-                "%s: tag is temperature_C - adding temperature_F\n"
-                "\tdevice_id: %s\n"
-                "\ttemperature_C: %s\n\ttemperature_F: %s",
-                my_name,
-                device_id,
-                payload,
-                temperature_f,
-            )
             devices[device_id]["temperature_F"] = temperature_f
 
         # update the timestamp for the time we last saw data from this device
+        # TODO: redundant time stamps - consolidate (see above)
         devices[device_id]["last_update_ts"] = datetime.now().isoformat()
         devices[device_id]["device_name"] = get_device_name(device_id)
 
@@ -189,12 +197,10 @@ class MessageManager:
                 - "id", "mic", "mod": Decoded as a UTF-8 string.
                 - Any other tag: Attempted to be decoded as a string,
                     otherwise "*** BAD PAYLOAD ***".
-
-        Logs:
-            Logs an error message if an exception occurs during decoding.
         """
         my_name = "normalize_payload"
 
+        # assume an error
         new_payload = "*** UNKNOWN PAYLOAD ***"
 
         try:
@@ -256,6 +262,8 @@ class MessageManager:
         """assuming the payload is protocol ID, get the protocol name and description"""
         my_name = "get_proto_info"
 
+        # ############################ normalize_protocol ############################ #
+
         def normalize_protocol(protocol_id: Any) -> str:
             """ensure protocol is encapsulated as a string"""
             new_protocol_id = None
@@ -273,18 +281,9 @@ class MessageManager:
                     f"{my_name}: get_proto_info: payload is not a string: {payload}"
                 )
 
-            logging.debug(
-                "\n@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n"
-                "normalize_protocol:\n"
-                "\tprotocol_id: %s\n  type(protocol_id): %s\n"
-                "\tnew_protocol_id: %s\n  type(new_protocol_id): %s\n"
-                "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n",
-                protocol_id,
-                type(protocol_id),
-                new_protocol_id,
-                type(new_protocol_id),
-            )
             return protocol_id
+
+        # ############################ get_proto_info ############################ #
 
         p_id = normalize_protocol(payload)
         p_info: Dict[str, str] = protocol_manager.get_protocol_info(p_id)
@@ -292,7 +291,7 @@ class MessageManager:
         if p_info is None or p_info == {}:
             p_name = "**ERROR**"
             p_description = "Protocol not in protocol definitions"
-            logging.debug(
+            logging.error(
                 "%s: Error parsing message: \n\t%s\n", my_name, p_id
             )
         else:

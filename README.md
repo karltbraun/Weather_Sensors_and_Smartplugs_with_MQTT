@@ -1,5 +1,7 @@
 # Weather_Sensors_and_Smartplugs_with_MQTT
 
+## Overview
+
 (Apologies for the rediculously long name - I'm terrible at naming things)
 
 This project started out with a desire to learn how to (1) take flat MQTT data and transform it into packaged data in json format, and (2) take MQTT data in a packaged json format and transform it into a flat MQTT namespace.
@@ -21,23 +23,25 @@ These routines do essentially the same thing:
 The main loop is fairly common between the two as well:
 
 1) The on_message callback just puts the incoming mqtt message in a queue
-2) The main loop reads and processes the message in the queue
-3) For the Shelly routines, once a message is processed, the results are published to a new mqtt topic
+2) The main loop reads and processes the messages in the queue
+3) For the Shelly routines, once a message is processed, it is put in the output queue.  The main loop then publishes the data in the output queue to the mqtt broker.
 4) For the weather sensors, we are consuming flat data - one sensor attribute per mqtt message (eg: temperature, humidity, various radio information, etc).  We keep a dictionary of each device seen indexed by the device id.  We also keep track (in the dictionary entries) of (a) when the device data was last published and (b) when some information from that device was last seen (when something changed).
 5) The Main loop cycles through the dictionary of devices and publishes the data if anything has changed since it was last published.
 
 The current version assumes the same broker for subscribing and publishing; but there are some aspects of the code which were set up so that multiple brokers could be used.
 
-## Table of Contents
-
-- [Weather\_Sensors\_and\_Smartplugs\_with\_MQTT](#weather_sensors_and_smartplugs_with_mqtt)
-  - [Table of Contents](#table-of-contents)
-  - [Installation](#installation)
-  - [Directory Structure](#directory-structure)
-
 ## Installation
 
-(Instructions on how to install and set up the project.)
+Nothing complex.  You will need the root directory of the repository, and the following folders defined in the root directory:
+
+- config
+- logs
+- src
+  - src/managers
+  - src/models
+  - src/utils
+
+These are defined below
 
 ## Directory Structure
 
@@ -55,9 +59,24 @@ The main entry point for the routines which consume topics from the RTL_433 prog
 
 The main entry point for the routines which consume the data published by the shelly smartplugs and republishes the data in flat MQTT fashion for easy analysis.
 
+#### requirements.txt
+
+Required packages for the code.  Should be:
+
+- paho-mqtt==2.1.0
+- python-dotenv==1.0.1
+
+#### RTL_433_Protocols.txt
+
+From the RTL_433 documentation - a list of the protocol_ids and their descriptions.  Used to create the rtl_433_protocols.json file (manually).
+
+#### setup.sh
+
+Apparently something uv (an environment manager) sets up.  First time using this so I'm not totally clear on this.
+
 ### logs
 
-This directory is where the log files are written.
+This directory is where the log files are written.  See utils/logger_setup.py for details.  Each of the '...main.py' routines will call the logger_setup with logging levels.
 
 ### config
 
@@ -87,7 +106,7 @@ Sets up default MQTT parameter values (Port, keepalive timer, etc) and default t
 
 #### config/protocol_categories.json
 
-Refer to config/rtl_433_protocols.json, or to the RTL_433 documentation for more information on the protocols.
+Refer to config/rtl_433_protocols.json, RTL_433_Protocols.txt, or to the RTL_433 documentation for more information on the protocols.
 
 The scripts use the lists in protocol_categories.json to determine what type of device is being seen.  This is used to determine under which topic to publish the data.
 
@@ -105,9 +124,16 @@ This directory contains most of the code, divided up into separate subdirectorie
 
 Code and data which manage the more object-oriented aspects of the code.
 
-##### message_manager.py
+##### message_manager_republish.py
 
-[TODO] shelly vs republish
+Message manager for the republish_processed_sensors.py routine.  This is the code that takes the flat mqtt data and packages it up into json for each device.
+
+##### message_manager_shelly.py
+
+Message manager for the shelly_main.py routine.  This is the code that takes the json data from the Shelly smartplugs and republishes it in flat mqtt fashion.  
+
+Creation of the publication topic strings is handled here; some comments will clarify
+how the topics are created.
 
 #### mqtt_manager.py
 

@@ -27,11 +27,12 @@ logging.basicConfig(level=logging.DEBUG)
 DEVICE_ROOM_MAP = {"Shelly_EV": "garage", "Shelly_Lab_01": "office"}
 
 # constant strings for creating publication topics
-# 'ENTERPRISE' is used as the top level topic part as I am working with
-#   ISA-95 part 2 symatnic hierarchy (ENTERPRISE/SITE/AREA/LINE/CELL/...)
-ENTERPRISE = "KTBMES"
-DEVICE_TYPE = "smartplugs"
+TOPIC_ROOT = "KTBMES"  # first element in the topic string
+DEVICE_TYPE = (
+    "smartplugs"  # should be the third element in the topic string
+)
 
+# Sample topic string: KTBMES/hostname/room/smartplugs/device_name/tag
 
 # ##############################################################################
 #                       create_pub_topic
