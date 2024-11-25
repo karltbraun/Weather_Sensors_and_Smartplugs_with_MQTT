@@ -6,8 +6,6 @@ import json
 import time
 from typing import Dict
 
-from ..models.devices import DeviceTPM, DeviceUnknown, DeviceWeather
-
 # ###################################################################### #
 #                             load_protocols
 # ###################################################################### #
@@ -50,12 +48,6 @@ class ProtocolManager:
         # device attributes
         self.protocols = self._load_protocols()
         self.categories = self._load_categories()
-        self.device_classes = {
-            "weather": DeviceWeather,
-            "pressure": DeviceTPM,
-            "unknown": DeviceUnknown,
-        }
-        # keeping track of when configurations were last loaded
         self.last_check_time = 0
         self.check_interval = 60  # Check every 60 seconds
 
@@ -85,19 +77,6 @@ class ProtocolManager:
         self.protocols = self._load_protocols()
         self.categories = self._load_categories()
         self.last_check_time = current_time
-
-    # ############################ get_device_class ############################ #
-
-    # def get_device_class(self, protocol_id: str) -> Type:
-    #     """Get the appropriate device class for a protocol ID"""
-    #     #! As far as I can tell, this is never used (20241114)
-    #     #! it seems the code is expecting a 'device_class' key in the protocol file
-    #     #! but the protocol file does not have a 'device_class' key
-    #     self._load_configurations()
-    #     protocol_id = str(protocol_id)
-    #     protocol = self.protocols.get(protocol_id, {})
-    #     device_type = protocol.get("device_class", "unknown")
-    #     return self.device_classes.get(device_type, DeviceUnknown)
 
     # ############################ get_protocl_info ############################ #
 

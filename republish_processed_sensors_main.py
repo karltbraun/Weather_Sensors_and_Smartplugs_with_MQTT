@@ -41,9 +41,6 @@ from src.managers.mqtt_manager import MQTTManager
 # handles all RTL-433 protocol specific functions
 from src.managers.protocol_manager import ProtocolManager
 
-# handles all sensor device attributes and registry of devices
-from src.models import devices
-
 # maps device IDs to known sensor names
 from src.utils.device_maps import my_sensors_id_map
 
@@ -61,8 +58,6 @@ from src.utils.misc_utils import (  # get_pub_root,
 # ###################################################################### #
 
 # Define the devices dictionary at the module level
-devices = devices.DeviceRegistry().devices
-# message_manager is already defined at the module level
 protocol_manager = ProtocolManager()
 
 
@@ -73,8 +68,8 @@ protocol_manager = ProtocolManager()
 
 logger = logger_setup(
     clear_logger=True,
-    # console_level=logging.DEBUG,
-    # file_level=logging.DEBUG,
+    console_level=logging.DEBUG,
+    file_level=logging.DEBUG,
     file_handler="logs/republish_processed_sensors.log",
 )
 
@@ -296,6 +291,7 @@ def main() -> None:
     # ###################  message processing setup   ####################### #
 
     message_manager = MessageManager()
+    devices = message_manager.devices
 
     # #########################  display banner  ####################### #
 

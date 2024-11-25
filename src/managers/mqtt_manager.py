@@ -7,10 +7,6 @@ from queue import Queue
 
 import paho.mqtt.client as mqtt
 
-# from typing import Any, Dict, List
-# from typing import List
-
-
 # ###################################################################### #
 #                             MQTTManager
 # ###################################################################### #

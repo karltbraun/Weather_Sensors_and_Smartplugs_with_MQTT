@@ -48,14 +48,12 @@ class MessageManager:
         """
         my_name = "process_message"
 
-        # ########################## get_device_name ########################## #
-
-        def get_device_name(device_id: str) -> str:
-            """Get the device name from the my_sensors_id_map"""
-            device_info = my_sensors_id_map.get(device_id, {})
-            return device_info.get("sensor_name", f"UNKNOWN_{device_id}")
-
         # ########################## transform_tag ########################## #
+
+        tag_transform_map = {
+            "id": "device_id",
+            "protocol": "protocol_id",
+        }
 
         def transform_tag(topic: str) -> str:
             """
@@ -64,12 +62,15 @@ class MessageManager:
             for example: 'id' (not very descriptive) is transformed to 'device_id'
             if we don't have a transformation for the tag, we return the original tag
             """
-            tag_transform_map = {
-                "id": "device_id",
-                "protocol": "protocol_id",
-            }
             current_tag = topic.split("/")[-1]
             return tag_transform_map.get(current_tag, current_tag)
+
+        # ########################## get_device_name ########################## #
+
+        def get_device_name(device_id: str) -> str:
+            """Get the device name from the my_sensors_id_map"""
+            device_info = my_sensors_id_map.get(device_id, {})
+            return device_info.get("sensor_name", f"UNKNOWN_{device_id}")
 
         # ########################## process message ########################## #
 
@@ -309,9 +310,3 @@ class MessageManager:
         )
 
         return p_name, p_description
-
-    # # ############################ celsius_to_fahrenheit ############################ #
-
-    # def celsius_to_fahrenheit(self, celsius: float) -> float:
-    #     """convert celsius to fahrenheit"""
-    #     return (celsius * 9 / 5) + 32
