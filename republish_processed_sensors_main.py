@@ -306,8 +306,8 @@ def main() -> None:
         f"  PUB_TOPICS:\n"
         f"    {pub_topics}\n"
         f"  Subscription Topics: {sub_topics}\n"
-        f"  Console log level: {logging_levels["console"]}\n"
-        f"  File log level: {logging_levels["file"]}\n"
+        f"  Console log level: {logging_levels['console']}\n"
+        f"  File log level: {logging_levels['file']}\n"
         f"#########################################################################\n"
     )
     logger.info(emsg)
