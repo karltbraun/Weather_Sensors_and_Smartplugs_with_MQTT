@@ -101,6 +101,7 @@ class MessageManager:
                 device_id,
             )
             current_time = datetime.now()
+            # TODO: devices[device_id] = Device(device_id)
             devices[device_id] = {
                 "device_id": device_id,
                 "device_name": "NO_DEV_NAME",
@@ -132,9 +133,13 @@ class MessageManager:
             payload,
             type(payload),
         )
+        # TODO: device.set_tag_value(tag, payload)
         devices[device_id][tag] = payload
-        ts = datetime.now()
+
         # TODO: redundant time stamps - consolidate (see below)
+        # TODO: device.set_time_last_seen(ts)
+        # TODO: will update both and return the current timestamp
+        ts = datetime.now()
         devices[device_id]["time_last_seen_ts"] = ts.timestamp()
         devices[device_id]["time_last_seen_iso"] = ts.isoformat()
 
@@ -264,6 +269,7 @@ class MessageManager:
 
         # ############################ normalize_protocol ############################ #
 
+        # TODO: move this to a class method
         def normalize_protocol(protocol_id: Any) -> str:
             """ensure protocol is encapsulated as a string"""
             new_protocol_id = None
@@ -281,7 +287,7 @@ class MessageManager:
                     f"{my_name}: get_proto_info: payload is not a string: {payload}"
                 )
 
-            return protocol_id
+            return new_protocol_id
 
         # ############################ get_proto_info ############################ #
 
