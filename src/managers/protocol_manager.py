@@ -4,7 +4,7 @@ Protocol Manager to handle RTL_433 protocols
 
 import json
 import time
-from typing import Dict
+from typing import Dict, Tuple
 
 # ###################################################################### #
 #                             load_protocols
@@ -80,10 +80,43 @@ class ProtocolManager:
 
     # ############################ get_protocl_info ############################ #
 
-    def get_protocol_info(self, protocol_id: str) -> Dict[str, str]:
+    def protocol_name(self, protocol_id: str) -> str:
+        """Get the protocol name for a protocol ID"""
+        self._load_configurations()
+        protocol_info = self.protocols.get(protocol_id, {})
+        if not protocol_info:
+            raise ValueError(
+                f"protocol_name: Protocol ID {protocol_id} not found"
+            )
+
+        return protocol_info.get("name", "*UNK_PROTOCL_NAME*")
+
+    def protocol_description(self, protocol_id: str) -> str:
+        """Get the protocol description for a protocol ID"""
+        self._load_configurations()
+        protocol_info = self.protocols.get(protocol_id, {})
+        if not protocol_info:
+            raise ValueError(
+                f"protocol_description: Protocol ID {protocol_id} not found"
+            )
+
+        return protocol_info.get("description", "*UNK_PROTOCL_DESC*")
+
+    def protocol_info(self, protocol_id: str) -> Tuple[str, str]:
         """Get the protocol information for a protocol ID"""
         self._load_configurations()
-        return self.protocols.get(str(protocol_id), {})
+        protocol_info = self.protocols.get(protocol_id, {})
+        if not protocol_info:
+            raise ValueError(
+                f"protocol_info: Protocol ID {protocol_id} not found"
+            )
+
+        protocol_name = protocol_info.get("name", "*UNK_PROTOCL_NAME*")
+        protocol_description = protocol_info.get(
+            "protocol_description", "*UNK_PROTOCL_DESC*"
+        )
+
+        return (protocol_name, protocol_description)
 
     # ############################ is_weather_sensor ############################ #
 

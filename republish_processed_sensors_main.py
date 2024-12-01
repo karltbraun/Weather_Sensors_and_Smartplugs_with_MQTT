@@ -23,14 +23,18 @@ display it on a web page.
 
 import logging
 import time
-from datetime import datetime
+
+# from datetime import datetime
 from queue import Queue
-from typing import Any, Dict
+from typing import Dict
 
 from dotenv import load_dotenv
 
 # describes mqtt broker parameters like host address, port, etc.
 from config.broker_config import BROKER_CONFIG, load_broker_config
+
+# handles all device specific functions (sensors)
+from src.managers.device_manager import Device, DeviceRegistry
 
 # transforms input data into device attributes
 from src.managers.message_manager_republish import MessageManager
@@ -82,46 +86,12 @@ load_broker_config()
 
 
 # ###################################################################### #
-#                             get_protocol_id
-# ###################################################################### #
-
-
-def get_protocol_id(device_data: dict) -> str:
-    """
-    Get the protocol ID from the device data.
-    """
-    my_name = "get_protocol_id"
-    protocol_id = device_data.get("protocol_id", None)
-
-    if not isinstance(protocol_id, str):
-        raise ValueError(
-            "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
-            f"{my_name}: protocol_id is not a string: \n"
-            f"\tDevice ID: {device_data['device_id']}\n"
-            f"\tDevice Name: {device_data['device_name']}\n"
-            f"\tProtocol_id: {protocol_id}\n"
-            "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
-        )
-
-    if protocol_id is None or not isinstance(protocol_id, str):
-        raise ValueError(
-            "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
-            f"{my_name}: bad protocol_id: \n"
-            f"\tDevice ID: {device_data['device_id']}\n"
-            "\tDevice Name: {device_data['device_name']}\n"
-            "\tProtocol_id: {protocol_id}\n"
-            "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
-        )
-    return protocol_id
-
-
-# ###################################################################### #
 #                             get_topic_for_device
 # ###################################################################### #
 
 
 def get_topic_for_device(
-    device_id: str, device_data: Dict[str, Any], pub_topics: Dict[str, str]
+    device_id: str, device_data: Device, pub_topics: Dict[str, str]
 ) -> str:
     """
     Get the topic for the device based on the protocol ID.
@@ -132,41 +102,31 @@ def get_topic_for_device(
     if device_id in my_sensors_id_map:
         # if device ID is one of my devices publish to the ktbmes sensor topic
         topic_root: str = pub_topics["pub_topic_base"]
-        topic: str = f"{topic_root}/house_weather_sensors/{device_data['device_name']}"
+        topic: str = f"{topic_root}/house_weather_sensors/{device_data.device_name()}"
 
     else:
-        protocol_id: str = get_protocol_id(device_data)
-
-        # lmsg = (
-        #     "\n...............................................................\n"
-        #     "get_topic_for_device: checking protocol id\n"
-        #     f"\tDevice ID: {device_id}\n"
-        #     f"\tDevice Name: {device_data['device_name']}\n"
-        #     f"\tProtocol ID: {protocol_id}\n"
-        #     f"\tProtocol ID Type: {type(protocol_id)}\n"
-        #     f"\tis_weather_sensor: {protocol_manager.is_weather_sensor(protocol_id)}\n"
-        #     f"\tis_pressure_sensor: {protocol_manager.is_pressure_sensor(protocol_id)}\n"
-        #     "...............................................................\n"
-        # )
-        # logging.debug(lmsg)
+        # protocol_id: str = get_protocol_id(device_data)
+        protocol_id: str = device_data.protocol_id()
 
         if protocol_manager.is_weather_sensor(protocol_id):
-            topic_base = f"{topic_root}/other_weather_sensorsi"
+            topic_base = f"{topic_root}/other_weather_sensors"
         elif protocol_manager.is_pressure_sensor(protocol_id):
             topic_base = f"{topic_root}/other_pressure_sensors"
         else:
             topic_base = f"{topic_root}/unknown_other_sensors"
-            lmsg = (
+            logging.debug(
                 "\n...............................................................\n"
                 "get_topic_for_device: Unknown device type\n"
-                f"\tDevice ID: {device_id}\n"
-                f"\tDevice Name: {device_data['device_name']}\n"
-                f"\tProtocol ID: {protocol_id}\n"
-                "...............................................................\n"
+                "\tDevice ID: %s\n"
+                "\tDevice Name: %s\n"
+                "\tProtocol ID: %s\n"
+                "...............................................................\n",
+                device_id,
+                device_data.device_name(),
+                protocol_id,
             )
-            logging.debug(lmsg)
 
-        topic = f"{topic_base}/{device_data['device_name']}"
+        topic = f"{topic_base}/{device_data.device_name()}"
 
     return topic
 
@@ -178,7 +138,7 @@ def get_topic_for_device(
 
 def publish_device(
     device_id: int,
-    device_data: dict,
+    device_data: Device,
     topic: str,
     mqtt_manager: MQTTManager,
 ) -> None:
@@ -198,14 +158,10 @@ def publish_device(
 
     # get the current time (for updating time published) before we actually
     # publish in case new data comes in while we are processing
-    time_now = datetime.now().timestamp()
 
     # publish and update published times
-    mqtt_manager.publish_dict(topic, device_data)
-    device_data["time_last_published_ts"] = time_now
-    device_data["time_last_published_iso"] = datetime.fromtimestamp(
-        time_now
-    ).isoformat()
+    mqtt_manager.publish_dict(topic, device_data.device)
+    device_data.last_last_seen_now_set()
 
     logging.debug(
         "%s: Updated last published time for device %s\n"
@@ -213,14 +169,17 @@ def publish_device(
         "\ttime_last_published_iso: %s\n",
         my_name,
         device_id,
-        device_data["time_last_published_ts"],
-        device_data["time_last_published_iso"],
+        device_data.time_last_seen_ts(),
+        device_data.time_last_seen_iso(),
     )
 
 
 # ###################################################################### #
-#                             device_not_updated
+#                             device_updated
 # ###################################################################### #
+
+
+# TODO: move this to the aa_new_device_manager.py
 
 
 def device_updated(device_data: dict) -> bool:
@@ -294,23 +253,28 @@ def main() -> None:
     # ###################  message processing setup   ####################### #
 
     message_manager = MessageManager()
-    devices = message_manager.devices
+    devices: DeviceRegistry = message_manager.device_registry.devices
 
     # #########################  display banner  ####################### #
 
-    emsg = (
-        f"\n#########################################################################\n"
-        f"          Starting up with the following configuration:\n"
-        f"  Broker: {broker_name}\n"
-        f"  Source: {pub_source}\n"
-        f"  PUB_TOPICS:\n"
-        f"    {pub_topics}\n"
-        f"  Subscription Topics: {sub_topics}\n"
-        f"  Console log level: {logging_levels['console']}\n"
-        f"  File log level: {logging_levels['file']}\n"
-        f"#########################################################################\n"
+    logger.info(
+        "\n#########################################################################\n"
+        "          Starting up with the following configuration:\n"
+        "  Broker: %s\n"
+        "  Source: %s\n"
+        "  PUB_TOPICS:\n"
+        "    %s\n"
+        "  Subscription Topics: %s\n"
+        "  Console log level: %s\n"
+        "  File log level: %s\n"
+        "#########################################################################\n",
+        broker_name,
+        pub_source,
+        pub_topics,
+        sub_topics,
+        logging_levels["console"],
+        logging_levels["file"],
     )
-    logger.info(emsg)
 
     time.sleep(5)  # pause to read output from logging
 
@@ -325,7 +289,7 @@ def main() -> None:
 
     try:
         while True:
-            # the on_message callback, which is asynchronous, puts messages in the queue
+            # the on_message callback, which is asynchronous, puts messages in the queue.
             # process_message_queue empties the queue and updates items in the device registry
             # (devices) with the new data
 
@@ -346,7 +310,7 @@ def main() -> None:
                     message_queue.qsize(),
                 )
                 message_manager.process_message(
-                    message_queue.get(), devices, protocol_manager
+                    message_queue.get(), protocol_manager
                 )
 
             # ################## publish all updated devices  ################### #
@@ -355,7 +319,7 @@ def main() -> None:
                 "Main: Loop: Processing %d devices", len(devices)
             )
             for device_id, device_data in devices.items():
-                if device_updated(device_data):
+                if device_data.device_updated():
                     topic: str = get_topic_for_device(
                         device_id, device_data, pub_topics
                     )

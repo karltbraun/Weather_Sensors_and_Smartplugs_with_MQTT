@@ -7,13 +7,47 @@ from queue import Queue
 
 import paho.mqtt.client as mqtt
 
+from src.managers.device_manager import Device
+
 # ###################################################################### #
 #                             MQTTManager
 # ###################################################################### #
 
 
 class MQTTManager:
-    """tmp docstring - update after code changes"""
+    """MQTTManager is a class responsible for managing MQTT client connections, subscriptions,
+    and message handling. It provides methods to set up the MQTT client, handle connection
+    events, process incoming messages, log MQTT events, and publish messages to specified topics.
+
+    Attributes:
+        broker_config (dict): Configuration dictionary containing MQTT broker details such as
+                              username, password, broker address, port, and keepalive interval.
+        subscribe_topics (list): List of topics to subscribe to. Defaults to subscribing to all topics ("#").
+        publish_topic_root (str): Root topic for publishing messages. Defaults to "DEFAULT_TOPIC".
+        message_queue_in (Queue): Queue for storing incoming messages.
+        message_queue_out (Queue): Queue for storing outgoing messages.
+        client (mqtt.Client): Configured MQTT client instance.
+
+    Methods:
+        mqtt_setup() -> mqtt.Client:
+
+        on_connect(client, userdata, flags, rc, properties=None):
+            Callback function for when the MQTT client connects to the broker.
+
+        on_message(client, userdata, msg: mqtt.MQTTMessage) -> None:
+
+        on_log(client, userdata, level, buf) -> None:
+
+        on_disconnect(client, userdata, disconnect_flags, rc=None, properties=None) -> None:
+            Callback function for when the MQTT client disconnects from the broker.
+
+        publish_flat(topic: str, payload: str, qos=0, retain=False, properties=None) -> None:
+            Publishes a message to a specified MQTT topic.
+
+        publish_dict(topic: str, device_info: Device, qos=0, retain=False, properties=None) -> None:
+            Publishes a dictionary as a JSON message to a specified MQTT topic.
+
+    """
 
     def __init__(
         self,
@@ -21,6 +55,13 @@ class MQTTManager:
         subscribe_topics="#",
         publish_topic_root="DEFAULT_TOPIC",
     ):
+        """Initialize the MQTTManager.  broker_config is a dictionary containing the
+        configuration information for the MQTT broker found in broker_config.py.
+        publish_topic_root is the root topic string to which subsequent subtopics will be appended.
+        The message_queues are the input and output queues for the MQTTManager.  The on_message callback
+        function will place incoming messages in the input queue.  The message processing routines may
+        make use of the output queue or may publish messages directly to the broker.
+        """
         self.broker_config = broker_config
         self.subscribe_topics: list = subscribe_topics
         self.publish_topic_root: str = publish_topic_root
@@ -33,17 +74,10 @@ class MQTTManager:
     def mqtt_setup(self) -> mqtt.Client:
         """
         Sets up and returns an MQTT client with the specified configuration.
-        Returns:
-            mqtt.Client: Configured MQTT client instance.
+        Makes use of the broker_config dictionary (see above)
         """
 
         client = mqtt.Client()
-        # userdata = {
-        #     "message_queue": self.message_queue_in,
-        #     "subscribed_topics": self.subscribe_topics,
-        #     "publish_topic_root": self.publish_topic_root,
-        # }
-        # client.user_data_set(userdata)
 
         # set the callback functions
         client.on_connect = self.on_connect
@@ -69,9 +103,7 @@ class MQTTManager:
     # ############################ ON_CONNECT  ############################ #
 
     def on_connect(self, client, userdata, flags, rc, properties=None):
-        """
-        On Connect Callback function for MQTT client.
-        """
+        """executed when the client makes a successful connection to the broker"""
 
         # topics = userdata["subscribed_topics"]
         topics: list = self.subscribe_topics
@@ -107,14 +139,6 @@ class MQTTManager:
         """
         Callback function for when a message is received from the MQTT broker.
         It puts the received message into the inbound message queue for further processing.
-
-        Args:
-            client (paho.mqtt.client.Client): The MQTT client instance.
-            userdata (any): not used
-            msg (paho.mqtt.client.MQTTMessage): The received MQTT message.
-
-        Returns:
-            None
         """
 
         self.message_queue_in.put(msg)
@@ -128,22 +152,9 @@ class MQTTManager:
         level,
         buf,  # pylint: disable=unused-argument
     ) -> None:
-        """
-        Callback function for MQTT client logging.
+        """Callback function for when a log message is received from the broker"""
 
-        This function is called when the MQTT client has log information. It filters out
-        specific log messages that are not needed and logs the rest.
-
-        Args:
-            client (paho.mqtt.client.Client): The MQTT client instance.
-            userdata (any): User-defined data of any type that is passed to the callback.
-            level (int): The severity level of the log message.
-            buf (str): The log message.
-
-        Returns:
-            None
-        """
-
+        # messages we don't care about logging
         exclude_messages = [
             "Received PUBLISH",
             "Sending PINGREQ",
@@ -153,12 +164,11 @@ class MQTTManager:
         buf_parts = buf.split(" ")
         buf_prelude = f"{buf_parts[0]} {buf_parts[1]}"
         if buf_prelude not in exclude_messages:
-            msg = (
-                f"Log Entry:\n"
-                f"\tlevel: {int(level)}\n"
-                f"\tmessage: {buf}\n"
+            logging.info(
+                "Log Entry:\n" "\tlevel: %d\n" "\tmessage: %s\n",
+                int(level),
+                buf,
             )
-            logging.info(msg)
 
     # ############################ ON_DISCONNECT ############################ #
 
@@ -170,31 +180,26 @@ class MQTTManager:
         rc=None,
         properties=None,
     ) -> None:
-        """
-        Description
+        """callback for when a disconnect is received from the broker"""
 
-        Args:
-            param1 (type): Description
-            param2 (type): Description
-
-        Returns:
-            type: Description
-        """
         if rc == 0 or rc is None:
             emsg = (
                 f"Graceful disconnection at {datetime.now().isoformat()}"
             )
             logging.debug(emsg)
         else:
-            emsg = (
-                f"Unexpected disconnection at {datetime.now().isoformat()}\n"
-                f"\tDisconnect_flags: {disconnect_flags}\n"
-                f"\tReason Code: {rc}\n"
-                f"\t(type of Reason Code is: {type(rc)}\n"
-                f"\tProperties: {properties}"
-                # f"\tUserdata: {userdata}"
+            logging.debug(
+                "Unexpected disconnection at %s\n"
+                "\tDisconnect_flags: %s\n"
+                "\tReason Code: %s\n"
+                "\t(type of Reason Code is: %s\n"
+                "\tProperties: %s",
+                datetime.now().isoformat(),
+                disconnect_flags,
+                rc,
+                type(rc),
+                properties,
             )
-            logging.debug(emsg)
 
     # ############################ PUBLISH_FLAT  ############################ #
 
@@ -206,28 +211,21 @@ class MQTTManager:
         retain=False,  # pylint: disable=unused-argument
         properties=None,  # pylint: disable=unused-argument
     ) -> None:
-        """
-        Publish a message to a specified MQTT topic.
-
-        Args:
-            client (mqtt.Client): The MQTT client instance used to publish the message.
-            topic (str): The topic to which the message will be published.
-            value (Any): The message payload to be published.
-
-        Returns:
-            None
-        """
+        """Publish a message to a flat MQTT message (key: value pair)"""
 
         my_name = "publish_flat"
         current_time = datetime.now().isoformat()
         # publish the payload to the topic
-        emsg = (
-            f"\n"
-            f"---------------{my_name}: Publishing Message {current_time} ---------------\n"
-            f"Topic {topic}:\n\t{payload}\n"
-            f"------------------------------------------------------------------------------"
+        logging.debug(
+            "\n"
+            "---------------%s: Publishing Message %s ---------------\n"
+            "Topic %s:\n\t%s\n"
+            "------------------------------------------------------------------------------",
+            my_name,
+            current_time,
+            topic,
+            payload,
         )
-        logging.debug(emsg)
         self.client.publish(topic, payload)
 
     # ############################ PUBLISH_DICT ############################ #
@@ -235,40 +233,37 @@ class MQTTManager:
     def publish_dict(
         self,
         topic: str,
-        device_info: dict,
+        device_info: Device,
         qos=0,  # pylint: disable=unused-argument
         retain=False,  # pylint: disable=unused-argument
         properties=None,  # pylint: disable=unused-argument
     ) -> None:
-        """
-        Create the topic
-            Topic should be the BASE_TOPIC + DeviceName
-        Ensure the message is formatted correctly
-            Should include all of the fields stored in he devices entry (device_info)
-        publish
-        """
+        """publish a dictionary as a JSON message to a specified MQTT topic.
+        See also publish_flat()"""
+
         my_name = "publish_dict"
 
-        current_time = datetime.now().isoformat()
         try:
             json_message = json.dumps(device_info)
-            emsg = (
-                f"\n"
-                f"---------------{my_name}: Publishing Message {current_time} ---------------\n"
-                f"Topic {topic}:\n\t{json_message}\n"
-                f"------------------------------------------------------------------------------"
+            logging.debug(
+                "\n"
+                "---------------%s: Publishing Message %s ---------------\n"
+                "Topic %s:\n\t%s\n"
+                "------------------------------------------------------------------------------",
+                my_name,
+                datetime.now().isoformat(),
+                topic,
+                json_message,
             )
-            logging.debug(emsg)
         except (TypeError, ValueError) as e:
-            emsg = (
-                f"{my_name}:\n"
-                f"Error decoding json: {e}\n"
-                f"device_info: {device_info}"
+            logging.error(
+                "%s:\nError decoding json: %s\ndevice_info: %s",
+                my_name,
+                e,
+                device_info,
             )
-            logging.error(emsg)
+            raise e
+            # logging.error(emsg)
 
         #! TODO: Add QoS and Retain options
         self.client.publish(topic, json_message)
-
-
-#

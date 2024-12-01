@@ -1,4 +1,4 @@
-""" device_maps.py - maps model names to standard names """
+"""device_maps.py - maps model names to standard names"""
 
 model_map = {
     "ACURITE-606TX": "ACURITE-606TX",
@@ -10,7 +10,8 @@ model_map = {
 #   maps device_id ("id") to a specific known weather sensor
 #   almost all of these will be my own devices
 #
-
+# TODO: This should probably be moved to a json file and read in dynamically
+# TODO: like some of the other maps
 my_sensors_id_map = {
     "79": {  # confirmed with heater test 2024-02-02
         "id_sensor_name": "SC91-A",
