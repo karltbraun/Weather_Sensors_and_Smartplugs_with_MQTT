@@ -233,9 +233,9 @@ class Device:
 
     def psi_from_kpa_set(self, kpa):
         """set psi from kpa"""
-        psi = kpa * 0.14503773773020923
+        psi = int(kpa) * 0.14503773773020923
         self.kpa_set(kpa)
-        self.psi_set(psi)
+        self.psi_set(str(psi))
 
     def tire_pressure(self):
         """get pressure in both kPa and psi"""

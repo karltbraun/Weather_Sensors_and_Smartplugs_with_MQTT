@@ -32,6 +32,7 @@ External Dependencies:
 
 import json
 import logging
+from datetime import datetime
 from queue import Queue
 
 import paho.mqtt.client as mqtt
@@ -190,6 +191,21 @@ class MessageManager:
                     message_queue_out.put(
                         (pub_topic2, payload, qos, retain)
                     )
+
+                    if tag == "ts" or tag == "minute_ts":
+                        new_tag = tag + "_iso"
+                        time_ts: float = float(payload)
+                        time_iso = datetime.fromtimestamp(
+                            time_ts
+                        ).isoformat()
+                        message_queue_out.put(
+                            (
+                                f"{pub_topic}/{new_tag}",
+                                time_iso,
+                                qos,
+                                retain,
+                            )
+                        )
 
                 logging.debug(
                     "%s:\n\treturning messages to publish:\n\t%s",
