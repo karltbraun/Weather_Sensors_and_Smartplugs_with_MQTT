@@ -1,18 +1,46 @@
-"""process_messages - routines to process incoming messages
-    which are json payloads or single key-value pairs as put out
-    by the Shelly devices.
-tags (attributes: values) from a sensor device.
+"""
+This module provides functionality for managing MQTT messages from Shelly smart plugs.
+It includes functions for creating publication topics and processing incoming MQTT messages.
+The module also defines a `MessageManager` class that handles the processing of messages
+and appends processed data to an output message queue.
+
+Module Constants:
+    TOPIC_ROOT (str): The root element in the topic string.
+    DEVICE_TYPE (str): The type of device, used as the third element in the topic string.
+
+Functions:
+    create_pub_topic(topic: str) -> str:
+
+Classes:
+    MessageManager:
+        A class to manage incoming messages from the MQTT broker.
+        Methods:
+            process_message(msg: mqtt.MQTTMessage, message_queue_out: Queue) -> None:
+                Processes a single MQTT message and appends the processed data to the output message queue.
+            normalize_payload(payload: dict) -> dict:
+                Normalize the payload based on the topic (placeholder function).
+
+External Dependencies:
+    - paho.mqtt.client as mqtt
+    - json
+    - logging
+    - queue.Queue
+    - typing.Dict, typing.Tuple
+    - src.utils.flatten_json.flatten_json
+    - src.utils.misc_utils.get_pub_root, src.utils.misc_utils.get_pub_source
 """
 
 import json
 import logging
 from queue import Queue
-from typing import Dict, Tuple
 
 import paho.mqtt.client as mqtt
 
 from src.utils.flatten_json import flatten_json
 from src.utils.misc_utils import get_pub_root, get_pub_source
+
+# from typing import Dict, Tuple
+
 
 # from src.utils.device_maps import my_sensors_id_map
 
