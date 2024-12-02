@@ -81,7 +81,7 @@ def main() -> None:
     emsg = (
         "\n#########################################################################\n"
         f"          Starting up with the following configuration:\n"
-        f"  Version: 20241202\n"
+        f"  Version: 20241202T1534\n"
         f"  Broker: {broker_name}\n"
         f"  Source: {pub_source}\n"
         f"  Topic Root: {pub_topic_root}\n"
