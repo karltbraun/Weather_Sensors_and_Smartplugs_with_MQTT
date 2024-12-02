@@ -257,40 +257,6 @@ class MessageManager:
 
         message_queue_out.put((pub_topic, payload, qos, retain))
 
-    # # ############################ get_proto_info ############################ #
-
-    # def get_proto_info(
-    #     self, payload: bytes, protocol_manager
-    # ) -> Tuple[str, str]:
-    #     """assuming the payload is protocol ID, get the protocol name and description"""
-    #     my_name = "get_proto_info"
-    #     p_id = None
-    #     if isinstance(payload, int):
-    #         # if payload is an integer, convert it to a string
-    #         p_id = str(payload)
-    #     elif isinstance(payload, bytes):
-    #         # if payload is bytes, decode it to a string
-    #         p_id = payload.decode("utf-8")
-    #     elif not isinstance(payload, str):
-    #         raise ValueError(
-    #             f"{my_name}: get_proto_info: payload is not a string: {payload}"
-    #         )
-
-    #     p_info: Dict[str, str] = protocol_manager.get_protocol_info(p_id)
-
-    #     if p_info is None:
-    #         p_name = "**ERROR**"
-    #         p_description = "Protocol not in protocol definitions"
-    #         lmsg = (
-    #             f"Error parsing message: \n\t{payload.decode('utf-8')}\n"
-    #         )
-    #         logging.error(lmsg)
-    #     else:
-    #         p_name = p_info["name"]
-    #         p_description = p_info["protocol_description"]
-
-    #     return p_name, p_description
-
     # ###################################################################### #
     #                       normalize_payload                                #
     # ###################################################################### #
