@@ -109,7 +109,6 @@ class Device:
                 self.device["device_id"],
             )
         self.device[tag] = value
-        self.last_last_seen_now_set()
 
     def device_name(self):
         """get device name"""
@@ -117,7 +116,7 @@ class Device:
 
     def device_name_set(self, device_name):
         """set device name"""
-        self.device["device_name"] = device_name
+        self.tag_value_set("device_name", device_name)
 
     def time_last_seen_ts(self):
         """get last seen time"""
@@ -125,7 +124,7 @@ class Device:
 
     def time_last_seen_ts_set(self, timestamp):
         """set last seen time"""
-        self.device["time_last_seen_ts"] = timestamp
+        self.tag_value_set("time_last_seen_ts", timestamp)
 
     def time_last_seen_iso(self):
         """get last seen time in iso format"""
@@ -133,14 +132,41 @@ class Device:
 
     def time_last_seen_iso_set(self, iso_time):
         """set last seen time in iso format"""
-        self.device["time_last_seen_iso"] = iso_time
+        self.tag_value_set("time_last_seen_iso", iso_time)
 
     def last_last_seen_now_set(self):
         """set last seen time to now"""
         ts = datetime.now()
-        self.device["time_last_seen_ts"] = ts.timestamp()
-        self.device["time_last_seen_iso"] = ts.isoformat()
+        self.time_last_seen_ts_set(ts.timestamp())
+        self.time_last_seen_iso_set(ts.isoformat())
         return ts.timestamp()
+
+        #
+
+    def time_last_published_ts(self):
+        """get last seen time"""
+        return self.device["time_last_published_ts"]
+
+    def time_last_published_ts_set(self, timestamp):
+        """set last seen time"""
+        self.tag_value_set("time_last_published_ts", timestamp)
+
+    def time_last_published_iso(self):
+        """get last seen time in iso format"""
+        return self.device["time_last_published_iso"]
+
+    def time_last_published_iso_set(self, iso_time):
+        """set last seen time in iso format"""
+        self.tag_value_set("time_last_published_iso", iso_time)
+
+    def last_last_published_now_set(self):
+        """set last seen time to now"""
+        ts = datetime.now()
+        self.tag_value_set("time_last_published_ts", ts.timestamp())
+        self.tag_value_set("time_last_published_iso", ts.isoformat())
+        return ts.timestamp()
+
+        #
 
     def device_name_from_id_set(self, device_id: str):
         """get device name from device_id"""
@@ -157,7 +183,7 @@ class Device:
 
     def protocol_id_set(self, protocol_id):
         """set protocol id"""
-        self.device["protocol_id"] = protocol_id
+        self.tag_value_set("protocol_id", protocol_id)
 
     def protocol_name(self):
         """get protocol name"""
@@ -165,7 +191,7 @@ class Device:
 
     def protocol_name_set(self, protocol_name):
         """set protocol name"""
-        self.device["protocol_name"] = protocol_name
+        self.tag_value_set("protocol_name", protocol_name)
 
     def protocol_description(self):
         """get protocol description"""
@@ -173,23 +199,52 @@ class Device:
 
     def protocol_description_set(self, protocol_description):
         """set protocol description"""
-        self.device["protocol_description"] = protocol_description
+        self.tag_value_set("protocol_description", protocol_description)
 
     def temperature_F(self):
         """get temperature in Farhenheit"""
         return self.device["temperature_F"]
 
+    def temperature_C(self):
+        """get temperature in Celcius"""
+        return self.device["temperature_C"]
+
+    def temperature_C_set(self, temperature_C):
+        """set temperature in Celcius"""
+        self.tag_value_set("temperature_C", temperature_C)
+
     def temperature_F_set(self, temperature_F):
         """set temperature in Farhenheit"""
-        self.device["temperature_F"] = temperature_F
+        self.tag_value_set("temperature_F", temperature_F)
 
     def temperature_F_set_from_C(self, temperature_C):
         """set temperature in Farhenheit from Celcius"""
         temperature_F = (temperature_C * 9 / 5) + 32
-        self.tag_value_set("temperature_F", temperature_F)
+        self.temperature_F_set(temperature_F)
+        self.temperature_C_set(temperature_C)
+
+    def kpa_set(self, kpa):
+        """set kpa"""
+        self.tag_value_set("pressure_kPa", kpa)
+
+    def psi_set(self, psi):
+        """set psi"""
+        self.tag_value_set("pressure_psi", psi)
+
+    def psi_from_kpa_set(self, kpa):
+        """set psi from kpa"""
+        psi = kpa * 0.14503773773020923
+        self.kpa_set(kpa)
+        self.psi_set(psi)
+
+    def tire_pressure(self):
+        """get pressure in both kPa and psi"""
+        kpa = self.device["kpa", -1]
+        psi = self.device["psi", -1]
+        return kpa, psi
 
     def device_updated(self):
-        """get device updated time"""
+        """determine if device has been updated since last published"""
         updated = False
         last_seen = self.time_last_seen_ts()
         last_published = self.device["time_last_published_ts"]

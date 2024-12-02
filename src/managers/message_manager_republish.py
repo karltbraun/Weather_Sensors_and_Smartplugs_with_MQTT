@@ -74,7 +74,10 @@ class MessageManager:
             payload = self.normalize_payload(tag, msg.payload)
             device: Device = self.device_registry.get_device(device_id)
             device.device_name_from_id_set(device_id)
+            # set tag and value and mark as seen
             device.tag_value_set(tag, payload)
+            device.last_last_seen_now_set()
+
         except Exception as e:
             logging.error(
                 "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
@@ -84,6 +87,10 @@ class MessageManager:
                 e,
             )
             raise e
+
+        #
+        # see if any transformations or added information is needed
+        #
 
         if tag == "protocol_id":
             # if this is a protocol tag (a protocol ID), add the protocol name
@@ -115,14 +122,23 @@ class MessageManager:
             # NOTE: if the device natively has a temperature_F, it will also have a
             #   temperature_C, at least as far as I have seen.  So we just do our own conversion
             device.temperature_F_set_from_C(payload)
-        logging.debug(
-            "%s: updated device with ID %s:\n\tdevice_name: %s\n\ttag: %s\n\tprotocol_id: %s\n",
-            my_name,
-            device_id,
-            device.device_name(),
-            device.tag_value(tag),
-            device.protocol_id(),
-        )
+            logging.debug(
+                "%s: updated device with ID %s:\n\tdevice_name: %s\n\ttag: %s\n\tprotocol_id: %s\n",
+                my_name,
+                device_id,
+                device.device_name(),
+                device.tag_value(tag),
+                device.protocol_id(),
+            )
+
+        # TODO: Correct the tag value
+
+        elif tag == "pressure_kPa":
+            # convert tire pressure in kPa to psi
+            device.kpa_set(payload)
+            device.psi_from_kpa_set(payload)
+
+        # no additional processing needed
 
     # ###################################################################### #
     #                             parse_topic
@@ -164,7 +180,14 @@ class MessageManager:
 
                 case "channel":
                     # channel is an integer
-                    return int(current_payload.decode("utf-8"))
+                    # turns out some devices have non-numeric values for channel
+                    return current_payload.decode("utf-8")
+
+                case "protocol":
+                    # protocol should be a string.  Usually looks like
+                    # a string representation of a int, but sometimes
+                    # has hex characters like a MAC Address in it
+                    return str(int(current_payload.decode("utf-8")))
 
                 case "battery_ok":
                     # battery_OK is usually an integer, but sometimes a string

@@ -160,8 +160,10 @@ def publish_device(
     # publish in case new data comes in while we are processing
 
     # publish and update published times
+    #   need to set the last published time before publishing
+    #   so it is set for the first time published.
+    device_data.last_last_published_now_set()
     mqtt_manager.publish_dict(topic, device_data.device)
-    device_data.last_last_seen_now_set()
 
     logging.debug(
         "%s: Updated last published time for device %s\n"
@@ -172,34 +174,6 @@ def publish_device(
         device_data.time_last_seen_ts(),
         device_data.time_last_seen_iso(),
     )
-
-
-# ###################################################################### #
-#                             device_updated
-# ###################################################################### #
-
-
-# TODO: move this to the aa_new_device_manager.py
-
-
-def device_updated(device_data: dict) -> bool:
-    """
-    Check if the device has been updated since it was last seen.
-    """
-    my_name = "device_updated"
-
-    updated = False
-    last_seen = device_data.get("time_last_seen_ts", 0)
-    last_published = device_data.get("time_last_published_ts", 0)
-
-    if last_seen is None or last_published is None:
-        logging.debug(
-            "%s: last_seen or last_published is None:\n", my_name
-        )
-    elif last_seen > last_published:
-        updated = True
-
-    return updated
 
 
 # ###################################################################### #
@@ -278,7 +252,7 @@ def main() -> None:
 
     time.sleep(5)  # pause to read output from logging
 
-    # #########################  Main Loop  ####################### #
+    # ##################################  Main Loop  ################################ #
     #
     # Process any messages put in the queue from the on_message routine
     # Give up the CPU for a while then check again

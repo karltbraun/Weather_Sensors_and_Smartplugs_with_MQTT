@@ -1,0 +1,23 @@
+{
+    "device_id": "79",
+    "device_name": "OFC-A",
+    "protocol_id": "91",
+    "protocol_name": "Multiple Temp & Humidty",
+    "protocol_description": "inFactory, nor-tec, FreeTec NC-3982-913 temperature humidity sensor",
+    "temperature_C": 12.44445,
+    "temperature_F": 54.40001,
+    "humidity": 65.0,
+    "battery_ok": "1",
+    "channel": "2",
+    "rssi": -0.268105,
+    "snr": 30.14575,
+    "noise": -30.4139,
+    "freq": 433.8999,
+    "mic": "CRC",
+    "mod": "ASK",
+    "time": "2024-12-02 08:22:28.626647",
+    "time_last_seen_ts": 1733156551.86505,
+    "time_last_seen_iso": "2024-12-02T08:22:31.865050",
+    "time_last_published_ts": 0,
+    "time_last_published_iso": "NEVER"
+}
