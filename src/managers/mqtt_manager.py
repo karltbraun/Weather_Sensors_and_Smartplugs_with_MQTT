@@ -112,21 +112,23 @@ class MQTTManager:
             tborder = "*" * 60
             bborder = tborder
 
-            lmsg = (
-                f"\n{tborder}\n"
+            logging.debug(
+                "\n%s\n"
                 "On_Connect:\n"
-                f"\tFlags: {flags}\n"
-                f"\tResult Code: {rc}\n"
-                f"\tProperties: {properties}\n"
-                f"{bborder}"
+                "\tFlags: %s\n"
+                "\tResult Code: %s\n"
+                "\tProperties: %s\n"
+                "%s",
+                tborder,
+                flags,
+                rc,
+                properties,
+                bborder,
             )
-            logging.debug(lmsg)
 
         for topic in topics:
-            if logging.getLogger().isEnabledFor(logging.DEBUG):
-                emsg = f"Subscribing to topic: {topic}"
-                logging.debug(emsg)
-                client.subscribe(topic)
+            logging.info("Subscribing to topic: %s", topic)
+            client.subscribe(topic)
 
     # ############################ ON_MESSAGE ############################ #
 
@@ -158,6 +160,7 @@ class MQTTManager:
         exclude_messages = [
             "Received PUBLISH",
             "Sending PINGREQ",
+            "Sending PUBLISH",
             "Received PINGRESP",
         ]
 

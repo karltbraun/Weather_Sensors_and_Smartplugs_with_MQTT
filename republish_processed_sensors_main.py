@@ -23,6 +23,7 @@ display it on a web page.
 
 import logging
 import time
+from datetime import datetime
 
 # from datetime import datetime
 from queue import Queue
@@ -233,8 +234,8 @@ def main() -> None:
 
     logger.info(
         "\n#########################################################################\n"
-        "          Starting up with the following configuration:\n"
-        "  Version: 2024-12-02T1534\n"
+        "          Starting up at %s with the following configuration:\n"
+        "  Version: 2024-12-02T1605\n"
         "  Broker: %s\n"
         "  Source: %s\n"
         "  PUB_TOPICS:\n"
@@ -243,6 +244,7 @@ def main() -> None:
         "  Console log level: %s\n"
         "  File log level: %s\n"
         "#########################################################################\n",
+        datetime.now().isoformat(),
         broker_name,
         pub_source,
         pub_topics,

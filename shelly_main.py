@@ -4,6 +4,7 @@ shelly_main.py 20241116
 
 import logging
 import time
+from datetime import datetime
 from queue import Queue
 
 from dotenv import load_dotenv
@@ -78,19 +79,25 @@ def main() -> None:
 
     # #########################  display banner  ####################### #
 
-    emsg = (
+    logger.info(
         "\n#########################################################################\n"
-        f"          Starting up with the following configuration:\n"
-        f"  Version: 20241202T1534\n"
-        f"  Broker: {broker_name}\n"
-        f"  Source: {pub_source}\n"
-        f"  Topic Root: {pub_topic_root}\n"
-        f"  Subscription Topics: {sub_topics}\n"
-        f"  Console log level: {logging_levels['console']}\n"
-        f"  File log level: {logging_levels['file']}\n"
-        "#########################################################################\n"
+        "  Starting up at %s with the following configuration:\n"
+        "  Version: 20241202T1605\n"
+        "  Broker: %s\n"
+        "  Source: %s\n"
+        "  Topic Root: %s\n"
+        "  Subscription Topics: %s\n"
+        "  Console log level: %s\n"
+        "  File log level: %s\n"
+        "#########################################################################\n",
+        datetime.now(),
+        broker_name,
+        pub_source,
+        pub_topic_root,
+        sub_topics,
+        logging_levels["console"],
+        logging_levels["file"],
     )
-    logger.info(emsg)
 
     time.sleep(5)  # pause to read output from logging
 
