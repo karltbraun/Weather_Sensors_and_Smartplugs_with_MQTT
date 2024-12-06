@@ -233,7 +233,7 @@ class Device:
 
     def psi_from_kpa_set(self, kpa):
         """set psi from kpa"""
-        psi = int(kpa) * 0.14503773773020923
+        psi = float(kpa) * 0.14503773773020923
         self.kpa_set(kpa)
         self.psi_set(str(psi))
 
