@@ -97,7 +97,7 @@ class ProtocolManager:
         protocol_info = self.protocols.get(protocol_id, {})
         if not protocol_info:
             raise ValueError(
-                f"protocol_description: Protocol ID {protocol_id} not found"
+                f"protocol_description: Protocol ID \\{protocol_id}\\ not found"
             )
 
         return protocol_info.get("description", "*UNK_PROTOCL_DESC*")
@@ -107,9 +107,10 @@ class ProtocolManager:
         self._load_configurations()
         protocol_info = self.protocols.get(protocol_id, {})
         if not protocol_info:
-            raise ValueError(
-                f"protocol_info: Protocol ID {protocol_id} not found"
-            )
+            return None, None
+            # raise ValueError(
+            #     f"protocol_info: Protocol ID \\{protocol_id}\\ not found"
+            # )
 
         protocol_name = protocol_info.get("name", "*UNK_PROTOCL_NAME*")
         protocol_description = protocol_info.get(

@@ -100,6 +100,13 @@ class MessageManager:
             protocol_name, protocol_description = (
                 protocol_manager.protocol_info(protocol_id)
             )
+            if protocol_name == None or protocol_description == None:
+                raise ValueError(
+                    "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+                    f"{my_name}: Protocol ID \\{protocol_id}\\ not found\n"
+                    f"\ttag: {tag}\n\tpayload: {payload}\n"
+                    "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+                )
 
             device.protocol_id_set(protocol_id)
             device.protocol_name_set(protocol_name)
@@ -182,12 +189,6 @@ class MessageManager:
                     # channel is an integer
                     # turns out some devices have non-numeric values for channel
                     return current_payload.decode("utf-8")
-
-                case "protocol":
-                    # protocol should be a string.  Usually looks like
-                    # a string representation of a int, but sometimes
-                    # has hex characters like a MAC Address in it
-                    return str(int(current_payload.decode("utf-8")))
 
                 case "battery_ok":
                     # battery_OK is usually an integer, but sometimes a string
