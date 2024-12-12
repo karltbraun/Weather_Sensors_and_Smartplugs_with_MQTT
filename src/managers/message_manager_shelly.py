@@ -40,11 +40,6 @@ import paho.mqtt.client as mqtt
 from src.utils.flatten_json import flatten_json
 from src.utils.misc_utils import get_pub_root, get_pub_source
 
-# from typing import Dict, Tuple
-
-
-# from src.utils.device_maps import my_sensors_id_map
-
 logging.basicConfig(level=logging.DEBUG)
 
 # ##############################################################################

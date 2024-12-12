@@ -2,30 +2,9 @@
 Protocol Manager to handle RTL_433 protocols
 """
 
-import json
-import time
-from typing import Dict, Tuple
+from typing import Tuple, Union
 
-# ###################################################################### #
-#                             load_protocols
-# ###################################################################### #
-
-
-def load_json_file(file_path: str) -> Dict[str, Dict]:
-    """Load protocols from a JSON file specified by the file_path argument"""
-    my_name = "load_protocols"
-    try:
-        with open(file_path, "r", encoding="utf-8") as file:
-            return json.load(file)
-    except json.JSONDecodeError as ex:
-        raise ValueError(
-            f"{my_name}: Error decoding JSON from {file_path}: {ex}"
-        ) from ex
-    except (OSError, IOError) as ex:
-        raise ValueError(
-            f"{my_name}: Error loading file {file_path}: {ex}"
-        ) from ex
-
+from src.managers.config_file_manager import ConfigurationFileManager
 
 # ###################################################################### #
 #                      ProtocolManager Class
@@ -41,42 +20,23 @@ class ProtocolManager:
         protocols_file: str = "rtl_433_protocols.json",
         categories_file: str = "protocol_categories.json",
     ):
-        # configuration file paths
-        self.config_dir = config_dir
-        self.protocols_file = protocols_file
-        self.categories_file = categories_file
-        # device attributes
-        self.protocols = self._load_protocols()
-        self.categories = self._load_categories()
-        self.last_check_time = 0
-        self.check_interval = 60  # Check every 60 seconds
-
-    # ############################ _load_protocols ############################ #
-
-    def _load_protocols(self) -> Dict[str, Dict]:
-        """Load protocols from the JSON file"""
-        file_path = f"{self.config_dir}/{self.protocols_file}"
-        return load_json_file(file_path)
-
-    # ############################ _load_categories ############################ #
-
-    def _load_categories(self) -> Dict[str, Dict]:
-        """Load categories from the JSON file"""
-        file_path = f"{self.config_dir}/{self.categories_file}"
-        return load_json_file(file_path)
+        self.protocols_manager = ConfigurationFileManager(
+            config_file=protocols_file,
+            config_dir=config_dir,
+            check_interval=60,
+        )
+        self.categories_manager = ConfigurationFileManager(
+            config_file=categories_file,
+            config_dir=config_dir,
+            check_interval=60,
+        )
 
     # ############################ _load_iconfigurations ############################ #
 
     def _load_configurations(self) -> None:
         """Load configurations if files have been modified"""
-        current_time = time.time()
-        if current_time - self.last_check_time < self.check_interval:
-            return
-
-        # json load error checking done in load_json_file, called by both _load methods
-        self.protocols = self._load_protocols()
-        self.categories = self._load_categories()
-        self.last_check_time = current_time
+        self.protocols = self.protocols_manager._load_configuration()
+        self.categories = self.categories_manager._load_configuration()
 
     # ############################ get_protocl_info ############################ #
 
@@ -86,7 +46,9 @@ class ProtocolManager:
         protocol_info = self.protocols.get(protocol_id, {})
         if not protocol_info:
             raise ValueError(
+                "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
                 f"protocol_name: Protocol ID {protocol_id} not found"
+                "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
             )
 
         return protocol_info.get("name", "*UNK_PROTOCL_NAME*")
@@ -97,12 +59,18 @@ class ProtocolManager:
         protocol_info = self.protocols.get(protocol_id, {})
         if not protocol_info:
             raise ValueError(
+                "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
                 f"protocol_description: Protocol ID \\{protocol_id}\\ not found"
+                "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
             )
 
         return protocol_info.get("description", "*UNK_PROTOCL_DESC*")
 
-    def protocol_info(self, protocol_id: str) -> Tuple[str, str]:
+    # ############################ protocol_info ############################ #
+    # returns either a Tuple of type [str, str] or a Tuple of type [None, None]
+    def protocol_info(
+        self, protocol_id: str
+    ) -> Union[Tuple[str, str], Tuple[None, None]]:
         """Get the protocol information for a protocol ID"""
         self._load_configurations()
         protocol_info = self.protocols.get(protocol_id, {})

@@ -2,56 +2,16 @@ import logging
 from datetime import datetime
 from typing import Any, Dict
 
+from src.managers.local_sensor_manager import LocalSensorManager
+
+# from src.utils.misc_utils import load_json_file
+
 # TODO: this should be read in from a json file like we do for some of the other
 # TODO: maps.  Dynamically checked and read in when changed.
 model_map = {
     """ device_maps.py - maps model names to standard names """
     "ACURITE-606TX": "ACURITE-606TX",
     "INFACTORY-TH": "SMARTRO-SC91",
-}
-
-#
-# device ID map
-#   maps device_id ("id") to a specific known weather sensor
-#   almost all of these will be my own devices
-#
-
-# TODO: this should be read in from a json file like we do for some of the other
-# TODO: maps.  Dynamically checked and read in when changed.
-
-my_sensors_id_map = {
-    "79": {  # confirmed with heater test 2024-02-02
-        "id_sensor_name": "SC91-A",
-        "sensor_name": "OFC-A",
-    },
-    "167": {  # confirmed with heater test 2024-02-03
-        "id_sensor_name": "SC91-B",
-        "sensor_name": "PATIO-B",
-    },
-    "211": {
-        "id_sensor_name": "SC91-C",
-        "sensor_name": "PATIO-C",
-    },
-    "37": {
-        "id_sensor_name": "SC91-C",
-        "sensor_name": "PATIO-C",
-    },
-    "49": {
-        "id_sensor_name": "ACRT-01",
-        "sensor_name": "BRZWY-ACRT",
-    },
-    "98": {
-        "id_sensor_name": "ACRT-02",
-        "sensor_name": "PORCH-ACRT",
-    },
-    "132": {
-        "id_sensor_name": "ACRT-02",
-        "sensor_name": "PORCH-ACRT",
-    },
-    "200": {
-        "id_sensor_name": "ACRT-02",
-        "sensor_name": "PORCH-ACRT?",
-    },
 }
 
 #
@@ -66,7 +26,12 @@ attribute_map = {
 
 
 class Device:
-    def __init__(self, device_id):
+    # Class variable
+    local_sensor_manager: LocalSensorManager = None
+
+    # Instance stuff
+    def __init__(self, device_id: str):
+        self.device_id = device_id
         current_time = datetime.now()
         self.device = {
             "device_id": device_id,
@@ -170,11 +135,9 @@ class Device:
 
     def device_name_from_id_set(self, device_id: str):
         """get device name from device_id"""
-        device_info = my_sensors_id_map.get(device_id, {})
-        device_name = device_info.get(
-            "sensor_name", f"UNKNOWN_{device_id}"
-        )
-        # TODO: Do we need to check for error?
+        device_name = Device.local_sensor_manager.sensor_name(device_id)
+        if not device_name:
+            device_name = f"UNKNOWN_DEVICE_{device_id}"
         self.tag_value_set("device_name", device_name)
 
     def protocol_id(self):
@@ -252,6 +215,10 @@ class Device:
             updated = True
         return updated
 
+    def is_local_sensor(self) -> bool:
+        """Check if this device is a local sensor"""
+        return Device.local_sensor_manager.is_local_sensor(self.device_id)
+
     @classmethod
     def normalize_tag_name(cls, tag):
         """normalize tag name"""
@@ -261,17 +228,32 @@ class Device:
         return new_tag
 
 
+# Initialize the class attribute
+Device.local_sensor_manager = LocalSensorManager(
+    config_dir="./config",
+    sensors_file="local_sensors.json",
+    check_interval=60,
+)
+
+
 class DeviceRegistry:
     """DeviceRegistry class to manage devices. The registry is just a
     dictionary of devices indexed by the device_id"""
 
     def __init__(self):
         self.devices: Dict[str, Device] = {}
+        self.local_sensor_manager = Device.local_sensor_manager
 
     def get_device(self, device_id: str) -> Device:
         """get the device associated with the device_id;
         if the device does not exist, return a newly created device"""
         if device_id not in self.devices:
+            logging.debug(
+                "\n@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n"
+                "DeviceRegistry: Creating new device with id %s"
+                "\n@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n",
+                device_id,
+            )
             self.devices[device_id] = Device(device_id)
         return self.devices[device_id]
 

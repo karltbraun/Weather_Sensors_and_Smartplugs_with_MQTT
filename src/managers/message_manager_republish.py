@@ -21,6 +21,7 @@ from typing import Any, Tuple
 import paho.mqtt.client as mqtt
 
 from src.managers.device_manager import Device, DeviceRegistry
+from src.managers.local_sensor_manager import LocalSensorManager
 
 # ##############################################################################
 #                       Meesage Manager Class                                  #
@@ -30,11 +31,16 @@ from src.managers.device_manager import Device, DeviceRegistry
 class MessageManager:
     """MessageManager - class to manage incoming messages from the MQTT broker"""
 
-    def __init__(self):
-        """Initialize the MessageManager class with an empty device
-        registry
-        """
+    def __init__(self, local_sensor_manager: LocalSensorManager):
+        self.local_sensor_manager = local_sensor_manager
         self.device_registry = DeviceRegistry()
+
+    def device_name_from_id_set(
+        self, device_id: str, device_name: str
+    ) -> None:
+        """Set the device name from the device ID"""
+        device = self.device_registry.get_device(device_id)
+        device.device["device_name"] = device_name
 
     # ##############################################################################
     #                       process_message
@@ -73,7 +79,16 @@ class MessageManager:
         try:
             payload = self.normalize_payload(tag, msg.payload)
             device: Device = self.device_registry.get_device(device_id)
-            device.device_name_from_id_set(device_id)
+            if device.device_name() is None:
+                raise ValueError(
+                    "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+                    f"{my_name}: Device name not set for device ID {device_id}\n"
+                    "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+                )
+
+            device.device_name_from_id_set(
+                device_id,
+            )
             # set tag and value and mark as seen
             device.tag_value_set(tag, payload)
             device.last_last_seen_now_set()
@@ -100,7 +115,7 @@ class MessageManager:
             protocol_name, protocol_description = (
                 protocol_manager.protocol_info(protocol_id)
             )
-            if protocol_name == None or protocol_description == None:
+            if protocol_name is None or protocol_description is None:
                 raise ValueError(
                     "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
                     f"{my_name}: Protocol ID \\{protocol_id}\\ not found\n"

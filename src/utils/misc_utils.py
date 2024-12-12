@@ -1,5 +1,49 @@
+import json
 import os
 import subprocess
+import time
+from typing import Dict
+
+# ###################################################################### #
+#                             load_json_file
+# ###################################################################### #
+
+
+def load_json_file(file_path: str) -> Dict[str, Dict]:
+    """Load information  from a JSON file specified by the file_path argument"""
+    my_name = "load_json_file"
+    try:
+        with open(file_path, "r", encoding="utf-8") as file:
+            return json.load(file)
+    except json.JSONDecodeError as ex:
+        raise ValueError(
+            f"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+            f"{my_name}: Error decoding JSON from {file_path}: {ex}\n"
+            f"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+        ) from ex
+    except (OSError, IOError) as ex:
+        raise ValueError(
+            f"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+            f"{my_name}: Error loading file {file_path}: {ex}\n"
+            f"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+        ) from ex
+
+
+def load_configuration_file_on_change(
+    file_path: str, last_check_time: float, check_interval: int = 60
+) -> Dict[str, Dict]:
+    """Load information from a JSON file specified by the file_path argument
+    if sufficient time has passed to warrant a check for changes, AND
+    if the file has changed since the last check."""
+    current_time = time.time()
+    if current_time - last_check_time < check_interval:
+        return None
+    # determine if the file has changed
+    file_stat = os.stat(file_path)
+    if file_stat.st_mtime <= last_check_time:
+        return None
+    return load_json_file(file_path)
+
 
 # ###################################################################### #
 #                          celsius_to_fahrenheit

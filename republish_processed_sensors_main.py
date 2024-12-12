@@ -35,7 +35,11 @@ from dotenv import load_dotenv
 from config.broker_config import BROKER_CONFIG, load_broker_config
 
 # handles all device specific functions (sensors)
-from src.managers.device_manager import Device, DeviceRegistry
+from src.managers.device_manager import (
+    Device,
+    DeviceRegistry,
+    LocalSensorManager,
+)
 
 # transforms input data into device attributes
 from src.managers.message_manager_republish import MessageManager
@@ -45,9 +49,6 @@ from src.managers.mqtt_manager import MQTTManager
 
 # handles all RTL-433 protocol specific functions
 from src.managers.protocol_manager import ProtocolManager
-
-# maps device IDs to known sensor names
-from src.utils.device_maps import my_sensors_id_map
 
 # custom logger
 from src.utils.logger_setup import logger_setup
@@ -64,9 +65,17 @@ from src.utils.misc_utils import (  # get_pub_root,
 #                        Global Variables and Constants
 # ###################################################################### #
 
-# Define the devices dictionary at the module level
+# manages all RTL_433 protocols related functions
 protocol_manager = ProtocolManager()
 
+# manages all local sensor related functions
+#   mainly identifies those sensors which are local to us
+#   vs others which RTL_433 has sees in the area
+local_sensor_manager = LocalSensorManager(
+    config_dir="./config",
+    sensors_file="local_sensors.json",
+    check_interval=60,
+)
 
 # ###################################################################### #
 #     setup logger, load broker configurations, load env variables       #
@@ -100,7 +109,7 @@ def get_topic_for_device(
     # my_name = "get_topic_for_device"
 
     topic_root: str = pub_topics["pub_topic_base"]
-    if device_id in my_sensors_id_map:
+    if local_sensor_manager.is_local_sensor(device_id):
         # if device ID is one of my devices publish to the ktbmes sensor topic
         topic_root: str = pub_topics["pub_topic_base"]
         topic: str = f"{topic_root}/house_weather_sensors/{device_data.device_name()}"
@@ -227,8 +236,9 @@ def main() -> None:
 
     # ###################  message processing setup   ####################### #
 
-    message_manager = MessageManager()
-    devices: DeviceRegistry = message_manager.device_registry.devices
+    message_manager = MessageManager(local_sensor_manager)
+    device_registry: DeviceRegistry = DeviceRegistry()
+    message_manager.device_registry = device_registry
 
     # #########################  display banner  ####################### #
 
@@ -293,9 +303,10 @@ def main() -> None:
             # ################## publish all updated devices  ################### #
 
             logging.debug(
-                "Main: Loop: Processing %d devices", len(devices)
+                "Main: Loop: Processing %d devices",
+                len(device_registry.devices),
             )
-            for device_id, device_data in devices.items():
+            for device_id, device_data in device_registry.devices.items():
                 if device_data.device_updated():
                     topic: str = get_topic_for_device(
                         device_id, device_data, pub_topics

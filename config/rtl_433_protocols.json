@@ -352,7 +352,7 @@
         "protocol_description": "Renault TPMS"
     },
     "91": {
-        "name": "Multiple Temp & Humidty",
+        "name": "Multiple Temp & Humidty*SC91",
         "protocol_description": "inFactory, nor-tec, FreeTec NC-3982-913 temperature humidity sensor"
     },
     "92": {

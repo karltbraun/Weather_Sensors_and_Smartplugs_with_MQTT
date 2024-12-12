@@ -1,48 +1,42 @@
-"""device_maps.py - maps model names to standard names"""
-
-model_map = {
-    "ACURITE-606TX": "ACURITE-606TX",
-    "INFACTORY-TH": "SMARTRO-SC91",
-}
-
-#
-# device ID map
-#   maps device_id ("id") to a specific known weather sensor
-#   almost all of these will be my own devices
-#
-# TODO: This should probably be moved to a json file and read in dynamically
-# TODO: like some of the other maps
-my_sensors_id_map = {
-    "79": {  # confirmed with heater test 2024-02-02
+{
+    "79": {
         "id_sensor_name": "SC91-A",
         "sensor_name": "OFC-A",
+        "comment": ""
     },
-    "167": {  # confirmed with heater test 2024-02-03
+    "167": {
         "id_sensor_name": "SC91-B",
         "sensor_name": "PATIO-Bx",
+        "comment": ""
     },
     "211": {
         "id_sensor_name": "SC91-C",
         "sensor_name": "PATIO-C",
+        "comment": ""
     },
     "37": {
         "id_sensor_name": "SC91-C",
         "sensor_name": "PATIO-C",
+        "comment": ""
     },
     "49": {
         "id_sensor_name": "ACRT-01",
         "sensor_name": "BRZWY-ACRT",
+        "comment": ""
     },
     "98": {
         "id_sensor_name": "ACRT-02",
         "sensor_name": "PORCH-ACRT",
+        "comment": ""
     },
     "132": {
         "id_sensor_name": "ACRT-02",
         "sensor_name": "PORCH-ACRT",
+        "comment": ""
     },
     "200": {
         "id_sensor_name": "ACRT-02",
         "sensor_name": "PATIO-B",
-    },
+        "comment": ""
+    }
 }
