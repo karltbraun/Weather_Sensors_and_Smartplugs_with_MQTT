@@ -120,3 +120,14 @@ def get_logging_levels() -> dict:
     }
 
     return log_levels
+
+
+# ###################################################################### #
+#                             get_publish_interval_max
+# ###################################################################### #
+
+
+def get_publish_interval_max() -> int:
+    """Get the maximum publish interval from the environment variables."""
+    # default to 5 minutes
+    return int(os.getenv("PUBLISH_INTERVAL_MAX", 300))

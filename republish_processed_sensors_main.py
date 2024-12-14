@@ -58,6 +58,7 @@ from src.utils.misc_utils import (  # get_pub_root,
     get_logging_levels,
     get_pub_root,
     get_pub_source,
+    get_publish_interval_max,
     get_sub_topics,
 )
 
@@ -83,6 +84,8 @@ local_sensor_manager = LocalSensorManager(
 
 load_dotenv()
 logging_levels: dict = get_logging_levels()
+PUBLISH_INTERVAL_MAX_S = get_publish_interval_max()
+
 
 logger = logger_setup(
     clear_logger=logging_levels["clear"],
@@ -91,7 +94,6 @@ logger = logger_setup(
     file_handler="logs/republish_processed_sensors.log",
 )
 
-load_dotenv()
 load_broker_config()
 
 
@@ -306,8 +308,20 @@ def main() -> None:
                 "Main: Loop: Processing %d devices",
                 len(device_registry.devices),
             )
+            publish_updated_devices(
+                items=device_registry.devices.items(),
+                max_interval=PUBLISH_INTERVAL_MAX_S,
+            )
+
+            current_time = time.time()
+
             for device_id, device_data in device_registry.devices.items():
-                if device_data.device_updated():
+                if (
+                    device_data.device_updated()
+                    or device_data.publish_interval_max_exceeded(
+                        current_time, PUBLISH_INTERVAL_MAX_S
+                    )
+                ):
                     topic: str = get_topic_for_device(
                         device_id, device_data, pub_topics
                     )

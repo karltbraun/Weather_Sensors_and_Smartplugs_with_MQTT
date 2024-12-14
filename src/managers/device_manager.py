@@ -1,6 +1,6 @@
 import logging
 from datetime import datetime
-from typing import Any, Dict
+from typing import Any, Dict, Tuple
 
 from src.managers.local_sensor_manager import LocalSensorManager
 
@@ -53,18 +53,18 @@ class Device:
             "time": "NO_TIME",
             "time_last_seen_ts": current_time.timestamp(),
             "time_last_seen_iso": current_time.isoformat(),
-            "time_last_published_ts": 0,
+            "time_last_published_ts": 0.0,
             "time_last_published_iso": "NEVER",
         }
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self.device)
 
     def tag_value(self, tag) -> Any:
         """get tag value"""
         return self.device.get(tag, None)
 
-    def tag_value_set(self, tag, value):
+    def tag_value_set(self, tag: str, value: Any) -> None:
         """set tag value and update last seen time"""
         if tag not in self.device:
             logging.info(
@@ -75,31 +75,31 @@ class Device:
             )
         self.device[tag] = value
 
-    def device_name(self):
+    def device_name(self) -> str:
         """get device name"""
         return self.device["device_name"]
 
-    def device_name_set(self, device_name):
+    def device_name_set(self, device_name: str) -> None:
         """set device name"""
         self.tag_value_set("device_name", device_name)
 
-    def time_last_seen_ts(self):
+    def time_last_seen_ts(self) -> float:
         """get last seen time"""
         return self.device["time_last_seen_ts"]
 
-    def time_last_seen_ts_set(self, timestamp):
+    def time_last_seen_ts_set(self, timestamp: float) -> None:
         """set last seen time"""
         self.tag_value_set("time_last_seen_ts", timestamp)
 
-    def time_last_seen_iso(self):
+    def time_last_seen_iso(self) -> str:
         """get last seen time in iso format"""
         return self.device["time_last_seen_iso"]
 
-    def time_last_seen_iso_set(self, iso_time):
+    def time_last_seen_iso_set(self, iso_time: str) -> None:
         """set last seen time in iso format"""
         self.tag_value_set("time_last_seen_iso", iso_time)
 
-    def last_last_seen_now_set(self):
+    def last_last_seen_now_set(self) -> float:
         """set last seen time to now"""
         ts = datetime.now()
         self.time_last_seen_ts_set(ts.timestamp())
@@ -108,29 +108,37 @@ class Device:
 
         #
 
-    def time_last_published_ts(self):
+    def time_last_published_ts(self) -> float:
         """get last seen time"""
         return self.device["time_last_published_ts"]
 
-    def time_last_published_ts_set(self, timestamp):
+    def time_last_published_ts_set(self, timestamp: float) -> None:
         """set last seen time"""
         self.tag_value_set("time_last_published_ts", timestamp)
 
-    def time_last_published_iso(self):
+    def time_last_published_iso(self) -> str:
         """get last seen time in iso format"""
         return self.device["time_last_published_iso"]
 
-    def time_last_published_iso_set(self, iso_time):
+    def time_last_published_iso_set(self, iso_time: str) -> None:
         """set last seen time in iso format"""
         self.tag_value_set("time_last_published_iso", iso_time)
 
-    def last_last_published_now_set(self):
+    def last_last_published_now_set(self) -> float:
         """set last seen time to now"""
         ts = datetime.now()
         self.tag_value_set("time_last_published_ts", ts.timestamp())
         self.tag_value_set("time_last_published_iso", ts.isoformat())
         return ts.timestamp()
 
+    def publish_interval_max_exceeded(
+        self, current_time: float, publish_interval_max_s: float
+    ) -> bool:
+        """determine if the publish interval has been exceeded"""
+        last_published_ts = self.time_last_published_ts()
+        if (current_time - last_published_ts) > publish_interval_max_s:
+            return True
+        return False
         #
 
     def device_name_from_id_set(self, device_id: str):
@@ -140,73 +148,73 @@ class Device:
             device_name = f"UNKNOWN_DEVICE_{device_id}"
         self.tag_value_set("device_name", device_name)
 
-    def protocol_id(self):
+    def protocol_id(self) -> str:
         """get protocol id"""
         return self.device["protocol_id"]
 
-    def protocol_id_set(self, protocol_id):
+    def protocol_id_set(self, protocol_id: str) -> None:
         """set protocol id"""
         self.tag_value_set("protocol_id", protocol_id)
 
-    def protocol_name(self):
+    def protocol_name(self) -> str:
         """get protocol name"""
         return self.device["protocol_name"]
 
-    def protocol_name_set(self, protocol_name):
+    def protocol_name_set(self, protocol_name: str) -> None:
         """set protocol name"""
         self.tag_value_set("protocol_name", protocol_name)
 
-    def protocol_description(self):
+    def protocol_description(self) -> str:
         """get protocol description"""
         return self.device["protocol_description"]
 
-    def protocol_description_set(self, protocol_description):
+    def protocol_description_set(self, protocol_description: str) -> None:
         """set protocol description"""
         self.tag_value_set("protocol_description", protocol_description)
 
-    def temperature_F(self):
+    def temperature_F(self) -> float:
         """get temperature in Farhenheit"""
         return self.device["temperature_F"]
 
-    def temperature_C(self):
+    def temperature_C(self) -> float:
         """get temperature in Celcius"""
         return self.device["temperature_C"]
 
-    def temperature_C_set(self, temperature_C):
+    def temperature_C_set(self, temperature_C: float) -> None:
         """set temperature in Celcius"""
         self.tag_value_set("temperature_C", temperature_C)
 
-    def temperature_F_set(self, temperature_F):
+    def temperature_F_set(self, temperature_F: float) -> None:
         """set temperature in Farhenheit"""
         self.tag_value_set("temperature_F", temperature_F)
 
-    def temperature_F_set_from_C(self, temperature_C):
+    def temperature_F_set_from_C(self, temperature_C: float) -> None:
         """set temperature in Farhenheit from Celcius"""
         temperature_F = (temperature_C * 9 / 5) + 32
         self.temperature_F_set(temperature_F)
         self.temperature_C_set(temperature_C)
 
-    def kpa_set(self, kpa):
+    def kpa_set(self, kpa: float) -> None:
         """set kpa"""
         self.tag_value_set("pressure_kPa", kpa)
 
-    def psi_set(self, psi):
+    def psi_set(self, psi: float):
         """set psi"""
         self.tag_value_set("pressure_psi", psi)
 
-    def psi_from_kpa_set(self, kpa):
+    def psi_from_kpa_set(self, kpa: float) -> None:
         """set psi from kpa"""
         psi = float(kpa) * 0.14503773773020923
         self.kpa_set(kpa)
         self.psi_set(str(psi))
 
-    def tire_pressure(self):
+    def tire_pressure(self) -> Tuple[float, float]:
         """get pressure in both kPa and psi"""
         kpa = self.device["kpa", -1]
         psi = self.device["psi", -1]
         return kpa, psi
 
-    def device_updated(self):
+    def device_updated(self) -> bool:
         """determine if device has been updated since last published"""
         updated = False
         last_seen = self.time_last_seen_ts()
@@ -220,7 +228,7 @@ class Device:
         return Device.local_sensor_manager.is_local_sensor(self.device_id)
 
     @classmethod
-    def normalize_tag_name(cls, tag):
+    def normalize_tag_name(cls, tag: str) -> str:
         """normalize tag name"""
         new_tag = attribute_map.get(tag, tag)
         if not new_tag:
