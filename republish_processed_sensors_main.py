@@ -247,7 +247,7 @@ def main() -> None:
     logger.info(
         "\n#########################################################################\n"
         "          Starting up at %s with the following configuration:\n"
-        "  Version: 2024-12-02T1605\n"
+        "  Version: 2024-12-15T0910\n"
         "  Broker: %s\n"
         "  Source: %s\n"
         "  PUB_TOPICS:\n"
@@ -307,10 +307,6 @@ def main() -> None:
             logging.debug(
                 "Main: Loop: Processing %d devices",
                 len(device_registry.devices),
-            )
-            publish_updated_devices(
-                items=device_registry.devices.items(),
-                max_interval=PUBLISH_INTERVAL_MAX_S,
             )
 
             current_time = time.time()
