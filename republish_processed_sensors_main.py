@@ -21,6 +21,11 @@ for potential use. The JSON file can be used to either republish the data to a n
 display it on a web page.
 """
 
+
+# ###################################################################### #
+#                             Import Libraries
+# ###################################################################### #
+
 import logging
 import time
 from datetime import datetime
@@ -33,6 +38,9 @@ from dotenv import load_dotenv
 
 # describes mqtt broker parameters like host address, port, etc.
 from config.broker_config import BROKER_CONFIG, load_broker_config
+
+# handles output file
+from src.managers.data_repository_manager import DataRepositoryManager
 
 # handles all device specific functions (sensors)
 from src.managers.device_manager import (
@@ -76,6 +84,10 @@ local_sensor_manager = LocalSensorManager(
     config_dir="./config",
     sensors_file="local_sensors.json",
     check_interval=60,
+)
+
+data_repository_manager = DataRepositoryManager(
+    "data", "device_data.json", 60
 )
 
 # ###################################################################### #
@@ -247,7 +259,7 @@ def main() -> None:
     logger.info(
         "\n#########################################################################\n"
         "          Starting up at %s with the following configuration:\n"
-        "  Version: 2024-12-15T0910\n"
+        "  Version: 2024-12-16T1033\n"
         "  Broker: %s\n"
         "  Source: %s\n"
         "  PUB_TOPICS:\n"
@@ -324,6 +336,13 @@ def main() -> None:
                     publish_device(
                         device_id, device_data, topic, mqtt_manager
                     )
+
+            # ################## dump data to file  ################### #
+
+            data_repository_manager.dump_data(
+                device_registry.devices,
+                data_repository_manager.dump_file_path,
+            )
 
     except KeyboardInterrupt:
         print("Keyboard Interrupt received, exiting.")
