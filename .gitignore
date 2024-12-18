@@ -9,6 +9,8 @@ log/*
 logs/*
 Log/*
 Logs/*
+myenv/*
+
 # *.json
 
 ### macOS ###
