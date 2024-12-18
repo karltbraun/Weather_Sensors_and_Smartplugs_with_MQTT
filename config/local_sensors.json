@@ -1,17 +1,12 @@
 {
     "79": {
         "id_sensor_name": "SC91-A",
-        "sensor_name": "OFC-A",
+        "sensor_name": "PATIO-A",
         "comment": ""
     },
     "167": {
         "id_sensor_name": "SC91-B",
-        "sensor_name": "PATIO-Bx",
-        "comment": ""
-    },
-    "211": {
-        "id_sensor_name": "SC91-C",
-        "sensor_name": "PATIO-C",
+        "sensor_name": "OFFICE-B",
         "comment": ""
     },
     "37": {
@@ -36,7 +31,12 @@
     },
     "200": {
         "id_sensor_name": "ACRT-02",
-        "sensor_name": "xPATIO-B",
+        "sensor_name": "UNKNOWN-B",
+        "comment": ""
+    },
+    "211": {
+        "id_sensor_name": "SC91-C",
+        "sensor_name": "UNKNOWN-C",
         "comment": ""
     }
 }
