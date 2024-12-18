@@ -20,8 +20,8 @@
         "comment": ""
     },
     "49": {
-        "id_sensor_name": "ACRT-01",
-        "sensor_name": "BRZWY-ACRT",
+        "id_sensor_name": "ACRT-X1",
+        "sensor_name": "xBRZWY-ACRT",
         "comment": ""
     },
     "98": {
@@ -30,13 +30,13 @@
         "comment": ""
     },
     "132": {
-        "id_sensor_name": "ACRT-02",
-        "sensor_name": "PORCH-ACRT",
+        "id_sensor_name": "ACRT-01",
+        "sensor_name": "PATIO-B",
         "comment": ""
     },
     "200": {
         "id_sensor_name": "ACRT-02",
-        "sensor_name": "PATIO-B",
+        "sensor_name": "xPATIO-B",
         "comment": ""
     }
 }

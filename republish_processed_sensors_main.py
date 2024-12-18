@@ -259,7 +259,7 @@ def main() -> None:
     logger.info(
         "\n#########################################################################\n"
         "          Starting up at %s with the following configuration:\n"
-        "  Version: 2024-12-16T1033\n"
+        "  Version: 2024-12-18T0654\n"
         "  Broker: %s\n"
         "  Source: %s\n"
         "  PUB_TOPICS:\n"
