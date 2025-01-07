@@ -4,19 +4,9 @@
         "sensor_name": "LivingRoom-C",
         "comment": ""
     },
-    "49": {
-        "id_sensor_name": "ACRT-X1",
-        "sensor_name": "xBRZWY-ACRT",
-        "comment": ""
-    },
     "79": {
         "id_sensor_name": "SC91-A",
         "sensor_name": "ShrineRoom-A",
-        "comment": ""
-    },
-    "98": {
-        "id_sensor_name": "ACRT-02",
-        "sensor_name": "PORCH-ACRT",
         "comment": ""
     },
     "132": {
@@ -26,7 +16,12 @@
     },
     "167": {
         "id_sensor_name": "SC91-B",
-        "sensor_name": "OFFICE-B",
+        "sensor_name": "PATIO-B",
+        "comment": ""
+    },
+    "98": {
+        "id_sensor_name": "ACRT-02",
+        "sensor_name": "PORCH-ACRT??",
         "comment": ""
     },
     "200": {
@@ -37,6 +32,11 @@
     "211": {
         "id_sensor_name": "SC91-C",
         "sensor_name": "UNKNOWN-C",
+        "comment": ""
+    },
+    "49": {
+        "id_sensor_name": "ACRT-X1",
+        "sensor_name": "xBRZWY-ACRT",
         "comment": ""
     }
 }
