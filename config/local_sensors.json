@@ -19,19 +19,9 @@
         "sensor_name": "PATIO-B",
         "comment": ""
     },
-    "200": {
-        "id_sensor_name": "ACRT-02",
-        "sensor_name": "UNKNOWN-B",
-        "comment": ""
-    },
     "211": {
         "id_sensor_name": "SC91-C",
         "sensor_name": "UNKNOWN-C",
         "comment": ""
     },
-    "49": {
-        "id_sensor_name": "ACRT-X1",
-        "sensor_name": "xBRZWY-ACRT",
-        "comment": ""
-    }
 }
