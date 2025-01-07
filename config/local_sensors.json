@@ -16,12 +16,7 @@
     },
     "167": {
         "id_sensor_name": "SC91-B",
-        "sensor_name": "PATIO-B",
-        "comment": ""
-    },
-    "98": {
-        "id_sensor_name": "ACRT-02",
-        "sensor_name": "PORCH-ACRT??",
+        "sensor_name": "OFFICE-B",
         "comment": ""
     },
     "200": {
