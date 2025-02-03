@@ -28,7 +28,14 @@ BROKER_CONFIG = {
         "MQTT_PASSWORD": "",
         "MQTT_KEEPALIVE": MQTT_DEFAULT_KEEPALIVE,
     },
-    "PI-02": {
+    "PI2": {
+        "MQTT_BROKER_ADDRESS": "pi2",
+        "MQTT_BROKER_PORT": MQTT_DEFAULT_PORT,
+        "MQTT_USERNAME": "",
+        "MQTT_PASSWORD": "",
+        "MQTT_KEEPALIVE": MQTT_DEFAULT_KEEPALIVE,
+    },
+    "TS-PI2": {
         "MQTT_BROKER_ADDRESS": "pi2",
         "MQTT_BROKER_PORT": MQTT_DEFAULT_PORT,
         "MQTT_USERNAME": "",
@@ -95,4 +102,4 @@ def load_broker_config() -> dict:
     print(f"{my_name}: Using broker {broker_name}")
     print(f"\t{broker_config}")
 
-    return broker_config
+    return broker_name

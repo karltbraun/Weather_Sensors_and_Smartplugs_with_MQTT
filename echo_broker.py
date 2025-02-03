@@ -27,6 +27,7 @@ display it on a web page.
 # ###################################################################### #
 
 import logging
+import os
 import time
 from datetime import datetime
 
@@ -240,7 +241,7 @@ def main() -> None:
     SLEEP_TIME_S = 5  # pylint: disable=invalid-name
 
     # MQTT Topic(s)
-    sub_topics: list = get_sub_topics("SUB_TOPICS_REPUBLISH")
+    sub_topics: list = ["KTBMES/raw/#"]
     pub_source = get_pub_source()
     pub_topics = generate_pub_topics(pub_source)
 

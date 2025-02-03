@@ -17,15 +17,15 @@ def load_json_file(file_path: str) -> Dict[str, Dict]:
             return json.load(file)
     except json.JSONDecodeError as ex:
         raise ValueError(
-            f"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
-            f"{my_name}: Error decoding JSON from {file_path}: {ex}\n"
-            f"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+            f"\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+            f"{my_name}: Error decoding JSON from {file_path}: {ex}"
+            f"\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
         ) from ex
     except (OSError, IOError) as ex:
         raise ValueError(
-            f"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
-            f"{my_name}: Error loading file {file_path}: {ex}\n"
-            f"!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+            f"\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+            f"{my_name}: Error loading file {file_path}: {ex}"
+            f"\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
         ) from ex
 
 
