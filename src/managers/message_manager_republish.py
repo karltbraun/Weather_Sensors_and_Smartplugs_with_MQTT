@@ -78,6 +78,8 @@ class MessageManager:
 
         try:
             payload = self.normalize_payload(tag, msg.payload)
+            # get the device name. If we do not yet have that device recorded, set up the device
+            # with a placeholder name
             device: Device = self.device_registry.get_device(device_id)
             if device.device_name() is None:
                 raise ValueError(
@@ -89,6 +91,7 @@ class MessageManager:
             device.device_name_from_id_set(
                 device_id,
             )
+
             # set tag and value and mark as seen
             device.tag_value_set(tag, payload)
             device.last_last_seen_now_set()
@@ -127,8 +130,9 @@ class MessageManager:
             device.protocol_name_set(protocol_name)
             device.protocol_description_set(protocol_description)
 
-            device.protocol_name_set(protocol_name)
-            device.protocol_description_set(protocol_description)
+            # well, this seems redundant
+            # device.protocol_name_set(protocol_name)
+            # device.protocol_description_set(protocol_description)
 
             logging.debug(
                 "%s: Protocol Tag - adding protocol information\n"

@@ -21,6 +21,13 @@ MY_NAME = "broker_config"
 #   of those hosts.
 
 BROKER_CONFIG = {
+    "n-vultr1": {
+        "MQTT_BROKER_ADDRESS": "n-vultr1",
+        "MQTT_BROKER_PORT": MQTT_DEFAULT_PORT,
+        "MQTT_USERNAME": "",
+        "MQTT_PASSWORD": "",
+        "MQTT_KEEPALIVE": MQTT_DEFAULT_KEEPALIVE,
+    },
     "TS-VULTR1": {
         "MQTT_BROKER_ADDRESS": "TS-Vultr1",
         "MQTT_BROKER_PORT": MQTT_DEFAULT_PORT,
