@@ -62,8 +62,8 @@ from src.managers.protocol_manager import ProtocolManager
 from src.utils.logger_setup import logger_setup
 
 # utility functions
-from src.utils.misc_utils import (  # get_pub_root,
-    get_logging_levels,
+from src.utils.misc_utils import (
+    get_logging_levels,  # get_pub_root,
     get_pub_root,
     get_pub_source,
     get_publish_interval_max,
@@ -343,6 +343,8 @@ def main() -> None:
                     publish_device(
                         device_id, device_data, topic, mqtt_manager
                     )
+
+                # need to check for protocol id 55 and publish to special topic if so.
 
             # ################## dump data to file  ################### #
 
