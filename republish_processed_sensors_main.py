@@ -62,8 +62,8 @@ from src.managers.protocol_manager import ProtocolManager
 from src.utils.logger_setup import logger_setup
 
 # utility functions
+from src.utils.misc_utils import get_logging_levels  # get_pub_root,
 from src.utils.misc_utils import (
-    get_logging_levels,  # get_pub_root,
     get_pub_root,
     get_pub_source,
     get_publish_interval_max,
@@ -345,6 +345,13 @@ def main() -> None:
                     )
 
                 # need to check for protocol id 55 and publish to special topic if so.
+                protocols_to_track: list = ["55", "91"]
+                if device_data.protocol_id() in protocols_to_track:
+                    topic: str = pub_topics["unknown_TPM_sensors"]
+                    topic: str = f"KTBMES/{pub_source}/sensors/proto_55/{device_data.device_name()}"
+                    publish_device(
+                        device_id, device_data, topic, mqtt_manager
+                    )
 
             # ################## dump data to file  ################### #
 

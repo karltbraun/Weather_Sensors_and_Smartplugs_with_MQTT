@@ -4,24 +4,24 @@
         "sensor_name": "LivingRoom-C",
         "comment": ""
     },
-    "79": {
-        "id_sensor_name": "SC91-A",
-        "sensor_name": "ShrineRoom-A",
-        "comment": ""
-    },
-    "132": {
-        "id_sensor_name": "ACRT-01",
-        "sensor_name": "PORCH-B",
-        "comment": ""
-    },
     "167": {
         "id_sensor_name": "SC91-B",
         "sensor_name": "PATIO-B",
         "comment": ""
     },
-    "211": {
-        "id_sensor_name": "SC91-C",
-        "sensor_name": "UNKNOWN-C",
+    "79": {
+        "id_sensor_name": "SC91-A",
+        "sensor_name": "ShrineRoom-A",
+        "comment": ""
+    },
+    "164": {
+        "id_sensor_name": "ACRT-01",
+        "sensor_name": "PORCH-B",
+        "comment": ""
+    },
+    "0": {
+        "id_sensor_name": "DUMMY",
+        "sensor_name": "DUMMY",
         "comment": ""
     }
 }
