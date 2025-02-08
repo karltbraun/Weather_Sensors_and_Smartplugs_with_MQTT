@@ -50,6 +50,9 @@ def main() -> None:
 
     # load in broker information
     broker_config: dict = load_broker_config()
+    print(
+        f"*** broker config:\n\ttype: {type(broker_config)}\n\t{broker_config}\n\t{broker_config}"
+    )
     broker_name = broker_config["MQTT_BROKER_ADDRESS"]
 
     # MQTT Topic(s)

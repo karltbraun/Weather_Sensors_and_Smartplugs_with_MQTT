@@ -62,8 +62,8 @@ from src.managers.protocol_manager import ProtocolManager
 from src.utils.logger_setup import logger_setup
 
 # utility functions
+from src.utils.misc_utils import get_logging_levels  # get_pub_root,
 from src.utils.misc_utils import (
-    get_logging_levels,  # get_pub_root,
     get_pub_root,
     get_pub_source,
     get_publish_interval_max,
@@ -107,7 +107,8 @@ logger = logger_setup(
 )
 
 # Load broker configuration
-BROKER_NAME = load_broker_config()
+broker_config = load_broker_config()
+BROKER_NAME = broker_config["MQTT_BROKER_ADDRESS"]
 print(
     "#######################################################################"
 )

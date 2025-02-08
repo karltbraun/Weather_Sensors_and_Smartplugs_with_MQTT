@@ -67,23 +67,7 @@ def create_pub_topic(topic: str) -> str:
     """
     Create a publication topic string based on the given topic.
 
-    This function takes an input topic string, parses it, and constructs a new
-    topic string for publication. The new topic string is constructed using
-    predefined constants and mappings.
-
-    Args:
-        topic (str): The input topic string in the format "prefix/device_name/tag".
-
-    External Values:
-        DEVICE_ROOM_MAP (dict): A mapping of device names to room names.
-        os.getenv("PUB_SOURCE", None): The source name from the environment.
-            If not set, the source name is the hostname without the ".local" suffix.
-
-    Returns:
-        str: The constructed publication topic string.
-
-    Raises:
-        ValueError: If the input topic string does not have at least three parts.
+    ...
     """
     my_name = "create_pub_topic"
 

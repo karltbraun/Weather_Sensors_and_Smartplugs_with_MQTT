@@ -65,6 +65,9 @@ class MessageManager:
         """
         my_name = "process_message"
 
+        #
+        # Get the device ID and a normalized tag from the topic
+
         device_id, tag = self.parse_topic(msg.topic)
         logging.debug(
             "%s:\n"
@@ -75,6 +78,10 @@ class MessageManager:
             Device.normalize_tag_name(tag),
         )
         tag = Device.normalize_tag_name(tag)
+
+        #
+        # get a normalized payload (accounts for different data types)
+        #
 
         try:
             payload = self.normalize_payload(tag, msg.payload)
@@ -88,11 +95,11 @@ class MessageManager:
                     "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
                 )
 
-            device.device_name_from_id_set(
-                device_id,
-            )
+            #
+            # set device attribute values
+            #
 
-            # set tag and value and mark as seen
+            device.device_name_from_id_set(device_id)
             device.tag_value_set(tag, payload)
             device.last_last_seen_now_set()
 

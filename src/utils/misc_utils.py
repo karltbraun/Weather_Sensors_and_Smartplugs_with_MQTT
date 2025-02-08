@@ -112,6 +112,7 @@ def get_sub_topics(env_var_name: str) -> list:
 
 def get_logging_levels() -> dict:
     """Get the logging levels from the environment variables."""
+    # TODO: this should return a named tuple, not a dictionary
 
     log_levels = {
         "console": os.getenv("CONSOLE_LOG_LEVEL", "DEBUG"),

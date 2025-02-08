@@ -108,5 +108,6 @@ def load_broker_config() -> dict:
     broker_config = BROKER_CONFIG.get(broker_name)
     print(f"{my_name}: Using broker {broker_name}")
     print(f"\t{broker_config}")
+    print(f"\t... which is of type {type(broker_config)}")
 
-    return broker_name
+    return broker_config
