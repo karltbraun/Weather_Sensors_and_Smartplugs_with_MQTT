@@ -1,0 +1,7 @@
+Protocol ID,battery_ok,button,channel,flags,freq,humidity,id,message_type,mic,mod,noise,pressure_kPa,protocol,rain_mm,rssi,sequence_num,snr,temperature_C,time,wind_avg_km_h,wind_avg_m_s,wind_dir_deg,wind_max_m_s
+153,X,,,,X,X,X,,X,X,X,,X,X,X,,X,X,X,,X,X,X
+3,X,X,X,,X,X,X,,,X,X,,X,,X,,X,X,X,,,,
+40,X,,X,,X,X,X,X,X,X,X,,X,X,X,X,X,X,X,X,,X,
+55,X,,,,X,,X,,X,X,X,,X,,X,,X,X,X,,,,
+91,X,,X,,X,X,X,,X,X,X,,X,,X,,X,X,X,,,,
+95,,,,X,X,,X,,X,X,X,X,X,,X,,X,X,X,,,,

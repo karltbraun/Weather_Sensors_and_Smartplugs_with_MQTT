@@ -1,0 +1,9 @@
+Device ID,battery_ok,button,channel,freq,humidity,id,message_type,mic,mod,noise,protocol,rssi,sequence_num,snr,temperature_C,time,wind_avg_km_h
+164,X,,,X,,X,,X,X,X,X,X,,X,X,X,
+167,X,,X,X,X,X,,X,X,X,X,X,,X,X,X,
+2521,X,,X,X,X,X,X,X,X,X,X,X,X,X,X,X,X
+30,X,,,X,,X,,X,X,X,X,X,,X,X,X,
+37,X,,X,X,X,X,,X,X,X,X,X,,X,X,X,
+5,X,,,X,,X,,X,X,X,X,X,,X,X,X,
+79,X,,X,X,X,X,,X,X,X,X,X,,X,X,X,
+92,X,X,X,X,X,X,,,X,X,X,X,,X,X,X,

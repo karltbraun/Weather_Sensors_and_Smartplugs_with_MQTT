@@ -40,23 +40,23 @@ from dotenv import load_dotenv
 from config.broker_config import BROKER_CONFIG, load_broker_config
 
 # handles output file
-from src.managers.data_repository_manager import DataRepositoryManager
+from src.aamanagers.data_repository_manager import DataRepositoryManager
 
 # handles all device specific functions (sensors)
-from src.managers.device_manager import (
+from src.aamanagers.device_manager import (
     Device,
     DeviceRegistry,
     LocalSensorManager,
 )
 
 # transforms input data into device attributes
-from src.managers.message_manager_republish import MessageManager
+from src.aamanagers.message_manager_republish import MessageManager
 
 # handles all MQTT specific functions
-from src.managers.mqtt_manager import MQTTManager
+from src.aamanagers.mqtt_manager import MQTTManager
 
 # handles all RTL-433 protocol specific functions
-from src.managers.protocol_manager import ProtocolManager
+from src.aamanagers.protocol_manager import ProtocolManager
 
 # custom logger
 from src.utils.logger_setup import logger_setup

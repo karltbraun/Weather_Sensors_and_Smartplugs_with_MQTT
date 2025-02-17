@@ -10,8 +10,8 @@ from queue import Queue
 from dotenv import load_dotenv
 
 from config.broker_config import load_broker_config
-from src.managers.message_manager_shelly import MessageManager
-from src.managers.mqtt_manager import MQTTManager
+from src.aamanagers.message_manager_shelly import MessageManager
+from src.aamanagers.mqtt_manager import MQTTManager
 from src.utils.logger_setup import logger_setup
 from src.utils.misc_utils import (
     get_logging_levels,

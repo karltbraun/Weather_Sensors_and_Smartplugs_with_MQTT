@@ -1,0 +1,22 @@
+{
+    "local": {
+        "address": "localhost",
+        "port": 1883,
+        "keepalive": 60,
+    },
+    "vultr": {
+        "address": "n-vultr1",
+        "port": 1883,
+        "keepalive": 60,
+    },
+    "n-vultr": {
+        "address": "n-vultr1",
+        "port": 1883,
+        "keepalive": 60,
+    },
+    "ts-vultr": {
+        "address": "TS-Vultr1",
+        "port": 1883,
+        "keepalive": 60,
+    }
+}
