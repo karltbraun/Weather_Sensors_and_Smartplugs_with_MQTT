@@ -7,6 +7,9 @@ from typing import DefaultDict, Dict, Set
 
 import paho.mqtt.client as mqtt
 
+FILENAME_OUT_MATRIX = "protocol_attributes.csv"
+FILENAME_OUT_JSON = "protocol_attributes.json"
+
 # Global variables for storing device attributes
 device_protocols: Dict[str, str] = {}  # Maps device_id to protocol_id
 protocol_matrix: DefaultDict[str, Set[str]] = defaultdict(set)
@@ -38,6 +41,23 @@ def save_matrix_to_file(filename: str = "protocol_attributes.csv"):
                     "X" if attr in protocol_matrix[protocol_id] else ""
                 )
             writer.writerow(row)
+
+
+def save_json_to_file(filename: str = "protocol_attributes.json"):
+    """Save the protocol attributes to a JSON file."""
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    # Create a dictionary where each protocol ID maps to its list of attributes
+    protocol_data = {
+        protocol_id: sorted(list(attributes))
+        for protocol_id, attributes in protocol_matrix.items()
+    }
+
+    try:
+        with open(filename, "w") as f:
+            json.dump(protocol_data, f, indent=4, sort_keys=True)
+    except Exception as e:
+        print(f"[{timestamp}] Error saving JSON file: {e}")
 
 
 def on_connect(client, userdata, flags, rc):
@@ -126,9 +146,12 @@ def main():
     client.loop_stop()
     client.disconnect()
 
-    # Save the matrix to file
-    save_matrix_to_file()
-    print("Matrix saved to protocol_attributes.csv")
+    # Save both matrix and JSON files
+    save_matrix_to_file(filename=FILENAME_OUT_MATRIX)
+    save_json_to_file(filename=FILENAME_OUT_JSON)
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    print(f"[{timestamp}] Matrix saved to {FILENAME_OUT_MATRIX}")
+    print(f"[{timestamp}] JSON data saved to {FILENAME_OUT_JSON}")
 
 
 if __name__ == "__main__":
