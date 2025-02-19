@@ -13,6 +13,9 @@ FILENAME_OUT_JSON = "protocol_attributes.json"
 # Global variables for storing device attributes
 device_protocols: Dict[str, str] = {}  # Maps device_id to protocol_id
 protocol_matrix: DefaultDict[str, Set[str]] = defaultdict(set)
+protocol_attribute_values: DefaultDict[str, DefaultDict[str, Set[str]]] = (
+    defaultdict(lambda: defaultdict(set))
+)
 running = True
 
 
@@ -44,18 +47,34 @@ def save_matrix_to_file(filename: str = "protocol_attributes.csv"):
 
 
 def save_json_to_file(filename: str = "protocol_attributes.json"):
-    """Save the protocol attributes to a JSON file."""
+    """Save the protocol attributes and their observed values to a JSON file."""
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    # Create a dictionary where each protocol ID maps to its list of attributes
-    protocol_data = {
-        protocol_id: sorted(list(attributes))
-        for protocol_id, attributes in protocol_matrix.items()
-    }
+    protocol_data = {}
+    for protocol_id in protocol_matrix:
+        protocol_data[protocol_id] = {
+            "attributes": {
+                attr: {
+                    "values": sorted(
+                        list(protocol_attribute_values[protocol_id][attr])
+                    ),
+                    "value_types": list(
+                        set(
+                            type(try_convert(val)).__name__
+                            for val in protocol_attribute_values[
+                                protocol_id
+                            ][attr]
+                        )
+                    ),
+                }
+                for attr in sorted(protocol_matrix[protocol_id])
+            }
+        }
 
     try:
         with open(filename, "w") as f:
             json.dump(protocol_data, f, indent=4, sort_keys=True)
+        print(f"[{timestamp}] JSON data saved to {filename}")
     except Exception as e:
         print(f"[{timestamp}] Error saving JSON file: {e}")
 
@@ -77,16 +96,21 @@ def on_message(client, userdata, msg):
         if len(topic_parts) >= 6:
             device_id = topic_parts[4]
             attribute = topic_parts[5]
+            value = msg.payload.decode()
 
             # If this is a protocol message, update the device's protocol mapping
             if attribute == "protocol":
-                protocol_id = msg.payload.decode()
+                protocol_id = value
                 device_protocols[device_id] = protocol_id
 
             # Only add attributes if we know the device's protocol
             if device_id in device_protocols:
                 protocol_id = device_protocols[device_id]
                 protocol_matrix[protocol_id].add(attribute)
+                # Store the value for this attribute
+                protocol_attribute_values[protocol_id][attribute].add(
+                    value
+                )
 
             # Debug print
             print(
@@ -152,6 +176,19 @@ def main():
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print(f"[{timestamp}] Matrix saved to {FILENAME_OUT_MATRIX}")
     print(f"[{timestamp}] JSON data saved to {FILENAME_OUT_JSON}")
+
+
+def try_convert(value: str):
+    """Try to convert string value to its likely type."""
+    try:
+        # Try float first
+        if "." in value:
+            return float(value)
+        # Try int next
+        return int(value)
+    except ValueError:
+        # If conversion fails, return as string
+        return value
 
 
 if __name__ == "__main__":
