@@ -1,6 +1,7 @@
 import json
 import os
-from typing import Dict
+from collections import defaultdict
+from typing import Dict, Set
 
 # DIRECTORY_IN = "./apps/weather_republish"
 DIRECTORY_IN = "."
@@ -18,6 +19,9 @@ def summarize_protocol(data: Dict) -> None:
     """Analyze and display protocol summaries."""
     # Sort protocols numerically
     protocols = sorted(data.keys(), key=lambda x: int(x))
+
+    print("List of all protocols:")
+    print(f"\t{protocols}")
 
     for protocol_id in protocols:
         protocol = data[protocol_id]
@@ -58,11 +62,69 @@ def summarize_protocol(data: Dict) -> None:
                     pass
 
 
+def analyze_common_attributes(data: Dict) -> None:
+    """Analyze which attributes are shared across protocols."""
+    # Create mappings for analysis
+    attr_to_protocols = defaultdict(set)
+    protocol_groups = defaultdict(list)
+
+    # Build mapping of attributes to protocols that have them
+    for protocol_id in data:
+        attributes = set(data[protocol_id].get("attributes", {}).keys())
+        attr_set = frozenset(attributes)
+        protocol_groups[attr_set].append(protocol_id)
+        for attr in attributes:
+            attr_to_protocols[attr].add(protocol_id)
+
+    print("\nProtocol Attribute Analysis:")
+    print("=" * 50)
+
+    # 1. Show total number of unique protocols
+    all_protocols = sorted(data.keys(), key=int)
+    print(f"\nTotal number of protocols: {len(all_protocols)}")
+    print(f"Protocol IDs: {', '.join(all_protocols)}")
+
+    # 2. Show attributes common to all protocols
+    common_attrs = {
+        attr
+        for attr, protocols in attr_to_protocols.items()
+        if len(protocols) == len(all_protocols)
+    }
+    print(f"\nAttributes common to ALL protocols ({len(common_attrs)}):")
+    for attr in sorted(common_attrs):
+        print(f"- {attr}")
+
+    # 3. Show protocol groups with identical attribute sets
+    print("\nProtocol groups with identical attribute sets:")
+    for attr_set, protocols in protocol_groups.items():
+        protocols = sorted(protocols, key=int)
+        if len(protocols) > 1:
+            print(
+                f"\nThe following protocols share {len(attr_set)} attributes:"
+            )
+            print(f"Protocols: {', '.join(protocols)}")
+            print("Shared attributes:")
+            for attr in sorted(attr_set):
+                print(f"- {attr}")
+
+    # 4. Show unique attribute sets
+    print("\nProtocols with unique attribute sets:")
+    for attr_set, protocols in protocol_groups.items():
+        if len(protocols) == 1:
+            protocol = protocols[0]
+            print(
+                f"\nProtocol {protocol} has {len(attr_set)} unique attributes:"
+            )
+            for attr in sorted(attr_set):
+                print(f"- {attr}")
+
+
 def main():
     full_path = os.path.abspath(FILEPATH_IN)
     print(f"\nLoading protocol data from:\n\t{full_path}\n")
     data = load_protocol_data(full_path)
     summarize_protocol(data)
+    analyze_common_attributes(data)
 
 
 if __name__ == "__main__":
