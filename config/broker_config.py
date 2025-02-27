@@ -87,7 +87,10 @@ def load_broker_config() -> dict:
         mqtt_config_info = json.loads(mqtt_config_info_str)
     except json.JSONDecodeError as exc:
         raise ValueError(
+            "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
             f"{my_name}: MQTT_CONFIG_INFO environment variable is not valid JSON"
+            f"\n\t{mqtt_config_info_str}"
+            "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
         ) from exc
 
     # Update MQTT_CONFIG with values from environment variables
