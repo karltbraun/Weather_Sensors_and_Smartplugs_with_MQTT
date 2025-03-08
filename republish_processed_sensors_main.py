@@ -62,8 +62,8 @@ from src.managers.protocol_manager import ProtocolManager
 from src.utils.logger_setup import logger_setup
 
 # utility functions
-from src.utils.misc_utils import get_logging_levels  # get_pub_root,
 from src.utils.misc_utils import (
+    get_logging_levels,  # get_pub_root,
     get_pub_root,
     get_pub_source,
     get_publish_interval_max,
@@ -267,7 +267,7 @@ def main() -> None:
     logger.info(
         "\n#########################################################################\n"
         "          Starting up at %s with the following configuration:\n"
-        "  Version: 2024-12-18T0654\n"
+        "  Version: 2025-03-08T0938\n"
         "  Broker: %s\n"
         "  Source: %s\n"
         "  PUB_TOPICS:\n"
