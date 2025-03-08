@@ -108,6 +108,12 @@ logger = logger_setup(
 
 # Load broker configuration
 broker_config = load_broker_config()
+if not broker_config:
+    raise ValueError (
+        "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+        "\tload_broker_config returns <None>"
+        "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+    )
 BROKER_NAME = broker_config["MQTT_BROKER_ADDRESS"]
 print(
     "#######################################################################"
@@ -247,7 +253,7 @@ def main() -> None:
 
     # ############################ MQTT Setup ############################ #
 
-    broker_name = BROKER_NAME
+    broker_name: str = BROKER_NAME
     mqtt_manager = MQTTManager(
         broker_config=BROKER_CONFIG[broker_name],
         subscribe_topics=sub_topics,
