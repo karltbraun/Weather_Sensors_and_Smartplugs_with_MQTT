@@ -48,7 +48,11 @@ logging.basicConfig(level=logging.DEBUG)
 
 # maps device names into rooms
 # TODO: this should be moved to a json file the way other maps are done
-DEVICE_ROOM_MAP = {"Shelly_EV": "garage", "Shelly_Lab_01": "office"}
+DEVICE_ROOM_MAP = {
+    "Shelly_EV": "garage",
+    "Shelly_Lab_01": "office",
+    "Shelly_Prod": "office",
+}
 
 # constant strings for creating publication topics
 TOPIC_ROOT = "KTBMES"  # first element in the topic string
@@ -81,9 +85,9 @@ def create_pub_topic(topic: str) -> str:
 
     if len(topic_parts) < 3:
         emsg = (
-            f"/n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+            f"\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
             f"{my_name}: Invalid topic format -- too few parts: {topic}"
-            f"/n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+            f"\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
         )
         raise ValueError(emsg)
 
