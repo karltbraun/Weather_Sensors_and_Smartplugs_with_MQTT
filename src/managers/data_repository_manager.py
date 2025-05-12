@@ -4,6 +4,7 @@ logic to dump the data into a file
 
 import json
 import time
+import os
 
 from src.managers.device_manager import Device
 
@@ -19,11 +20,17 @@ class DataRepositoryManager:
         self.dump_file_path: str = f"{dump_file_dir}/{dump_file_name}"
         self.dump_interval: float = dump_interval
         self.last_dump_time: float = 0.0
+        
+        # Ensure directory exists
+        os.makedirs(self.dump_file_dir, exist_ok=True)
 
     def dump_data(self, data: dict, filename: str):
         current_time = time.time()
         if current_time - self.last_dump_time < self.dump_interval:
             return
+
+        # Ensure the directory for this specific file exists
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
 
         with open(filename, "w") as file:
             json.dump(data, file, indent=4, cls=CustomJSONEncoder)
