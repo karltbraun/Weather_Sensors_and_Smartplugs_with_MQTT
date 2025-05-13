@@ -109,7 +109,7 @@ logger = logger_setup(
 # Load broker configuration
 broker_config = load_broker_config()
 if not broker_config:
-    raise ValueError (
+    raise ValueError(
         "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
         "\tload_broker_config returns <None>"
         "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"

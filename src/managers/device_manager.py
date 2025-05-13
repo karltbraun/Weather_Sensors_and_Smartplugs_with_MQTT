@@ -31,7 +31,15 @@ class Device:
 
     # Instance stuff
     def __init__(self, device_id: str):
-        self.device_id = device_id
+        # Suffixes:
+        #   _C: Celsius
+        #   _F: Fahrenheit
+        #   _kPa: kilopascal
+        #   _psi: pounds per square inch
+        #   _ts: timestamp
+        #   _iso: ISO 8601 format
+
+        # self.device_id = device_id
         current_time = datetime.now()
         self.device = {
             "device_id": device_id,
@@ -99,14 +107,12 @@ class Device:
         """set last seen time in iso format"""
         self.tag_value_set("time_last_seen_iso", iso_time)
 
-    def last_last_seen_now_set(self) -> float:
-        """set last seen time to now"""
+    def time_last_seen_now_set(self) -> float:
+        """set last seen time to now in both timestamp and iso format"""
         ts = datetime.now()
         self.time_last_seen_ts_set(ts.timestamp())
         self.time_last_seen_iso_set(ts.isoformat())
         return ts.timestamp()
-
-        #
 
     def time_last_published_ts(self) -> float:
         """get last seen time"""
@@ -125,7 +131,7 @@ class Device:
         self.tag_value_set("time_last_published_iso", iso_time)
 
     def last_last_published_now_set(self) -> float:
-        """set last seen time to now"""
+        """set last seen time to now in both timestamp and iso format"""
         ts = datetime.now()
         self.tag_value_set("time_last_published_ts", ts.timestamp())
         self.tag_value_set("time_last_published_iso", ts.isoformat())

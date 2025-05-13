@@ -84,6 +84,8 @@ class MessageManager:
         #
 
         try:
+            # different payload types are formatted differently depending on the tag
+            #   so we need to normalize the payload
             payload = self.normalize_payload(tag, msg.payload)
             # get the device name. If we do not yet have that device recorded, set up the device
             # with a placeholder name
@@ -101,7 +103,7 @@ class MessageManager:
 
             device.device_name_from_id_set(device_id)
             device.tag_value_set(tag, payload)
-            device.last_last_seen_now_set()
+            device.time_last_seen_now_set()
 
         except Exception as e:
             logging.error(
@@ -198,8 +200,8 @@ class MessageManager:
         try:
             match tag:
                 # many of these could be combined, but I'm keeping them separate
-                # separate as I've found some rare devices that don't follow the
-                #   expected format
+                # as I've found some rare devices that don't follow the
+                # expected format
 
                 case "time":
                     # time is just a string representation of the time
@@ -209,6 +211,7 @@ class MessageManager:
                     # protocol should be a string.  Usually looks like
                     # a string representation of a int, but sometimes
                     # has hex characters like a MAC Address in it
+                    #! TODO:  not sure what happens if hex characters are in the string
                     return str(int(current_payload.decode("utf-8")))
 
                 case "channel":
