@@ -6,7 +6,7 @@ local_sensor_manager.py - manages list of local sensors
 import time
 from typing import Dict, Tuple
 
-from src.utils.misc_utils import load_json_file
+from ..utils.misc_utils import load_json_file
 
 
 class LocalSensorManager:

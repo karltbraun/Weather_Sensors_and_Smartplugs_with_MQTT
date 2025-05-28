@@ -2,6 +2,7 @@ import json
 import os
 import subprocess
 import time
+from pathlib import Path
 from typing import Dict
 
 # ###################################################################### #
@@ -132,3 +133,29 @@ def get_publish_interval_max() -> int:
     """Get the maximum publish interval from the environment variables."""
     # default to 5 minutes
     return int(os.getenv("PUBLISH_INTERVAL_MAX", 300))
+
+
+def get_project_root() -> Path:
+    """Return the project root directory as a Path object."""
+    project_root = Path(__file__).parent.parent.parent
+    if not project_root.exists():
+        raise FileNotFoundError(
+            f"Project root directory {project_root} does not exist."
+        )
+    else:
+        print(f">>>>>> Project root directory: {project_root} <<<<<<")
+    return project_root
+
+
+def format_error_message(message: str, border_char: str = "!") -> str:
+    """Format an error message with a visible border.
+
+    Args:
+        message: The error message to format
+        border_char: Character to use for the border (default: "!")
+
+    Returns:
+        Formatted message with border
+    """
+    border = border_char * 70
+    return f"\n{border}\n{message}\n{border}\n"

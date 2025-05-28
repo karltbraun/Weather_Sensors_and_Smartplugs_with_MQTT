@@ -1,25 +1,27 @@
 import os
 import time
+from pathlib import Path
 from typing import Dict
 
-from src.utils.misc_utils import load_json_file
+from src.utils.misc_utils import get_project_root, load_json_file
 
 
 class ConfigurationFileManager:
     def __init__(
         self,
         config_file: str,
-        config_dir: str = "./config",
+        config_dir: str = "config",  # Changed from "../config"
         check_interval: int = 60,
     ):
+        # Get project root
+        project_root = get_project_root()
+
         # directory containing config files
-        self.config_dir: str = config_dir
+        self.config_dir: str = str(project_root / config_dir)
         # configuration file name
         self.config_file: str = config_file
         # full path to configuration file
-        self.file_path: str = os.path.join(
-            self.config_dir, self.config_file
-        )
+        self.file_path: str = str(Path(self.config_dir) / self.config_file)
         # number of seconds between checks for changes
         self.check_interval: int = check_interval
         # last time configuration file was checked

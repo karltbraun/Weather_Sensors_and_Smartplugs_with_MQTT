@@ -1,5 +1,6 @@
 import logging
 from datetime import datetime
+from pathlib import Path
 from typing import Any, Dict, Tuple
 
 from src.managers.local_sensor_manager import LocalSensorManager
@@ -244,7 +245,7 @@ class Device:
 
 # Initialize the class attribute
 Device.local_sensor_manager = LocalSensorManager(
-    config_dir="./config",
+    config_dir=str(Path(__file__).parent.parent.parent / "config"),
     sensors_file="local_sensors.json",
     check_interval=60,
 )

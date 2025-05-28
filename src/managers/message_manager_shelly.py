@@ -37,8 +37,8 @@ from queue import Queue
 
 import paho.mqtt.client as mqtt
 
-from src.utils.flatten_json import flatten_json
-from src.utils.misc_utils import get_pub_root, get_pub_source
+from utils.flatten_json import flatten_json
+from utils.misc_utils import get_pub_root, get_pub_source
 
 logging.basicConfig(level=logging.DEBUG)
 

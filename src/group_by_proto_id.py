@@ -2,16 +2,23 @@
 If so, we publish under a special topic.
 """
 
+import logging
+
+# Add project root to Python path before any local imports
+import sys
 import time
+from pathlib import Path
 from typing import Dict, Tuple
 
-from src.utils.misc_utils import load_json_file
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
-#
-# local constants
-#
+from managers.device_manager import Device
+from managers.protocol_manager import ProtocolManager
+from utils.misc_utils import get_project_root, load_json_file
 
-CONFIG_DIR_PATH = "./config"
+# Local constants - update paths to use project root
+project_root = get_project_root()
+CONFIG_DIR_PATH = str(project_root / "config")
 TRACKED_PROTOCOLS_FILE_NAME = "tracked_protocols.json"
 CHECK_INTERVAL_S = 30
 
@@ -27,8 +34,8 @@ class Tracked_Protocols:
     ):
         self.config_dir = config_dir
         self.tracked_protocols_file = tracked_protocols_file
-        self.tracked_protocols_file_path = (
-            f"{self.config_dir}/{self.tracked_protocols_file}"
+        self.tracked_protocols_file_path = str(
+            Path(self.config_dir) / self.tracked_protocols_file
         )
         self.last_check_time = 0
         self.check_interval = check_interval
@@ -60,16 +67,16 @@ class Tracked_Protocols:
         return protocol_id in self.tracked_protocols
 
 
-def process_tracked_procotols():
-    """
-    1. Check if the protocol ID is in the list of tracked protocols
-        If not, just return
-    2. If it is, publish under a special topic
-        Topic would be "KTBMES/<source>/tracking/<protocol_id>"
-    """
+# def process_tracked_procotols():
+#     """
+#     1. Check if the protocol ID is in the list of tracked protocols
+#         If not, just return
+#     2. If it is, publish under a special topic
+#         Topic would be "KTBMES/<source>/tracking/<protocol_id>"
+#     """
 
-    if not Tracked_Protocols.is_tracked_protocol(protocol_id):
-        return
+#     if not Tracked_Protocols.is_tracked_protocol(protocol_id):
+#         return
 
 
 # ###################################################################### #
@@ -83,14 +90,11 @@ def get_topic_for_device(
     """
     Get the topic for the device based on the protocol ID.
     """
-    # my_name = "get_topic_for_device"
-
     topic_root: str = pub_topics["pub_topic_base"]
-
-    # protocol_id: str = get_protocol_id(device_data)
     protocol_id: str = device_data.protocol_id()
 
-    # KTBMES/<source>/tracking/<protocol_id>
+    # Create protocol manager instance
+    protocol_manager = ProtocolManager()
 
     if protocol_manager.is_weather_sensor(protocol_id):
         topic_base = f"{topic_root}/other_weather_sensors"
@@ -110,6 +114,4 @@ def get_topic_for_device(
             protocol_id,
         )
 
-    topic = f"{topic_base}/{device_data.device_name()}"
-
-    return topic
+    return f"{topic_base}/{device_data.device_name()}"

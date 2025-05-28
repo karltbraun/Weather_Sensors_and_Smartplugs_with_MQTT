@@ -168,7 +168,7 @@ class MQTTManager:
         buf_prelude = f"{buf_parts[0]} {buf_parts[1]}"
         if buf_prelude not in exclude_messages:
             logging.info(
-                "Log Entry:\n" "\tlevel: %d\n" "\tmessage: %s\n",
+                "Log Entry:\n\tlevel: %d\n\tmessage: %s\n",
                 int(level),
                 buf,
             )
@@ -269,4 +269,5 @@ class MQTTManager:
             # logging.error(emsg)
 
         #! TODO: Add QoS and Retain options
+        self.client.publish(topic, json_message)
         self.client.publish(topic, json_message)

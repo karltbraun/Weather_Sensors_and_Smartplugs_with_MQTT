@@ -1,24 +1,22 @@
 """
-republish_processed_sensors_main.py - 20241119
+echo_broker.py - 2025-05-25
 
-main entry point for the code to consume flat MQTT messages about sensors and
-republish them as devices with json payloads.
+This module sets up an MQTT broker client that listens for sensor data messages,
+processes them, and republishes the processed data to appropriate MQTT topics.
+It manages local and remote sensors, determines the correct publication topic
+based on device type and protocol, and maintains a registry of devices. The
+module also handles logging, configuration loading, and periodic data dumping
+to a file for persistence. It is designed to work with weather sensors and
+smart plugs, supporting both local and RTL-433 protocol devices.
 
-This script subscribes to raw sensor data from an MQTT broker.
-The raw data consists of attributes published in their own subtopics for each device,
-e.g., KTBMES/raw/1234/temperature_C, KTBMES/raw/1234/channel, KTBMES/raw/1234/noise, etc.
+Main functionalities:
+- Loads broker and environment configurations.
+- Sets up logging and MQTT connections.
+- Processes incoming MQTT messages and updates device registry.
+- Publishes processed sensor data to categorized MQTT topics.
+- Periodically dumps device data to a file for persistence.
+- Supports graceful shutdown on keyboard interrupt.
 
-The script collects attributes for each device (identified by device ID) and stores them
-in a dictionary indexed by the device ID. The value includes the time the data was last
-received, the protocol_id (which indicates how to parse the rest of the data),
-and the rest of the data as a sub-dictionary.
-
-Periodically, the dictionary of devices is written to a JSON file for further use.
-At startup, if the JSON file exists, it initializes the dictionary with the data from the file.
-
-The script handles known temperature sensors and other discovered devices, analyzing their data
-for potential use. The JSON file can be used to either republish the data to a new topic or
-display it on a web page.
 """
 
 
@@ -27,43 +25,37 @@ display it on a web page.
 # ###################################################################### #
 
 import logging
+
+# Add project root to Python path before any local imports
+import sys
 import time
 from datetime import datetime
-
-# from datetime import datetime
+from pathlib import Path
 from queue import Queue
 from typing import Dict
 
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
 from dotenv import load_dotenv
 
-# describes mqtt broker parameters like host address, port, etc.
+# Local imports from config
 from config.broker_config import BROKER_CONFIG, load_broker_config
 
-# handles output file
-from src.managers.data_repository_manager import DataRepositoryManager
-
-# handles all device specific functions (sensors)
-from src.managers.device_manager import (
+# Local imports from managers
+from managers.data_repository_manager import DataRepositoryManager
+from managers.device_manager import (
     Device,
     DeviceRegistry,
     LocalSensorManager,
 )
+from managers.message_manager_republish import MessageManager
+from managers.mqtt_manager import MQTTManager
+from managers.protocol_manager import ProtocolManager
 
-# transforms input data into device attributes
-from src.managers.message_manager_republish import MessageManager
-
-# handles all MQTT specific functions
-from src.managers.mqtt_manager import MQTTManager
-
-# handles all RTL-433 protocol specific functions
-from src.managers.protocol_manager import ProtocolManager
-
-# custom logger
-from src.utils.logger_setup import logger_setup
-
-# utility functions
-from src.utils.misc_utils import (
-    get_logging_levels,  # get_pub_root,
+# Local imports from utils
+from utils.logger_setup import logger_setup
+from utils.misc_utils import (
+    get_logging_levels,
     get_pub_root,
     get_pub_source,
     get_publish_interval_max,
@@ -81,7 +73,7 @@ protocol_manager = ProtocolManager()
 #   mainly identifies those sensors which are local to us
 #   vs others which RTL_433 has sees in the area
 local_sensor_manager = LocalSensorManager(
-    config_dir="./config",
+    config_dir="../config",
     sensors_file="local_sensors.json",
     check_interval=60,
 )
@@ -103,18 +95,11 @@ logger = logger_setup(
     clear_logger=logging_levels["clear"],
     console_level=logging_levels["console"],
     file_level=logging_levels["file"],
-    file_handler="logs/republish_processed_sensors.log",
+    file_handler="../logs/republish_processed_sensors.log",
 )
 
 # Load broker configuration
-broker_config = load_broker_config()
-if not broker_config:
-    raise ValueError(
-        "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
-        "\tload_broker_config returns <None>"
-        "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
-    )
-BROKER_NAME = broker_config["MQTT_BROKER_ADDRESS"]
+BROKER_NAME = load_broker_config()["MQTT_BROKER_ADDRESS"]
 print(
     "#######################################################################"
 )
@@ -247,13 +232,13 @@ def main() -> None:
     SLEEP_TIME_S = 5  # pylint: disable=invalid-name
 
     # MQTT Topic(s)
-    sub_topics: list = get_sub_topics("SUB_TOPICS_REPUBLISH")
+    sub_topics: list = ["KTBMES/+/sensors/raw/#"]
     pub_source = get_pub_source()
     pub_topics = generate_pub_topics(pub_source)
 
     # ############################ MQTT Setup ############################ #
 
-    broker_name: str = BROKER_NAME
+    broker_name = BROKER_NAME
     mqtt_manager = MQTTManager(
         broker_config=BROKER_CONFIG[broker_name],
         subscribe_topics=sub_topics,
@@ -273,7 +258,7 @@ def main() -> None:
     logger.info(
         "\n#########################################################################\n"
         "          Starting up at %s with the following configuration:\n"
-        "  Version: 2025-03-08T0938\n"
+        "  Version: 2024-12-18T0654\n"
         "  Broker: %s\n"
         "  Source: %s\n"
         "  PUB_TOPICS:\n"
@@ -351,17 +336,6 @@ def main() -> None:
                         device_id, device_data, topic, mqtt_manager
                     )
 
-                # need to check for protocol id 55 and publish to special topic if so.
-                protocols_to_track: list = ["55", "91"]
-                if (
-                    proto_id := device_data.protocol_id()
-                ) in protocols_to_track:
-                    topic: str = pub_topics["unknown_TPM_sensors"]
-                    topic: str = f"KTBMES/{pub_source}/sensors/proto_{proto_id}/{device_data.device_name()}"
-                    publish_device(
-                        device_id, device_data, topic, mqtt_manager
-                    )
-
             # ################## dump data to file  ################### #
 
             data_repository_manager.dump_data(
@@ -378,4 +352,10 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    main()
+    main()
+
+
+if __name__ == "__main__":
+    main()
     main()

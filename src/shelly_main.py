@@ -3,18 +3,26 @@ shelly_main.py 20241116
 """
 
 import logging
+import os
+import sys
 import time
 from datetime import datetime
+from pathlib import Path
 from queue import Queue
+
+# Add project root to Python path before any local imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from dotenv import load_dotenv
 
 from config.broker_config import load_broker_config
-from src.managers.message_manager_shelly import MessageManager
-from src.managers.mqtt_manager import MQTTManager
-from src.utils.logger_setup import logger_setup
-from src.utils.misc_utils import (
+from managers.message_manager_shelly import MessageManager
+from managers.mqtt_manager import MQTTManager
+from utils.logger_setup import logger_setup
+from utils.misc_utils import (
+    format_error_message,
     get_logging_levels,
+    get_project_root,
     get_pub_root,
     get_pub_source,
     get_sub_topics,
@@ -39,26 +47,55 @@ def main() -> None:
 
     logging_levels: dict = get_logging_levels()
 
+    # Get project root
+    project_root = get_project_root()
+
+    # Update logger setup with absolute path
+    log_path = project_root / "logs" / "shelly.log"
+    os.makedirs(
+        log_path.parent, exist_ok=True
+    )  # Ensure logs directory exists
+
     logger = logger_setup(
         clear_logger=logging_levels["clear"],
         console_level=logging_levels["console"],
         file_level=logging_levels["file"],
-        file_handler="logs/shelly.log",
+        file_handler=str(log_path),
     )
+
+    # Logger setup error handling
+    if not logger:
+        raise RuntimeError(
+            format_error_message("Failed to initialize logger")
+        )
 
     # ############################ MQTT Setup ############################ #
 
     # load in broker information
     broker_config: dict = load_broker_config()
-    print(
-        f"*** broker config:\n\ttype: {type(broker_config)}\n\t{broker_config}\n\t{broker_config}"
-    )
+    # MQTT Setup error handling
+    if not broker_config:
+        raise ValueError(
+            format_error_message("load_broker_config returns <None>")
+        )
     broker_name = broker_config["MQTT_BROKER_ADDRESS"]
 
-    # MQTT Topic(s)
+    # MQTT Topic(s) with error checking
     sub_topics: list = get_sub_topics("SUB_TOPICS_SHELLY")
+    if not sub_topics:
+        raise ValueError(
+            format_error_message("No subscription topics found for SHELLY")
+        )
+
     pub_topic_root = get_pub_root()
+    if not pub_topic_root:
+        raise ValueError(
+            format_error_message("No publish topic root found")
+        )
+
     pub_source = get_pub_source()
+    if not pub_source:
+        raise ValueError(format_error_message("No publish source found"))
 
     # intantiate the MQTT manager
     #  we set the publish_topic_root to NULL because we create it in the message_manager
