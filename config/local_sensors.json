@@ -1,12 +1,12 @@
 {
-    "37": {
+    "101": {
         "id_sensor_name": "SC91-C",
         "sensor_name": "LivingRoom-C",
         "comment": ""
     },
-    "172": {
+    "138": {
         "id_sensor_name": "SC91-B",
-        "sensor_name": "PATIO-B",
+        "sensor_name": "DECK-B",
         "comment": ""
     },
     "79": {
