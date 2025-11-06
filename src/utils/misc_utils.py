@@ -72,19 +72,19 @@ def get_pub_source() -> str:
 
 
 # ###################################################################### #
-#                             get_pub_root
+#                             get_pub_topic_root
 # ###################################################################### #
 
 
-def get_pub_root() -> str:
-    """get the root (top-level) of the publication topic"""
-
-    pub_source = os.getenv("PUB_ROOT", None)
-    if pub_source is None:
-        # get the hostname from the environment
-        pub_source = "enterprise"
-
-    return pub_source
+def get_pub_topic_root() -> str:
+    """get the topic root for publishing (e.g., 'KTBMES')"""
+    my_name = "get_pub_topic_root"
+    pub_topic_root = os.getenv("PUB_TOPIC_ROOT", None)
+    if pub_topic_root is None:
+        pub_topic_root = "NONE"
+        print(f"{my_name}: PUB_TOPIC_ROOT environment variable not set, using default: {pub_topic_root}")
+    
+    return pub_topic_root
 
 
 # ###################################################################### #

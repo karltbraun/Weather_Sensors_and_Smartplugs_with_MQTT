@@ -1,0 +1,174 @@
+# Docker Compose for Weather Sensors MQTT Services
+# Supports both home lab and Vultr VM deployment scenarios
+version: '3.8'
+
+networks:
+  # Default bridge network for home lab deployment
+  mqtt-network:
+    driver: bridge
+    name: weather-sensors-network
+  
+  # Host network for Vultr VM deployment (same server as MQTT broker)
+  # Uncomment and modify services to use this for Vultr VM deployment
+  # host-network:
+  #   external: true
+  #   name: host
+
+volumes:
+  sensor-data:
+    name: weather-sensors-data
+  sensor-logs:
+    name: weather-sensors-logs
+  sensor-config:
+    name: weather-sensors-config
+
+services:
+  # Sensor Data Republisher Service
+  sensor-republisher:
+    image: weather-sensors:latest
+    container_name: sensor-republisher
+    restart: unless-stopped
+    # Network mode selection based on deployment scenario
+    # For home lab: use bridge network (default)
+    # For Vultr VM: uncomment next line to use host networking
+    # network_mode: host
+    environment:
+      - SERVICE=republish
+      - CONSOLE_LOG_LEVEL=${CONSOLE_LOG_LEVEL:-INFO}
+      - FILE_LOG_LEVEL=${FILE_LOG_LEVEL:-DEBUG}
+      - CLEAR_LOG_FILE=${CLEAR_LOG_FILE:-true}
+      - PUBLISH_INTERVAL_MAX=${PUBLISH_INTERVAL_MAX:-300}
+      - SUB_TOPICS_REPUBLISH=${SUB_TOPICS_REPUBLISH:-KTBMES/raw/#}
+      # MQTT broker configuration - adjust based on deployment
+      - MQTT_BROKER_ADDRESS=${MQTT_BROKER_ADDRESS}
+      - MQTT_BROKER_PORT=${MQTT_BROKER_PORT:-1883}
+      - MQTT_USERNAME=${MQTT_USERNAME:-}
+      - MQTT_PASSWORD=${MQTT_PASSWORD:-}
+      # Broker selection (overrides above if set)
+      - BROKER_NAME=${BROKER_NAME:-}
+      - MQTT_CONFIG_INFO=${MQTT_CONFIG_INFO:-{}}
+      # Deployment scenario flag
+      - DEPLOYMENT_SCENARIO=${DEPLOYMENT_SCENARIO:-home-lab}
+      # Timezone configuration
+      - TZ=${TZ:-America/Los_Angeles}
+    volumes:
+      - sensor-data:/app/data
+      - sensor-logs:/app/logs
+      - sensor-config:/app/config
+      # Bind mount for live config updates (optional)
+      - ./config:/app/config:ro
+    networks:
+      - mqtt-network
+    # Remove depends_on for Vultr VM deployment (no local broker)
+    depends_on:
+      - mqtt-broker
+    labels:
+      - "traefik.enable=false"
+      - "portainer.group=weather-sensors"
+      - "portainer.service=republisher"
+      - "deployment.scenario=${DEPLOYMENT_SCENARIO:-home-lab}"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import os; exit(0 if os.path.exists('/app/logs/republish_processed_sensors.log') else 1)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # Shelly Smart Device Processor Service  
+  shelly-processor:
+    image: weather-sensors:latest
+    container_name: shelly-processor
+    restart: unless-stopped
+    # Network mode selection based on deployment scenario
+    # For home lab: use bridge network (default)
+    # For Vultr VM: uncomment next line to use host networking
+    # network_mode: host
+    environment:
+      - SERVICE=shelly
+      - CONSOLE_LOG_LEVEL=${CONSOLE_LOG_LEVEL:-INFO}
+      - FILE_LOG_LEVEL=${FILE_LOG_LEVEL:-DEBUG}
+      - CLEAR_LOG_FILE=${CLEAR_LOG_FILE:-true}
+      - SUB_TOPICS_SHELLY=${SUB_TOPICS_SHELLY:-shellies/+/+}
+      # MQTT broker configuration - adjust based on deployment
+      - MQTT_BROKER_ADDRESS=${MQTT_BROKER_ADDRESS}
+      - MQTT_BROKER_PORT=${MQTT_BROKER_PORT:-1883}
+      - MQTT_USERNAME=${MQTT_USERNAME:-}
+      - MQTT_PASSWORD=${MQTT_PASSWORD:-}
+      # Broker selection (overrides above if set)
+      - BROKER_NAME=${BROKER_NAME:-}
+      - MQTT_CONFIG_INFO=${MQTT_CONFIG_INFO:-{}}
+      # Deployment scenario flag
+      - DEPLOYMENT_SCENARIO=${DEPLOYMENT_SCENARIO:-home-lab}
+      # Timezone configuration
+      - TZ=${TZ:-America/Los_Angeles}
+    volumes:
+      - sensor-data:/app/data
+      - sensor-logs:/app/logs
+      - sensor-config:/app/config
+      # Bind mount for live config updates (optional)
+      - ./config:/app/config:ro
+    networks:
+      - mqtt-network
+    # Remove depends_on for Vultr VM deployment (no local broker)
+    depends_on:
+      - mqtt-broker
+    labels:
+      - "traefik.enable=false"
+      - "portainer.group=weather-sensors"
+      - "portainer.service=shelly-processor"
+      - "deployment.scenario=${DEPLOYMENT_SCENARIO:-home-lab}"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import os; exit(0 if os.path.exists('/app/logs/shelly.log') else 1)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # Optional: Local MQTT Broker for testing
+  # ONLY USE THIS FOR HOME LAB TESTING
+  # Remove this service completely for Vultr VM deployment
+  mqtt-broker:
+    image: eclipse-mosquitto:latest
+    container_name: mqtt-broker
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - mqtt-data:/mosquitto/data
+      - mqtt-logs:/mosquitto/log
+    networks:
+      - mqtt-network
+    labels:
+      - "traefik.enable=false"
+      - "portainer.group=weather-sensors"
+      - "portainer.service=mqtt-broker"
+      - "deployment.scenario=home-lab-only"
+    command: mosquitto -c /mosquitto/config/mosquitto.conf
+    profiles:
+      - home-lab  # Use profile to enable only for home lab
+
+  # Optional: Portainer Agent (if needed for better integration)
+  portainer-agent:
+    image: portainer/agent:latest
+    container_name: weather-sensors-agent
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/lib/docker/volumes:/var/lib/docker/volumes
+    networks:
+      - mqtt-network
+    environment:
+      - AGENT_CLUSTER_ADDR=tasks.portainer-agent
+    labels:
+      - "portainer.group=weather-sensors"
+      - "portainer.service=agent"
+    profiles:
+      - agent  # Use profiles to optionally enable
+
+volumes:
+  mqtt-data:
+    name: weather-sensors-mqtt-data
+  mqtt-logs:
+    name: weather-sensors-mqtt-logs

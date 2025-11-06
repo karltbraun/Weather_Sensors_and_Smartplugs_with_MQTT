@@ -27,7 +27,7 @@ External Dependencies:
     - queue.Queue
     - typing.Dict, typing.Tuple
     - src.utils.flatten_json.flatten_json
-    - src.utils.misc_utils.get_pub_root, src.utils.misc_utils.get_pub_source
+    - src.utils.misc_utils.get_pub_topic_root, src.utils.misc_utils.get_pub_source
 """
 
 import json
@@ -38,7 +38,7 @@ from queue import Queue
 import paho.mqtt.client as mqtt
 
 from src.utils.flatten_json import flatten_json
-from src.utils.misc_utils import get_pub_root, get_pub_source
+from src.utils.misc_utils import get_pub_topic_root, get_pub_source
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -107,7 +107,7 @@ def create_pub_topic(topic: str) -> str:
         )
         raise ValueError(emsg)
 
-    root = get_pub_root()
+    root = get_pub_topic_root()
     source = get_pub_source()  # get the hostname of the publishing device
     device_name = topic_parts[1]  # get the device name from the topic
     room = get_room(device_name)  # EV, Lab, Office, etc

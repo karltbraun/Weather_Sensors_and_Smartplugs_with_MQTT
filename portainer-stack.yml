@@ -1,0 +1,226 @@
+# Weather Sensors MQTT Stack for Portainer
+# Copy this entire file content into Portainer > Stacks > Add Stack > Web Editor
+
+networks:
+  weather-sensors:
+    driver: bridge
+    name: weather-sensors-network
+
+volumes:
+  sensor-data:
+    name: weather-sensors-data
+    driver: local
+  sensor-logs:
+    name: weather-sensors-logs
+    driver: local
+  sensor-config:
+    name: weather-sensors-config
+    driver: local
+
+services:
+  # RTL-433 Sensor Data Republisher Service
+  sensor-republisher:
+    image: karltbraun/weather-sensors:latest
+    container_name: weather-sensors-republisher
+    restart: unless-stopped
+    
+    # NETWORK CONFIGURATION - Choose based on deployment scenario:
+    # 
+    # HOME LAB: Use bridge networking (default - leave commented)
+    # VULTR VM: Uncomment next line for host networking
+    # network_mode: host
+    
+    environment:
+      # Service Configuration
+      - SERVICE=republish
+      
+      # Deployment Scenario (home-lab or vultr-vm)
+      - DEPLOYMENT_SCENARIO=home-lab
+      
+      # Timezone Configuration
+      - TZ=America/Los_Angeles
+      
+      # Logging Configuration
+      - CONSOLE_LOG_LEVEL=INFO
+      - FILE_LOG_LEVEL=DEBUG
+      - CLEAR_LOG_FILE=true
+      
+      # MQTT Configuration - UPDATE THESE VALUES:
+      #
+      # HOME LAB: Use your Vultr VM's IP/hostname
+      - MQTT_BROKER_ADDRESS=n-vultr2
+      #
+      # VULTR VM: Use localhost (same VM as MQTT broker)
+      # - MQTT_BROKER_ADDRESS=localhost
+      
+      - MQTT_BROKER_PORT=1883
+      - MQTT_USERNAME=
+      - MQTT_PASSWORD=
+      
+      # Broker Configuration
+      - BROKER_NAME=n-vultr2
+      - MQTT_CONFIG_INFO={}
+      
+      # Service Specific Configuration
+      - SUB_TOPICS_REPUBLISH="+/sensors/raw/#"
+      - PUBLISH_INTERVAL_MAX=60
+      
+    volumes:
+      - sensor-data:/app/data
+      - sensor-logs:/app/logs
+      - sensor-config:/app/config
+      
+    # NETWORK ASSIGNMENT - Remove this section if using host networking
+    networks:
+      - weather-sensors
+      
+    labels:
+      # Portainer labels for organization
+      - "portainer.group=weather-sensors"
+      - "portainer.service=republisher"
+      - "description=RTL-433 sensor data republisher service"
+      
+    healthcheck:
+      test: ["CMD", "python", "-c", "import os; exit(0 if os.path.exists('/app/logs/republish_processed_sensors.log') else 1)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+      
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+        reservations:
+          memory: 128M
+          cpus: '0.1'
+
+  # Shelly Smart Device Processor Service
+  shelly-processor:
+    image: karltbraun/weather-sensors:latest
+    container_name: weather-sensors-shelly
+    restart: unless-stopped
+    
+    # NETWORK CONFIGURATION - Choose based on deployment scenario:
+    # 
+    # HOME LAB: Use bridge networking (default - leave commented)
+    # VULTR VM: Uncomment next line for host networking
+    # network_mode: host
+    
+    environment:
+      # Service Configuration
+      - SERVICE=shelly
+      
+      # Deployment Scenario (home-lab or vultr-vm)
+      - DEPLOYMENT_SCENARIO=home-lab
+      
+      # Timezone Configuration
+      - TZ=America/Los_Angeles
+      
+      # Logging Configuration
+      - CONSOLE_LOG_LEVEL=INFO
+      - FILE_LOG_LEVEL=DEBUG
+      - CLEAR_LOG_FILE=true
+      
+      # MQTT Configuration - UPDATE THESE VALUES:
+      #
+      # HOME LAB: Use your Vultr VM's IP/hostname
+      - MQTT_BROKER_ADDRESS=n-vultr2
+      #
+      # VULTR VM: Use localhost (same VM as MQTT broker)
+      # - MQTT_BROKER_ADDRESS=localhost
+      
+      - MQTT_BROKER_PORT=1883
+      - MQTT_USERNAME=
+      - MQTT_PASSWORD=
+      
+      # Broker Configuration
+      - BROKER_NAME=n-vultr2
+      - MQTT_CONFIG_INFO={}
+      
+      # Service Specific Configuration
+      - SUB_TOPICS_SHELLY="Shelly/#"
+      
+    volumes:
+      - sensor-data:/app/data
+      - sensor-logs:/app/logs
+      - sensor-config:/app/config
+      
+    # NETWORK ASSIGNMENT - Remove this section if using host networking
+    networks:
+      - weather-sensors
+      
+    labels:
+      # Portainer labels for organization
+      - "portainer.group=weather-sensors"
+      - "portainer.service=shelly-processor"
+      - "description=Shelly smart device processor service"
+      
+    healthcheck:
+      test: ["CMD", "python", "-c", "import os; exit(0 if os.path.exists('/app/logs/shelly.log') else 1)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+      
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.5'
+        reservations:
+          memory: 128M
+          cpus: '0.1'
+
+  # =============================================================================
+  # DEPLOYMENT SCENARIO NOTES:
+  # =============================================================================
+  #
+  # HOME LAB DEPLOYMENT:
+  # - Keep bridge networking (networks: weather-sensors)
+  # - Set MQTT_BROKER_ADDRESS to your Vultr VM IP/hostname
+  # - Ensure Vultr VM firewall allows your home ISP IP
+  # - Alternative: Use Tailscale and set MQTT_BROKER_ADDRESS to Tailscale IP
+  #
+  # VULTR VM DEPLOYMENT:
+  # - Uncomment "network_mode: host" in both services
+  # - Remove/comment "networks:" sections from both services  
+  # - Set MQTT_BROKER_ADDRESS to "localhost"
+  # - No firewall concerns (all local)
+  #
+  # =============================================================================
+
+  # Optional: Local MQTT Broker (FOR HOME LAB TESTING ONLY)
+  # DO NOT USE for Vultr VM deployment - you already have MQTT broker there
+  # 
+  # mqtt-broker:
+  #   image: eclipse-mosquitto:2.0
+  #   container_name: weather-sensors-mqtt
+  #   restart: unless-stopped
+  #   ports:
+  #     - "1883:1883"
+  #     - "9001:9001"
+  #   volumes:
+  #     - mqtt-config:/mosquitto/config
+  #     - mqtt-data:/mosquitto/data
+  #     - mqtt-logs:/mosquitto/log
+  #   networks:
+  #     - weather-sensors
+  #   labels:
+  #     - "portainer.group=weather-sensors"
+  #     - "portainer.service=mqtt-broker"
+  #     - "description=Local MQTT broker for HOME LAB testing only"
+  #   command: mosquitto -c /mosquitto/config/mosquitto.conf
+
+# Additional volumes for optional MQTT broker (HOME LAB only)
+# volumes:
+#   mqtt-config:
+#     name: weather-sensors-mqtt-config
+#     driver: local
+#   mqtt-data:
+#     name: weather-sensors-mqtt-data
+#     driver: local
+#   mqtt-logs:
+#     name: weather-sensors-mqtt-logs
+#     driver: local

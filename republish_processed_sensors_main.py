@@ -63,8 +63,8 @@ from src.utils.logger_setup import logger_setup
 
 # utility functions
 from src.utils.misc_utils import (
-    get_logging_levels,  # get_pub_root,
-    get_pub_root,
+    get_logging_levels,  # get_pub_topic_root,
+    get_pub_topic_root,
     get_pub_source,
     get_publish_interval_max,
     get_sub_topics,
@@ -114,11 +114,11 @@ if not broker_config:
         "\tload_broker_config returns <None>"
         "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
     )
-BROKER_NAME = broker_config["MQTT_BROKER_ADDRESS"]
+BROKER_ADDRESS = broker_config["MQTT_BROKER_ADDRESS"]
 print(
     "#######################################################################"
 )
-print(f"BROKER_NAME: {BROKER_NAME}")
+print(f"BROKER_ADDRESS: {BROKER_ADDRESS}")
 print(
     "#######################################################################"
 )
@@ -222,7 +222,7 @@ def publish_device(
 
 def generate_pub_topics(pub_source: str) -> dict:
     """Generate a dictionary of publication topics based on the source."""
-    pub_root = get_pub_root()
+    pub_root = get_pub_topic_root()
     pub_topic_base = f"{pub_root}/{pub_source}/sensors"
     return {
         "pub_topic_base": pub_topic_base,
@@ -253,9 +253,9 @@ def main() -> None:
 
     # ############################ MQTT Setup ############################ #
 
-    broker_name: str = BROKER_NAME
+    broker_address: str = BROKER_ADDRESS
     mqtt_manager = MQTTManager(
-        broker_config=BROKER_CONFIG[broker_name],
+        broker_config=broker_config,
         subscribe_topics=sub_topics,
         publish_topic_root=pub_topics["pub_topic_base"],
     )
@@ -283,7 +283,7 @@ def main() -> None:
         "  File log level: %s\n"
         "#########################################################################\n",
         datetime.now().isoformat(),
-        broker_name,
+        broker_address,
         pub_source,
         pub_topics,
         sub_topics,

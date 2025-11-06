@@ -15,7 +15,7 @@ from src.managers.mqtt_manager import MQTTManager
 from src.utils.logger_setup import logger_setup
 from src.utils.misc_utils import (
     get_logging_levels,
-    get_pub_root,
+    get_pub_topic_root,
     get_pub_source,
     get_sub_topics,
 )
@@ -53,11 +53,11 @@ def main() -> None:
     print(
         f"*** broker config:\n\ttype: {type(broker_config)}\n\t{broker_config}\n\t{broker_config}"
     )
-    broker_name = broker_config["MQTT_BROKER_ADDRESS"]
+    broker_address = broker_config["MQTT_BROKER_ADDRESS"]
 
     # MQTT Topic(s)
     sub_topics: list = get_sub_topics("SUB_TOPICS_SHELLY")
-    pub_topic_root = get_pub_root()
+    pub_topic_root = get_pub_topic_root()
     pub_source = get_pub_source()
 
     # intantiate the MQTT manager
@@ -94,7 +94,7 @@ def main() -> None:
         "  File log level: %s\n"
         "#########################################################################\n",
         datetime.now(),
-        broker_name,
+        broker_address,
         pub_source,
         pub_topic_root,
         sub_topics,
