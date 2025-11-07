@@ -1,6 +1,5 @@
 # Docker Compose for Weather Sensors MQTT Services
 # Supports both home lab and Vultr VM deployment scenarios
-version: '3.8'
 
 networks:
   # Default bridge network for home lab deployment
@@ -21,6 +20,10 @@ volumes:
     name: weather-sensors-logs
   sensor-config:
     name: weather-sensors-config
+  mqtt-data:
+    name: weather-sensors-mqtt-data
+  mqtt-logs:
+    name: weather-sensors-mqtt-logs
 
 services:
   # Sensor Data Republisher Service
@@ -39,12 +42,10 @@ services:
       - CLEAR_LOG_FILE=${CLEAR_LOG_FILE:-true}
       - PUBLISH_INTERVAL_MAX=${PUBLISH_INTERVAL_MAX:-300}
       - SUB_TOPICS_REPUBLISH=${SUB_TOPICS_REPUBLISH:-KTBMES/raw/#}
-      # MQTT broker configuration - adjust based on deployment
-      - MQTT_BROKER_ADDRESS=${MQTT_BROKER_ADDRESS}
-      - MQTT_BROKER_PORT=${MQTT_BROKER_PORT:-1883}
-      - MQTT_USERNAME=${MQTT_USERNAME:-}
-      - MQTT_PASSWORD=${MQTT_PASSWORD:-}
-      # Broker selection (overrides above if set)
+      # Publication configuration
+      - PUB_TOPIC_ROOT=${PUB_TOPIC_ROOT:-KTBMES}
+      - PUB_SOURCE=${PUB_SOURCE:-Mu}
+      # Broker selection via BROKER_NAME (references broker_config.py)
       - BROKER_NAME=${BROKER_NAME:-}
       - MQTT_CONFIG_INFO=${MQTT_CONFIG_INFO:-{}}
       # Deployment scenario flag
@@ -89,12 +90,10 @@ services:
       - FILE_LOG_LEVEL=${FILE_LOG_LEVEL:-DEBUG}
       - CLEAR_LOG_FILE=${CLEAR_LOG_FILE:-true}
       - SUB_TOPICS_SHELLY=${SUB_TOPICS_SHELLY:-shellies/+/+}
-      # MQTT broker configuration - adjust based on deployment
-      - MQTT_BROKER_ADDRESS=${MQTT_BROKER_ADDRESS}
-      - MQTT_BROKER_PORT=${MQTT_BROKER_PORT:-1883}
-      - MQTT_USERNAME=${MQTT_USERNAME:-}
-      - MQTT_PASSWORD=${MQTT_PASSWORD:-}
-      # Broker selection (overrides above if set)
+      # Publication configuration
+      - PUB_TOPIC_ROOT=${PUB_TOPIC_ROOT:-KTBMES}
+      - PUB_SOURCE=${PUB_SOURCE:-Mu}
+      # MQTT broker configuration via BROKER_NAME lookup
       - BROKER_NAME=${BROKER_NAME:-}
       - MQTT_CONFIG_INFO=${MQTT_CONFIG_INFO:-{}}
       # Deployment scenario flag
@@ -166,9 +165,3 @@ services:
       - "portainer.service=agent"
     profiles:
       - agent  # Use profiles to optionally enable
-
-volumes:
-  mqtt-data:
-    name: weather-sensors-mqtt-data
-  mqtt-logs:
-    name: weather-sensors-mqtt-logs

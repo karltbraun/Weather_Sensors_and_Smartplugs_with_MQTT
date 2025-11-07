@@ -129,8 +129,13 @@ ipython_config.py
 # PEP 582; used by e.g. github.com/David-OConnor/pyflow
 __pypackages__/
 
-# Environments
-.env
+# Environment files (exclude all .env* files except templates/examples)
+.env*
+!.env.template*
+!.env.example*
+!.env.sample*
+
+# Python virtual environments
 .venv
 env/
 venv/

@@ -38,7 +38,7 @@ from queue import Queue
 import paho.mqtt.client as mqtt
 
 from src.utils.flatten_json import flatten_json
-from src.utils.misc_utils import get_pub_topic_root, get_pub_source
+from src.utils.misc_utils import get_pub_source, get_pub_topic_root
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -55,7 +55,6 @@ DEVICE_ROOM_MAP = {
 }
 
 # constant strings for creating publication topics
-TOPIC_ROOT = "KTBMES"  # first element in the topic string
 DEVICE_TYPE = (
     "smartplugs"  # should be the third element in the topic string
 )
@@ -93,9 +92,7 @@ def create_pub_topic(topic: str) -> str:
 
     def get_room(device_name: str) -> str:
         """Get the room from the device name."""
-        return DEVICE_ROOM_MAP.get(
-            device_name, f"UNK Plug Name {device_name}"
-        )
+        return DEVICE_ROOM_MAP.get(device_name, "UNKNOWN")
 
     topic_parts = topic.split("/")
 

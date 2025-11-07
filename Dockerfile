@@ -63,8 +63,8 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 # Set entrypoint
 ENTRYPOINT ["./entrypoint.sh"]
 
-# Default to sensor republisher service
-CMD ["republish"]
+# No default CMD - let SERVICE environment variable control which service runs
+# CMD ["republish"]
 
 # Labels for Portainer organization
 LABEL maintainer="karl@ktb.dev"

@@ -20,7 +20,8 @@ volumes:
 services:
   # RTL-433 Sensor Data Republisher Service
   sensor-republisher:
-    image: karltbraun/weather-sensors:latest
+    image: weather-sensors:latest
+    pull_policy: never
     container_name: weather-sensors-republisher
     restart: unless-stopped
     
@@ -45,24 +46,17 @@ services:
       - FILE_LOG_LEVEL=DEBUG
       - CLEAR_LOG_FILE=true
       
-      # MQTT Configuration - UPDATE THESE VALUES:
-      #
-      # HOME LAB: Use your Vultr VM's IP/hostname
-      - MQTT_BROKER_ADDRESS=n-vultr2
-      #
-      # VULTR VM: Use localhost (same VM as MQTT broker)
-      # - MQTT_BROKER_ADDRESS=localhost
-      
-      - MQTT_BROKER_PORT=1883
-      - MQTT_USERNAME=
-      - MQTT_PASSWORD=
-      
-      # Broker Configuration
+      # MQTT Broker Configuration - UPDATE THIS VALUE:
+      # Available broker names: n-vultr1, n-vultr2, ts-vultr1, ts-vultr2, PI2, TS-PI2
       - BROKER_NAME=n-vultr2
       - MQTT_CONFIG_INFO={}
       
+      # Publication Configuration  
+      - PUB_TOPIC_ROOT=KTBMES
+      - PUB_SOURCE=Mu
+      
       # Service Specific Configuration
-      - SUB_TOPICS_REPUBLISH="+/sensors/raw/#"
+      - SUB_TOPICS_REPUBLISH=+/sensors/raw/#
       - PUBLISH_INTERVAL_MAX=60
       
     volumes:
@@ -98,8 +92,9 @@ services:
 
   # Shelly Smart Device Processor Service
   shelly-processor:
-    image: karltbraun/weather-sensors:latest
-    container_name: weather-sensors-shelly
+    image: weather-sensors:latest
+    pull_policy: never
+    container_name: shelly-processor
     restart: unless-stopped
     
     # NETWORK CONFIGURATION - Choose based on deployment scenario:
@@ -123,24 +118,17 @@ services:
       - FILE_LOG_LEVEL=DEBUG
       - CLEAR_LOG_FILE=true
       
-      # MQTT Configuration - UPDATE THESE VALUES:
-      #
-      # HOME LAB: Use your Vultr VM's IP/hostname
-      - MQTT_BROKER_ADDRESS=n-vultr2
-      #
-      # VULTR VM: Use localhost (same VM as MQTT broker)
-      # - MQTT_BROKER_ADDRESS=localhost
-      
-      - MQTT_BROKER_PORT=1883
-      - MQTT_USERNAME=
-      - MQTT_PASSWORD=
-      
-      # Broker Configuration
+      # MQTT Broker Configuration - UPDATE THIS VALUE:
+      # Available broker names: n-vultr2, vultr2, pi2, local, eclipse
       - BROKER_NAME=n-vultr2
       - MQTT_CONFIG_INFO={}
       
+      # Publication Configuration  
+      - PUB_TOPIC_ROOT=KTBMES
+      - PUB_SOURCE=Mu
+      
       # Service Specific Configuration
-      - SUB_TOPICS_SHELLY="Shelly/#"
+      - SUB_TOPICS_SHELLY=Shelly/#
       
     volumes:
       - sensor-data:/app/data
@@ -179,16 +167,17 @@ services:
   #
   # HOME LAB DEPLOYMENT:
   # - Keep bridge networking (networks: weather-sensors)
-  # - Set MQTT_BROKER_ADDRESS to your Vultr VM IP/hostname
-  # - Ensure Vultr VM firewall allows your home ISP IP
-  # - Alternative: Use Tailscale and set MQTT_BROKER_ADDRESS to Tailscale IP
+  # - Set BROKER_NAME to your preferred broker (e.g., n-vultr2)
+  # - Ensure target MQTT broker firewall allows your home ISP IP
+  # - Alternative: Use Tailscale broker (ts-vultr1, ts-vultr2)
   #
   # VULTR VM DEPLOYMENT:
   # - Uncomment "network_mode: host" in both services
   # - Remove/comment "networks:" sections from both services  
-  # - Set MQTT_BROKER_ADDRESS to "localhost"
+  # - Set BROKER_NAME to "local" (localhost broker)
   # - No firewall concerns (all local)
   #
+  # Available BROKER_NAME values: n-vultr2, vultr2, pi2, local, eclipse
   # =============================================================================
 
   # Optional: Local MQTT Broker (FOR HOME LAB TESTING ONLY)
