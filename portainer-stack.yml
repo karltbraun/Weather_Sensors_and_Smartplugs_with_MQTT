@@ -1,6 +1,19 @@
 # Weather Sensors MQTT Stack for Portainer
 # Copy this entire file content into Portainer > Stacks > Add Stack > Web Editor
 
+# =============================================================================
+# PUB_SOURCE is a tag or identifier for the host on which the service is running
+# it can be the hostname or a friendly name for the host, and is used to identify 
+# the "location" part of the topic string when using an ISA95 like hierarchy for 
+# the topic string (eg: enterprise/site/area/line/cell...).  In this case, the
+# 'site' is the host which is publishing the information.
+#   - Mu is the default, and will identify that the PUB_SOURCE variable is not
+# properly set.
+#
+# NOTE: You must update PUB_SOURCE in BOTH service environment sections below
+# (lines ~54 and ~108) when deploying to different hosts.
+# =============================================================================
+
 networks:
   weather-sensors:
     driver: bridge
@@ -20,8 +33,8 @@ volumes:
 services:
   # RTL-433 Sensor Data Republisher Service
   sensor-republisher:
-    image: weather-sensors:latest
-    pull_policy: never
+    image: karltbraun/weather-sensors:latest
+    pull_policy: always
     container_name: weather-sensors-republisher
     restart: unless-stopped
     
@@ -32,30 +45,16 @@ services:
     # network_mode: host
     
     environment:
-      # Service Configuration
-      - SERVICE=republish
-      
-      # Deployment Scenario (home-lab or vultr-vm)
       - DEPLOYMENT_SCENARIO=home-lab
-      
-      # Timezone Configuration
       - TZ=America/Los_Angeles
-      
-      # Logging Configuration
+      - BROKER_NAME=n-vultr2
+      - MQTT_CONFIG_INFO={}
+      - PUB_SOURCE=Mu
       - CONSOLE_LOG_LEVEL=INFO
       - FILE_LOG_LEVEL=DEBUG
       - CLEAR_LOG_FILE=true
-      
-      # MQTT Broker Configuration - UPDATE THIS VALUE:
-      # Available broker names: n-vultr1, n-vultr2, ts-vultr1, ts-vultr2, PI2, TS-PI2
-      - BROKER_NAME=n-vultr2
-      - MQTT_CONFIG_INFO={}
-      
-      # Publication Configuration  
       - PUB_TOPIC_ROOT=KTBMES
-      - PUB_SOURCE=Mu
-      
-      # Service Specific Configuration
+      - SERVICE=republish
       - SUB_TOPICS_REPUBLISH=+/sensors/raw/#
       - PUBLISH_INTERVAL_MAX=60
       
@@ -92,8 +91,8 @@ services:
 
   # Shelly Smart Device Processor Service
   shelly-processor:
-    image: weather-sensors:latest
-    pull_policy: never
+    image: karltbraun/weather-sensors:latest
+    pull_policy: always
     container_name: shelly-processor
     restart: unless-stopped
     
@@ -104,30 +103,16 @@ services:
     # network_mode: host
     
     environment:
-      # Service Configuration
-      - SERVICE=shelly
-      
-      # Deployment Scenario (home-lab or vultr-vm)
       - DEPLOYMENT_SCENARIO=home-lab
-      
-      # Timezone Configuration
       - TZ=America/Los_Angeles
-      
-      # Logging Configuration
+      - BROKER_NAME=n-vultr2
+      - MQTT_CONFIG_INFO={}
+      - PUB_SOURCE=Mu
       - CONSOLE_LOG_LEVEL=INFO
       - FILE_LOG_LEVEL=DEBUG
       - CLEAR_LOG_FILE=true
-      
-      # MQTT Broker Configuration - UPDATE THIS VALUE:
-      # Available broker names: n-vultr2, vultr2, pi2, local, eclipse
-      - BROKER_NAME=n-vultr2
-      - MQTT_CONFIG_INFO={}
-      
-      # Publication Configuration  
       - PUB_TOPIC_ROOT=KTBMES
-      - PUB_SOURCE=Mu
-      
-      # Service Specific Configuration
+      - SERVICE=shelly
       - SUB_TOPICS_SHELLY=Shelly/#
       
     volumes:
@@ -162,12 +147,22 @@ services:
           cpus: '0.1'
 
   # =============================================================================
-  # DEPLOYMENT SCENARIO NOTES:
+  # DEPLOYMENT CONFIGURATION NOTES:
   # =============================================================================
+  #
+  # GLOBAL SETTINGS (configured at top of file):
+  # - DEPLOYMENT_SCENARIO: home-lab or vultr-vm
+  # - TZ: Timezone (e.g., America/Los_Angeles)
+  # - BROKER_NAME: MQTT broker name (n-vultr2, PI2, ts-vultr1, etc.)
+  # - PUB_SOURCE: Source identifier - CHANGE THIS:
+  #     * ROSA for host ROSA
+  #     * TWIX for host TWIX  
+  #     * VULTR2 for host VULTR2
+  #     * Mu for testing/default
   #
   # HOME LAB DEPLOYMENT:
   # - Keep bridge networking (networks: weather-sensors)
-  # - Set BROKER_NAME to your preferred broker (e.g., n-vultr2)
+  # - Set BROKER_NAME to remote broker (e.g., n-vultr2)
   # - Ensure target MQTT broker firewall allows your home ISP IP
   # - Alternative: Use Tailscale broker (ts-vultr1, ts-vultr2)
   #
@@ -177,7 +172,8 @@ services:
   # - Set BROKER_NAME to "local" (localhost broker)
   # - No firewall concerns (all local)
   #
-  # Available BROKER_NAME values: n-vultr2, vultr2, pi2, local, eclipse
+  # Available BROKER_NAME values: n-vultr2, vultr2, pi2, local, eclipse,
+  #                               ts-vultr1, ts-vultr2, TS-PI2
   # =============================================================================
 
   # Optional: Local MQTT Broker (FOR HOME LAB TESTING ONLY)

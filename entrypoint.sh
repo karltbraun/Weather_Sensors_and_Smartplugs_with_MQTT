@@ -40,12 +40,14 @@ try:
     from config.broker_config import load_broker_config
     broker_config = load_broker_config()
     if broker_config:
-        print(f\"{broker_config['MQTT_BROKER_ADDRESS']}:{broker_config['MQTT_BROKER_PORT']}\")
+        address = broker_config['MQTT_BROKER_ADDRESS']
+        port = broker_config['MQTT_BROKER_PORT']
+        print(f'{address}:{port}')
     else:
-        print('ERROR: Unable to load broker configuration')
+        print('ERROR: Unable to load broker configuration', file=sys.stderr)
         sys.exit(1)
 except Exception as e:
-    print(f'ERROR: {e}')
+    print(f'ERROR: {e}', file=sys.stderr)
     sys.exit(1)
 "
 }
@@ -57,7 +59,7 @@ validate_environment() {
     # Check for BROKER_NAME instead of individual MQTT variables
     if [[ -z "${BROKER_NAME}" ]]; then
         echo "ERROR: BROKER_NAME environment variable is required"
-        echo "  Available broker names: n-vultr1, n-vultr2, ts-vultr1, ts-vultr2, PI2, TS-PI2"
+        echo "  Available broker names: n-vultr2, ts-vultr2, PI2, TS-PI2, mqtt.eclipse.org"
         errors=$((errors + 1))
         return $errors
     fi
