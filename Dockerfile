@@ -2,11 +2,13 @@
 # Optimized for Docker Desktop + Portainer deployment
 
 # Build stage
+
 FROM python:3.12-slim AS builder
 
-# Install build dependencies
+# Install build dependencies and tzdata
 RUN apt-get update && apt-get install -y \
     gcc \
+    tzdata \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
@@ -20,14 +22,16 @@ RUN pip install --no-cache-dir --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Production stage
+
 FROM python:3.12-slim AS production
 
 # Create non-root user for security
 RUN groupadd -r appuser && useradd -r -g appuser appuser
 
-# Install runtime dependencies
+# Install runtime dependencies and tzdata
 RUN apt-get update && apt-get install -y \
     curl \
+    tzdata \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
