@@ -248,6 +248,13 @@ def main() -> None:
 
     # MQTT Topic(s)
     sub_topics: list = get_sub_topics("SUB_TOPICS_REPUBLISH")
+    
+    # Add config update topic to subscription list
+    config_update_topic = local_sensor_manager.get_update_topic()
+    if config_update_topic not in sub_topics:
+        sub_topics.append(config_update_topic)
+        logger.info(f"Added config update topic to subscriptions: {config_update_topic}")
+    
     pub_source = get_pub_source()
     pub_topics = generate_pub_topics(pub_source)
 
@@ -273,12 +280,14 @@ def main() -> None:
     logger.info(
         "\n#########################################################################\n"
         "          Starting up at %s with the following configuration:\n"
-        "  Version: 2025-03-08T0938\n"
+        "  Version: 2025-11-10 (with dynamic config updates)\n"
         "  Broker: %s\n"
         "  Source: %s\n"
         "  PUB_TOPICS:\n"
         "    %s\n"
         "  Subscription Topics: %s\n"
+        "  Config Update Topic: %s\n"
+        "  Local Sensors: %d configured\n"
         "  Console log level: %s\n"
         "  File log level: %s\n"
         "#########################################################################\n",
@@ -287,6 +296,8 @@ def main() -> None:
         pub_source,
         pub_topics,
         sub_topics,
+        config_update_topic,
+        local_sensor_manager.get_sensor_count(),
         logging_levels["console"],
         logging_levels["file"],
     )

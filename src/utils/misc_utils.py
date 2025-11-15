@@ -132,3 +132,33 @@ def get_publish_interval_max() -> int:
     """Get the maximum publish interval from the environment variables."""
     # default to 5 minutes
     return int(os.getenv("PUBLISH_INTERVAL_MAX", 300))
+
+
+# ###################################################################### #
+#                             get_config_update_topic
+# ###################################################################### #
+
+
+def get_config_update_topic() -> str:
+    """Get the MQTT topic for configuration updates from environment variable."""
+    topic = os.getenv("SUB_TOPIC_CONFIG_UPDATE")
+    if topic is None:
+        raise ValueError(
+            "SUB_TOPIC_CONFIG_UPDATE environment variable is required but not set"
+        )
+    return topic
+
+
+# ###################################################################### #
+#                             get_backup_settings
+# ###################################################################### #
+
+
+def get_max_backups() -> int:
+    """Get the maximum number of backup files to retain."""
+    return int(os.getenv("MAX_BACKUPS", 10))
+
+
+def get_backup_retention_days() -> int:
+    """Get the number of days to retain backup files."""
+    return int(os.getenv("BACKUP_RETENTION_DAYS", 30))

@@ -34,6 +34,7 @@ class MessageManager:
     def __init__(self, local_sensor_manager: LocalSensorManager):
         self.local_sensor_manager = local_sensor_manager
         self.device_registry = DeviceRegistry()
+        self.logger = logging.getLogger(__name__)
 
     def device_name_from_id_set(
         self, device_id: str, device_name: str
@@ -45,6 +46,36 @@ class MessageManager:
     # ##############################################################################
     #                       process_message
     # ##############################################################################
+
+    def is_config_update_message(self, topic: str) -> bool:
+        """Check if the message is a configuration update message"""
+        return topic == self.local_sensor_manager.get_update_topic()
+
+    def handle_config_update_message(self, msg: mqtt.MQTTMessage) -> None:
+        """Handle configuration update messages"""
+        try:
+            self.logger.info(
+                f"Received config update message on topic: {msg.topic}"
+            )
+
+            # Determine update mode from topic or payload
+            # For now, default to merge mode - could be extended to support mode in payload
+            update_mode = "merge"
+
+            # Handle the config update
+            success, message = (
+                self.local_sensor_manager.handle_config_update(
+                    payload=msg.payload, update_mode=update_mode
+                )
+            )
+
+            if success:
+                self.logger.info(f"Config update successful: {message}")
+            else:
+                self.logger.error(f"Config update failed: {message}")
+
+        except Exception as e:
+            self.logger.error(f"Error handling config update message: {e}")
 
     def process_message(
         self,
@@ -62,14 +93,21 @@ class MessageManager:
             note that the data is 1 attribute of the device (eg: temperature, noise, id#, etc)
         * * some other routine will periodically publish the data in the dictionary under
             new topics
+
+        Enhanced to also handle configuration updates on KTBMES/ROSA/sensors/config/local_sensors
         """
         my_name = "process_message"
+
+        # Check if this is a configuration update message
+        if self.is_config_update_message(msg.topic):
+            self.handle_config_update_message(msg)
+            return  # Config messages don't go through normal sensor processing
 
         #
         # Get the device ID and a normalized tag from the topic
 
         device_id, tag = self.parse_topic(msg.topic)
-        logging.debug(
+        self.logger.debug(
             "%s:\n"
             "\tProcessing message with device id %s and tag %s => %s\n",
             my_name,

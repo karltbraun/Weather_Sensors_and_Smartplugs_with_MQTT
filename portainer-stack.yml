@@ -56,6 +56,9 @@ services:
       - PUB_TOPIC_ROOT=KTBMES
       - SERVICE=republish
       - SUB_TOPICS_REPUBLISH=+/sensors/raw/#
+      - SUB_TOPIC_CONFIG_UPDATE=KTBMES/ROSA/sensors/config/local_sensors
+      - MAX_BACKUPS=10
+      - BACKUP_RETENTION_DAYS=30
       - PUBLISH_INTERVAL_MAX=60
       
     volumes:
