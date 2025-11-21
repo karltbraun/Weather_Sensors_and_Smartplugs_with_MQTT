@@ -14,6 +14,10 @@
 # (lines ~54 and ~108) when deploying to different hosts.
 # =============================================================================
 
+###############################################################################
+# NETWORK CONFIGURATION
+###############################################################################
+
 networks:
   weather-sensors:
     driver: bridge
@@ -30,59 +34,76 @@ volumes:
     name: weather-sensors-config
     driver: local
 
+###############################################################################
+# SENSOR REPUBLISHER SERVICE
+# Services section for the weather sensors republishing service
+###############################################################################
+
 services:
   # RTL-433 Sensor Data Republisher Service
   sensor-republisher:
     image: karltbraun/weather-sensors:latest
     pull_policy: always
     container_name: weather-sensors-republisher
-    restart: unless-stopped
-    
-    # NETWORK CONFIGURATION - Choose based on deployment scenario:
-    # 
-    # HOME LAB: Use bridge networking (default - leave commented)
-    # VULTR VM: Uncomment next line for host networking
+    restart: on-failure:3
+    ###############################################################################
+    # NETWORK CONFIGURATION (Choose ONE per deployment scenario)
+    # HOME LAB: Use bridge networking (default)
+    #   - Leave 'networks:' assignment below uncommented
+    #   - Keep 'network_mode: host' commented out
+    # VM/Host: Use host networking
+    #   - Uncomment 'network_mode: host' below
+    #   - Comment/remove 'networks:' assignment below
+    # Example:
+    #   network_mode: host
+    #   # networks:
+    #   #   - weather-sensors
+    ###############################################################################
     # network_mode: host
-    
-    environment:
-      - DEPLOYMENT_SCENARIO=home-lab
-      - TZ=America/Los_Angeles
-      - BROKER_NAME=n-vultr2
-      - MQTT_CONFIG_INFO={}
-      - PUB_SOURCE=Mu
-      - CONSOLE_LOG_LEVEL=INFO
-      - FILE_LOG_LEVEL=DEBUG
-      - CLEAR_LOG_FILE=true
-      - PUB_TOPIC_ROOT=KTBMES
-      - SERVICE=republish
-      - SUB_TOPICS_REPUBLISH=+/sensors/raw/#
-      - SUB_TOPIC_CONFIG_UPDATE=KTBMES/ROSA/sensors/config/local_sensors
-      - MAX_BACKUPS=10
-      - BACKUP_RETENTION_DAYS=30
-      - PUBLISH_INTERVAL_MAX=60
-      
+    networks:
+      - weather-sensors
     volumes:
       - sensor-data:/app/data
       - sensor-logs:/app/logs
       - sensor-config:/app/config
-      
-    # NETWORK ASSIGNMENT - Remove this section if using host networking
-    networks:
-      - weather-sensors
-      
+    ###############################################################################
+    # ENVIRONMENT VARIABLES
+    # Set broker_name and PUB_SOURCE as needed for your deployment
+    #  BROKER_NAME should reference an entry in broker_config.py
+    #  PUB_SOURCE should be a unique identifier for the host publishing the data
+    #  PUB_TOPIC_ROOT would be the first level in the topic string
+    #  SUB_TOPICS_REPUBLISH should match the topics published by your raw sensors
+    #      This is the topic expresion to which the RTL_433 program(s) are publishing 
+    #      raw data.
+    #  SUB_TOPIC_CONFIG_UPDATE is the topic on which configuration updates are made
+    #      as of 2025-11-20, this is mainly for future enhancements
+    ###############################################################################
+    environment:
+      - DEPLOYMENT_SCENARIO=home-lab
+      - PUB_SOURCE=Mu
+      - BROKER_NAME=n-vultr2
+      - TZ=America/Los_Angeles
+      - PUBLISH_INTERVAL_MAX=60
+      - SERVICE=republish
+      - CONSOLE_LOG_LEVEL=INFO
+      - FILE_LOG_LEVEL=DEBUG
+      - CLEAR_LOG_FILE=true
+      - MQTT_CONFIG_INFO={}
+      - PUB_TOPIC_ROOT=KTBMES
+      - SUB_TOPICS_REPUBLISH=+/sensors/raw/#
+      - SUB_TOPIC_CONFIG_UPDATE=KTBMES/ROSA/sensors/config/local_sensors
+      - MAX_BACKUPS=10
+      - BACKUP_RETENTION_DAYS=30
     labels:
-      # Portainer labels for organization
       - "portainer.group=weather-sensors"
       - "portainer.service=republisher"
       - "description=RTL-433 sensor data republisher service"
-      
     healthcheck:
       test: ["CMD", "python", "-c", "import os; exit(0 if os.path.exists('/app/logs/republish_processed_sensors.log') else 1)"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 30s
-      
     deploy:
       resources:
         limits:
@@ -91,55 +112,65 @@ services:
         reservations:
           memory: 128M
           cpus: '0.1'
+
+
+###############################################################################
+# SHELLY ENERGY MONITOR PROCESSOR SERVICE
+# Services section for the shelly-processor servce
+###############################################################################
 
   # Shelly Smart Device Processor Service
   shelly-processor:
     image: karltbraun/weather-sensors:latest
     pull_policy: always
     container_name: shelly-processor
-    restart: unless-stopped
-    
-    # NETWORK CONFIGURATION - Choose based on deployment scenario:
-    # 
-    # HOME LAB: Use bridge networking (default - leave commented)
-    # VULTR VM: Uncomment next line for host networking
+    restart: on-failure:3
+    ###############################################################################
+    # NETWORK CONFIGURATION (Choose ONE per deployment scenario)
+    # HOME LAB: Use bridge networking (default)
+    #   - Leave 'networks:' assignment below uncommented
+    #   - Keep 'network_mode: host' commented out
+    # VM/Host: Use host networking
+    #   - Uncomment 'network_mode: host' below
+    #   - Comment/remove 'networks:' assignment below
+    # Example:
+    #   network_mode: host
+    #   # networks:
+    #   #   - weather-sensors
+    ###############################################################################
     # network_mode: host
-    
-    environment:
-      - DEPLOYMENT_SCENARIO=home-lab
-      - TZ=America/Los_Angeles
-      - BROKER_NAME=n-vultr2
-      - MQTT_CONFIG_INFO={}
-      - PUB_SOURCE=Mu
-      - CONSOLE_LOG_LEVEL=INFO
-      - FILE_LOG_LEVEL=DEBUG
-      - CLEAR_LOG_FILE=true
-      - PUB_TOPIC_ROOT=KTBMES
-      - SERVICE=shelly
-      - SUB_TOPICS_SHELLY=Shelly/#
-      
+    networks:
+      - weather-sensors
     volumes:
       - sensor-data:/app/data
       - sensor-logs:/app/logs
       - sensor-config:/app/config
-      
-    # NETWORK ASSIGNMENT - Remove this section if using host networking
-    networks:
-      - weather-sensors
-      
+    ###############################################################################
+    # ENVIRONMENT VARIABLES
+    # Set broker_name and PUB_SOURCE as needed for your deployment
+    ###############################################################################
+    environment:
+      - DEPLOYMENT_SCENARIO=home-lab
+      - PUB_SOURCE=Mu
+      - BROKER_NAME=n-vultr2
+      - TZ=America/Los_Angeles
+      - SERVICE=shelly
+      - CONSOLE_LOG_LEVEL=INFO
+      - FILE_LOG_LEVEL=DEBUG
+      - CLEAR_LOG_FILE=true
+      - MQTT_CONFIG_INFO={}
+      - PUB_TOPIC_ROOT=KTBMES
+      - SUB_TOPICS_SHELLY=Shelly/#
     labels:
-      # Portainer labels for organization
       - "portainer.group=weather-sensors"
       - "portainer.service=shelly-processor"
       - "description=Shelly smart device processor service"
-      
     healthcheck:
       test: ["CMD", "python", "-c", "import os; exit(0 if os.path.exists('/app/logs/shelly.log') else 1)"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 30s
-      
     deploy:
       resources:
         limits:
@@ -148,67 +179,3 @@ services:
         reservations:
           memory: 128M
           cpus: '0.1'
-
-  # =============================================================================
-  # DEPLOYMENT CONFIGURATION NOTES:
-  # =============================================================================
-  #
-  # GLOBAL SETTINGS (configured at top of file):
-  # - DEPLOYMENT_SCENARIO: home-lab or vultr-vm
-  # - TZ: Timezone (e.g., America/Los_Angeles)
-  # - BROKER_NAME: MQTT broker name (n-vultr2, PI2, ts-vultr1, etc.)
-  # - PUB_SOURCE: Source identifier - CHANGE THIS:
-  #     * ROSA for host ROSA
-  #     * TWIX for host TWIX  
-  #     * VULTR2 for host VULTR2
-  #     * Mu for testing/default
-  #
-  # HOME LAB DEPLOYMENT:
-  # - Keep bridge networking (networks: weather-sensors)
-  # - Set BROKER_NAME to remote broker (e.g., n-vultr2)
-  # - Ensure target MQTT broker firewall allows your home ISP IP
-  # - Alternative: Use Tailscale broker (ts-vultr1, ts-vultr2)
-  #
-  # VULTR VM DEPLOYMENT:
-  # - Uncomment "network_mode: host" in both services
-  # - Remove/comment "networks:" sections from both services  
-  # - Set BROKER_NAME to "local" (localhost broker)
-  # - No firewall concerns (all local)
-  #
-  # Available BROKER_NAME values: n-vultr2, vultr2, pi2, local, eclipse,
-  #                               ts-vultr1, ts-vultr2, TS-PI2
-  # =============================================================================
-
-  # Optional: Local MQTT Broker (FOR HOME LAB TESTING ONLY)
-  # DO NOT USE for Vultr VM deployment - you already have MQTT broker there
-  # 
-  # mqtt-broker:
-  #   image: eclipse-mosquitto:2.0
-  #   container_name: weather-sensors-mqtt
-  #   restart: unless-stopped
-  #   ports:
-  #     - "1883:1883"
-  #     - "9001:9001"
-  #   volumes:
-  #     - mqtt-config:/mosquitto/config
-  #     - mqtt-data:/mosquitto/data
-  #     - mqtt-logs:/mosquitto/log
-  #   networks:
-  #     - weather-sensors
-  #   labels:
-  #     - "portainer.group=weather-sensors"
-  #     - "portainer.service=mqtt-broker"
-  #     - "description=Local MQTT broker for HOME LAB testing only"
-  #   command: mosquitto -c /mosquitto/config/mosquitto.conf
-
-# Additional volumes for optional MQTT broker (HOME LAB only)
-# volumes:
-#   mqtt-config:
-#     name: weather-sensors-mqtt-config
-#     driver: local
-#   mqtt-data:
-#     name: weather-sensors-mqtt-data
-#     driver: local
-#   mqtt-logs:
-#     name: weather-sensors-mqtt-logs
-#     driver: local

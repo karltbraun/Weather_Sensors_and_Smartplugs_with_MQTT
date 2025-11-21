@@ -39,6 +39,9 @@ from dotenv import load_dotenv
 # describes mqtt broker parameters like host address, port, etc.
 from config.broker_config import BROKER_CONFIG, load_broker_config
 
+# MQTT broker accessibility check utility
+from src.utils.mqtt_broker_check import check_mqtt_broker_accessibility
+
 # handles output file
 from src.managers.data_repository_manager import DataRepositoryManager
 
@@ -107,6 +110,7 @@ logger = logger_setup(
 )
 
 # Load broker configuration
+
 broker_config = load_broker_config()
 if not broker_config:
     raise ValueError(
@@ -115,13 +119,15 @@ if not broker_config:
         "\n!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
     )
 BROKER_ADDRESS = broker_config["MQTT_BROKER_ADDRESS"]
-print(
-    "#######################################################################"
-)
+BROKER_PORT = broker_config.get("MQTT_BROKER_PORT", 1883)
+print("#######################################################################")
 print(f"BROKER_ADDRESS: {BROKER_ADDRESS}")
-print(
-    "#######################################################################"
-)
+print("#######################################################################")
+
+# Check MQTT broker accessibility before proceeding
+if not check_mqtt_broker_accessibility(BROKER_ADDRESS, BROKER_PORT):
+    logger.error(f"MQTT broker {BROKER_ADDRESS}:{BROKER_PORT} is not accessible. Exiting.")
+    exit(1)
 
 
 # ###################################################################### #

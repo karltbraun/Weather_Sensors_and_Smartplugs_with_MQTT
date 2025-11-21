@@ -10,6 +10,8 @@ from queue import Queue
 from dotenv import load_dotenv
 
 from config.broker_config import load_broker_config
+# MQTT broker accessibility check utility
+from src.utils.mqtt_broker_check import check_mqtt_broker_accessibility
 from src.managers.message_manager_shelly import MessageManager
 from src.managers.mqtt_manager import MQTTManager
 from src.utils.logger_setup import logger_setup
@@ -49,11 +51,16 @@ def main() -> None:
     # ############################ MQTT Setup ############################ #
 
     # load in broker information
+
     broker_config: dict = load_broker_config()
-    print(
-        f"*** broker config:\n\ttype: {type(broker_config)}\n\t{broker_config}\n\t{broker_config}"
-    )
+    print(f"*** broker config:\n\ttype: {type(broker_config)}\n\t{broker_config}\n\t{broker_config}")
     broker_address = broker_config["MQTT_BROKER_ADDRESS"]
+    broker_port = broker_config.get("MQTT_BROKER_PORT", 1883)
+
+    # Check MQTT broker accessibility before proceeding
+    if not check_mqtt_broker_accessibility(broker_address, broker_port):
+        logger.error(f"MQTT broker {broker_address}:{broker_port} is not accessible. Exiting.")
+        exit(1)
 
     # MQTT Topic(s)
     sub_topics: list = get_sub_topics("SUB_TOPICS_SHELLY")

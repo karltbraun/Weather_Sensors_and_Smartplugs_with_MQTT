@@ -2,6 +2,8 @@
 
 import json
 import logging
+import socket
+import time
 from datetime import datetime
 from queue import Queue
 
@@ -54,12 +56,17 @@ class MQTTManager:
         broker_config,
         subscribe_topics="#",
         publish_topic_root="DEFAULT_TOPIC",
+        max_initial_retries=3,
+        retry_delay=5,
+        max_reconnect_retries=3,
+        reconnect_delay=5,
     ):
-        """Initialize the MQTTManager.  broker_config is a dictionary containing the
+        """
+        Initialize the MQTTManager. broker_config is a dictionary containing the
         configuration information for the MQTT broker found in broker_config.py.
         publish_topic_root is the root topic string to which subsequent subtopics will be appended.
-        The message_queues are the input and output queues for the MQTTManager.  The on_message callback
-        function will place incoming messages in the input queue.  The message processing routines may
+        The message_queues are the input and output queues for the MQTTManager. The on_message callback
+        function will place incoming messages in the input queue. The message processing routines may
         make use of the output queue or may publish messages directly to the broker.
         """
         self.broker_config = broker_config
@@ -67,6 +74,10 @@ class MQTTManager:
         self.publish_topic_root: str = publish_topic_root
         self.message_queue_in = Queue()
         self.message_queue_out = Queue()
+        self.max_initial_retries = max_initial_retries
+        self.retry_delay = retry_delay
+        self.max_reconnect_retries = max_reconnect_retries
+        self.reconnect_delay = reconnect_delay
         self.client = self.mqtt_setup()
 
     # ############################ mqtt_setup ############################ #
@@ -74,31 +85,62 @@ class MQTTManager:
     def mqtt_setup(self) -> mqtt.Client:
         """
         Sets up and returns an MQTT client with the specified configuration.
-        Makes use of the broker_config dictionary (see above)
+        Includes DNS resolution and retry logic for initial connection.
         """
+        broker_addr = self.broker_config["MQTT_BROKER_ADDRESS"]
+        broker_port = self.broker_config["MQTT_BROKER_PORT"]
+        broker_keepalive = self.broker_config["MQTT_KEEPALIVE"]
+        broker_user = self.broker_config["MQTT_USERNAME"]
+        broker_pass = self.broker_config["MQTT_PASSWORD"]
 
-        client = mqtt.Client()
+        # DNS resolution and IP validation
+        def resolve_broker_address(addr):
+            try:
+                # Try to parse as IP
+                socket.inet_aton(addr)
+                return addr
+            except OSError:
+                # Not an IP, try DNS
+                try:
+                    resolved_ip = socket.gethostbyname(addr)
+                    return resolved_ip
+                except socket.gaierror as e:
+                    logging.error(
+                        f"DNS resolution failed for broker address '{addr}': {e}"
+                    )
+                    return None
 
-        # set the callback functions
-        client.on_connect = self.on_connect
-        client.on_message = self.on_message
-        client.on_log = self.on_log
-        client.on_disconnect = self.on_disconnect
-
-        # set the username and password
-        client.username_pw_set(
-            self.broker_config["MQTT_USERNAME"],
-            self.broker_config["MQTT_PASSWORD"],
+        for attempt in range(1, self.max_initial_retries + 1):
+            resolved_addr = resolve_broker_address(broker_addr)
+            if not resolved_addr:
+                logging.error(
+                    f"Attempt {attempt}/{self.max_initial_retries}: Could not resolve broker address '{broker_addr}'. Retrying in {self.retry_delay}s..."
+                )
+                time.sleep(self.retry_delay)
+                continue
+            try:
+                client = mqtt.Client()
+                client.on_connect = self.on_connect
+                client.on_message = self.on_message
+                client.on_log = self.on_log
+                client.on_disconnect = self.on_disconnect
+                client.username_pw_set(broker_user, broker_pass)
+                client.connect(
+                    resolved_addr, broker_port, broker_keepalive
+                )
+                logging.info(
+                    f"Successfully connected to MQTT broker at {resolved_addr}:{broker_port}"
+                )
+                return client
+            except Exception as e:
+                logging.error(
+                    f"Attempt {attempt}/{self.max_initial_retries}: Could not connect to MQTT broker at {resolved_addr}:{broker_port}: {e}. Retrying in {self.retry_delay}s..."
+                )
+                time.sleep(self.retry_delay)
+        logging.critical(
+            f"Failed to connect to MQTT broker '{broker_addr}' after {self.max_initial_retries} attempts. Exiting."
         )
-
-        # connect to the broker
-        client.connect(
-            self.broker_config["MQTT_BROKER_ADDRESS"],
-            self.broker_config["MQTT_BROKER_PORT"],
-            self.broker_config["MQTT_KEEPALIVE"],
-        )
-
-        return client
+        exit(1)
 
     # ############################ ON_CONNECT  ############################ #
 
@@ -168,41 +210,86 @@ class MQTTManager:
         buf_prelude = f"{buf_parts[0]} {buf_parts[1]}"
         if buf_prelude not in exclude_messages:
             logging.info(
-                "Log Entry:\n" "\tlevel: %d\n" "\tmessage: %s\n",
+                "Log Entry:\n\tlevel: %d\n\tmessage: %s\n",
                 int(level),
                 buf,
             )
 
     # ############################ ON_DISCONNECT ############################ #
 
-    def on_disconnect(  # pylint: disable=too-many-arguments
+    def on_disconnect(
         self,
-        client,  # pylint: disable=unused-argument
+        client,
         userdata,
         disconnect_flags,
         rc=None,
         properties=None,
     ) -> None:
-        """callback for when a disconnect is received from the broker"""
-
+        """Callback for when a disconnect is received from the broker. Attempts to reconnect a limited number of times."""
         if rc == 0 or rc is None:
             emsg = (
                 f"Graceful disconnection at {datetime.now().isoformat()}"
             )
             logging.debug(emsg)
-        else:
-            logging.debug(
-                "Unexpected disconnection at %s\n"
-                "\tDisconnect_flags: %s\n"
-                "\tReason Code: %s\n"
-                "\t(type of Reason Code is: %s\n"
-                "\tProperties: %s",
-                datetime.now().isoformat(),
-                disconnect_flags,
-                rc,
-                type(rc),
-                properties,
-            )
+            return
+        logging.warning(
+            "Unexpected disconnection at %s\n"
+            "\tDisconnect_flags: %s\n"
+            "\tReason Code: %s\n"
+            "\t(type of Reason Code is: %s\n"
+            "\tProperties: %s",
+            datetime.now().isoformat(),
+            disconnect_flags,
+            rc,
+            type(rc),
+            properties,
+        )
+        broker_addr = self.broker_config["MQTT_BROKER_ADDRESS"]
+        broker_port = self.broker_config["MQTT_BROKER_PORT"]
+        broker_keepalive = self.broker_config["MQTT_KEEPALIVE"]
+        broker_user = self.broker_config["MQTT_USERNAME"]
+        broker_pass = self.broker_config["MQTT_PASSWORD"]
+
+        def resolve_broker_address(addr):
+            try:
+                socket.inet_aton(addr)
+                return addr
+            except OSError:
+                try:
+                    resolved_ip = socket.gethostbyname(addr)
+                    return resolved_ip
+                except socket.gaierror as e:
+                    logging.error(
+                        f"DNS resolution failed for broker address '{addr}': {e}"
+                    )
+                    return None
+
+        for attempt in range(1, self.max_reconnect_retries + 1):
+            resolved_addr = resolve_broker_address(broker_addr)
+            if not resolved_addr:
+                logging.error(
+                    f"Reconnect attempt {attempt}/{self.max_reconnect_retries}: Could not resolve broker address '{broker_addr}'. Retrying in {self.reconnect_delay}s..."
+                )
+                time.sleep(self.reconnect_delay)
+                continue
+            try:
+                client.username_pw_set(broker_user, broker_pass)
+                client.connect(
+                    resolved_addr, broker_port, broker_keepalive
+                )
+                logging.info(
+                    f"Successfully reconnected to MQTT broker at {resolved_addr}:{broker_port}"
+                )
+                return
+            except Exception as e:
+                logging.error(
+                    f"Reconnect attempt {attempt}/{self.max_reconnect_retries}: Could not reconnect to MQTT broker at {resolved_addr}:{broker_port}: {e}. Retrying in {self.reconnect_delay}s..."
+                )
+                time.sleep(self.reconnect_delay)
+        logging.critical(
+            f"Failed to reconnect to MQTT broker '{broker_addr}' after {self.max_reconnect_retries} attempts. Exiting."
+        )
+        exit(1)
 
     # ############################ PUBLISH_FLAT  ############################ #
 
