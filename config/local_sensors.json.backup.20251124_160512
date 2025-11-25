@@ -23,10 +23,5 @@
         "id_sensor_name": "DUMMY",
         "sensor_name": "DUMMY",
         "comment": ""
-    },
-    "999": {
-        "id_sensor_name": "TEST",
-        "sensor_name": "TEST",
-        "comment": ""
     }
 }
