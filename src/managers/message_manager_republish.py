@@ -58,14 +58,10 @@ class MessageManager:
                 f"Received config update message on topic: {msg.topic}"
             )
 
-            # Determine update mode from topic or payload
-            # For now, default to merge mode - could be extended to support mode in payload
-            update_mode = "merge"
-
-            # Handle the config update
+            # Handle the config update (always replace)
             success, message = (
                 self.local_sensor_manager.handle_config_update(
-                    payload=msg.payload, update_mode=update_mode
+                    payload=msg.payload
                 )
             )
 

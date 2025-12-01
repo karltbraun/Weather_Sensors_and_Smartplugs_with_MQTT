@@ -19,6 +19,11 @@
         "sensor_name": "PORCH",
         "comment": ""
     },
+    "991": {
+        "id_sensor_name": "BAR_991",
+        "sensor_name": "TEST_991",
+        "comment": "this is a test sensor 2025-12-01 10:35"
+    },
     "0": {
         "id_sensor_name": "DUMMY",
         "sensor_name": "DUMMY",

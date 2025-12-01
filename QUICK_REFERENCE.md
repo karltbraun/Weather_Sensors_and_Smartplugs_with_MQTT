@@ -204,7 +204,7 @@ The system supports dynamic updates to local sensor configurations through MQTT 
 ### Configuration
 ```bash
 # Environment variable (required)
-SUB_TOPIC_CONFIG_UPDATE="KTBMES/ROSA/sensors/config/local_sensors"
+MQTT_TOPIC_LOCAL_SENSORS_UPDATES="KTBMES/ROSA/sensors/config/local_sensors/update"
 
 # Backup retention settings (optional, defaults shown)
 # MAX_BACKUPS=10
@@ -213,7 +213,7 @@ SUB_TOPIC_CONFIG_UPDATE="KTBMES/ROSA/sensors/config/local_sensors"
 
 ### MQTT Topic & Payload Format
 
-**Topic**: Value from `SUB_TOPIC_CONFIG_UPDATE` environment variable
+**Topic**: Value from `MQTT_TOPIC_LOCAL_SENSORS_UPDATES` environment variable
 **Default**: `KTBMES/ROSA/sensors/config/local_sensors`
 
 **Payload Structure**:
@@ -345,7 +345,7 @@ docker restart your-container-name
 ### Troubleshooting
 
 **Common Issues**:
-- **Topic not configured**: Ensure `SUB_TOPIC_CONFIG_UPDATE` environment variable is set
+- **Topic not configured**: Ensure `MQTT_TOPIC_LOCAL_SENSORS_UPDATES` environment variable is set
 - **Invalid JSON**: Validate payload syntax before publishing
 - **Permission errors**: Check container file system permissions
 - **Network issues**: Verify MQTT broker connectivity

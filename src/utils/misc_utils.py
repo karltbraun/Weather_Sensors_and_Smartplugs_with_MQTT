@@ -141,10 +141,10 @@ def get_publish_interval_max() -> int:
 
 def get_config_update_topic() -> str:
     """Get the MQTT topic for configuration updates from environment variable."""
-    topic = os.getenv("SUB_TOPIC_CONFIG_UPDATE")
+    topic = os.getenv("MQTT_TOPIC_LOCAL_SENSORS_UPDATES")
     if topic is None:
         raise ValueError(
-            "SUB_TOPIC_CONFIG_UPDATE environment variable is required but not set"
+            "MQTT_TOPIC_LOCAL_SENSORS_UPDATES environment variable is required but not set"
         )
     return topic
 

@@ -26,6 +26,7 @@ display it on a web page.
 #                             Import Libraries
 # ###################################################################### #
 
+import json
 import logging
 import time
 from datetime import datetime
@@ -38,9 +39,6 @@ from dotenv import load_dotenv
 
 # describes mqtt broker parameters like host address, port, etc.
 from config.broker_config import BROKER_CONFIG, load_broker_config
-
-# MQTT broker accessibility check utility
-from src.utils.mqtt_broker_check import check_mqtt_broker_accessibility
 
 # handles output file
 from src.managers.data_repository_manager import DataRepositoryManager
@@ -67,11 +65,14 @@ from src.utils.logger_setup import logger_setup
 # utility functions
 from src.utils.misc_utils import (
     get_logging_levels,  # get_pub_topic_root,
-    get_pub_topic_root,
     get_pub_source,
+    get_pub_topic_root,
     get_publish_interval_max,
     get_sub_topics,
 )
+
+# MQTT broker accessibility check utility
+from src.utils.mqtt_broker_check import check_mqtt_broker_accessibility
 
 # ###################################################################### #
 #                        Global Variables and Constants
@@ -120,14 +121,33 @@ if not broker_config:
     )
 BROKER_ADDRESS = broker_config["MQTT_BROKER_ADDRESS"]
 BROKER_PORT = broker_config.get("MQTT_BROKER_PORT", 1883)
-print("#######################################################################")
+print(
+    "#######################################################################"
+)
 print(f"BROKER_ADDRESS: {BROKER_ADDRESS}")
-print("#######################################################################")
+print(
+    "#######################################################################"
+)
 
 # Check MQTT broker accessibility before proceeding
 if not check_mqtt_broker_accessibility(BROKER_ADDRESS, BROKER_PORT):
-    logger.error(f"MQTT broker {BROKER_ADDRESS}:{BROKER_PORT} is not accessible. Exiting.")
+    logger.error(
+        f"MQTT broker {BROKER_ADDRESS}:{BROKER_PORT} is not accessible. Exiting."
+    )
     exit(1)
+
+
+# Helper to publish local sensors config to MQTT
+def publish_local_sensors_config(mqtt_client, config_data):
+    import os
+
+    topic = os.getenv(
+        "MQTT_TOPIC_LOCAL_SENSORS_CURRENT",
+        "KTBMES/ROSA/sensors/config/local_sensors/current",
+    )
+    payload = json.dumps(config_data)
+    mqtt_client.publish(topic, payload, retain=True)
+    logger.info(f"Published local sensors config to {topic} (retain=True)")
 
 
 # ###################################################################### #
@@ -254,13 +274,20 @@ def main() -> None:
 
     # MQTT Topic(s)
     sub_topics: list = get_sub_topics("SUB_TOPICS_REPUBLISH")
-    
+
     # Add config update topic to subscription list
-    config_update_topic = local_sensor_manager.get_update_topic()
+    import os
+
+    config_update_topic = os.getenv(
+        "MQTT_TOPIC_LOCAL_SENSORS_UPDATES",
+        "KTBMES/ROSA/sensors/config/local_sensors/update",
+    )
     if config_update_topic not in sub_topics:
         sub_topics.append(config_update_topic)
-        logger.info(f"Added config update topic to subscriptions: {config_update_topic}")
-    
+        logger.info(
+            f"Added config update topic to subscriptions: {config_update_topic}"
+        )
+
     pub_source = get_pub_source()
     pub_topics = generate_pub_topics(pub_source)
 
@@ -277,9 +304,17 @@ def main() -> None:
 
     # ###################  message processing setup   ####################### #
 
+    # Ensure Device class uses the correct LocalSensorManager
+    from src.managers.device_manager import Device
+
+    Device.local_sensor_manager = local_sensor_manager
+
     message_manager = MessageManager(local_sensor_manager)
     device_registry: DeviceRegistry = DeviceRegistry()
     message_manager.device_registry = device_registry
+
+    # Publish initial local_sensors config on startup
+    publish_local_sensors_config(client, local_sensor_manager.sensors)
 
     # #########################  display banner  ####################### #
 
@@ -341,9 +376,32 @@ def main() -> None:
                     "Main: Loop: Processing %d messages",
                     message_queue.qsize(),
                 )
-                message_manager.process_message(
-                    message_queue.get(), protocol_manager
-                )
+                msg = message_queue.get()
+                # Check for config update topic
+                if msg.topic == os.getenv(
+                    "MQTT_TOPIC_LOCAL_SENSORS_UPDATES",
+                    "KTBMES/ROSA/sensors/config/local_sensors/update",
+                ):
+                    # Handle config update and publish new config
+                    success, _ = local_sensor_manager.handle_config_update(
+                        payload=msg.payload
+                    )
+                    if success:
+                        # Refresh device names for all devices after config update
+                        for (
+                            device_id,
+                            device,
+                        ) in device_registry.devices.items():
+                            device.device_name_from_id_set(device_id)
+                        publish_local_sensors_config(
+                            client, local_sensor_manager.sensors
+                        )
+                    else:
+                        logger.error(
+                            "Config update failed; not publishing new config."
+                        )
+                else:
+                    message_manager.process_message(msg, protocol_manager)
 
             # ################## publish all updated devices  ################### #
 

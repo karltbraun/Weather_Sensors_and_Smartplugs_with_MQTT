@@ -296,14 +296,14 @@ class LocalSensorManager:
             return False
 
     def handle_config_update(
-        self, payload: Union[str, bytes, Dict], update_mode: str = "merge"
+        self, payload: Union[str, bytes, Dict]
     ) -> Tuple[bool, str]:
         """
         Handle MQTT configuration update message
 
         Args:
             payload: MQTT message payload (JSON string, bytes, or dict)
-            update_mode: "merge" to update existing sensors, "replace" to replace all
+            Update local sensors configuration from MQTT payload (always replaces existing config)
 
         Returns:
             Tuple[bool, str]: (success, message)
@@ -320,7 +320,7 @@ class LocalSensorManager:
                 return False, f"Invalid payload type: {type(payload)}"
 
             self.logger.info(
-                f"Processing config update: mode={update_mode}, sensors={len(update_data)}"
+                f"Processing config update: replacing sensors with {len(update_data)} entries"
             )
 
             # Validate the update data
@@ -337,37 +337,8 @@ class LocalSensorManager:
                     "Could not create backup, proceeding anyway"
                 )
 
-            # Prepare new sensor data based on update mode
-            if update_mode == "replace":
-                # Replace entire sensor configuration
-                new_sensors = update_data.copy()
-                self.logger.info(
-                    f"Replace mode: replacing all sensors with {len(new_sensors)} new entries"
-                )
-
-            elif update_mode == "merge":
-                # Merge with existing sensors
-                new_sensors = self.sensors.copy() if self.sensors else {}
-
-                for sensor_id, sensor_info in update_data.items():
-                    if sensor_id in new_sensors:
-                        self.logger.info(
-                            f"Updating existing sensor: {sensor_id}"
-                        )
-                    else:
-                        self.logger.info(f"Adding new sensor: {sensor_id}")
-
-                    new_sensors[sensor_id] = sensor_info
-
-                self.logger.info(
-                    f"Merge mode: updated {len(update_data)} sensors, total now {len(new_sensors)}"
-                )
-
-            else:
-                return (
-                    False,
-                    f"Invalid update mode: {update_mode}. Use 'merge' or 'replace'",
-                )
+            # Always replace entire sensor configuration
+            new_sensors = update_data.copy()
 
             # Write updated configuration to file
             if not self.write_sensors_to_file(new_sensors):
@@ -381,8 +352,7 @@ class LocalSensorManager:
                 return False, "Failed to reload configuration after update"
 
             success_msg = (
-                f"Successfully updated local sensors: mode={update_mode}, "
-                f"processed={len(update_data)}, total={len(self.sensors)}"
+                f"Successfully updated local sensors: replaced with {len(update_data)} entries, total={len(self.sensors)}"
             )
             self.logger.info(success_msg)
 
