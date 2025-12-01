@@ -28,7 +28,7 @@ volumes:
 services:
   # Sensor Data Republisher Service
   sensor-republisher:
-    image: weather-sensors:latest
+    image: weather-sensors:local_sensor_update_20251201
     container_name: sensor-republisher
     restart: unless-stopped
     # Network mode selection based on deployment scenario
@@ -47,9 +47,9 @@ services:
       - BACKUP_RETENTION_DAYS=${BACKUP_RETENTION_DAYS:-30}
       # Publication configuration
       - PUB_TOPIC_ROOT=${PUB_TOPIC_ROOT:-KTBMES}
-      - PUB_SOURCE=${PUB_SOURCE:-Mu}
+      - PUB_SOURCE=Mu
       # Broker selection via BROKER_NAME (references broker_config.py)
-      - BROKER_NAME=${BROKER_NAME:-}
+      - BROKER_NAME=vultr2
       - MQTT_CONFIG_INFO=${MQTT_CONFIG_INFO:-{}}
       # Deployment scenario flag
       - DEPLOYMENT_SCENARIO=${DEPLOYMENT_SCENARIO:-home-lab}
@@ -80,7 +80,7 @@ services:
 
   # Shelly Smart Device Processor Service  
   shelly-processor:
-    image: weather-sensors:latest
+    image: weather-sensors:local_sensor_update_20251201
     container_name: shelly-processor
     restart: unless-stopped
     # Network mode selection based on deployment scenario
@@ -95,9 +95,9 @@ services:
       - SUB_TOPICS_SHELLY=${SUB_TOPICS_SHELLY:-shellies/+/+}
       # Publication configuration
       - PUB_TOPIC_ROOT=${PUB_TOPIC_ROOT:-KTBMES}
-      - PUB_SOURCE=${PUB_SOURCE:-Mu}
+      - PUB_SOURCE=Mu
       # MQTT broker configuration via BROKER_NAME lookup
-      - BROKER_NAME=${BROKER_NAME:-}
+      - BROKER_NAME=vultr2
       - MQTT_CONFIG_INFO=${MQTT_CONFIG_INFO:-{}}
       # Deployment scenario flag
       - DEPLOYMENT_SCENARIO=${DEPLOYMENT_SCENARIO:-home-lab}

@@ -1,0 +1,32 @@
+{
+    "101": {
+        "id_sensor_name": "SC91-C",
+        "sensor_name": "LIVING_ROOM",
+        "comment": ""
+    },
+    "138": {
+        "id_sensor_name": "SC91-B",
+        "sensor_name": "DECK",
+        "comment": ""
+    },
+    "152": {
+        "id_sensor_name": "SC91-A",
+        "sensor_name": "SHRINE_ROOM",
+        "comment": ""
+    },
+    "124": {
+        "id_sensor_name": "ACRT-01",
+        "sensor_name": "PORCH",
+        "comment": ""
+    },
+    "991": {
+        "id_sensor_name": "BAR_991",
+        "sensor_name": "TEST_991",
+        "comment": "this is a test sensor 2025-12-01 10:35"
+    },
+    "0": {
+        "id_sensor_name": "DUMMY",
+        "sensor_name": "DUMMY",
+        "comment": ""
+    }
+}
