@@ -15,9 +15,14 @@
         "comment": ""
     },
     "234": {
-        "id_sensor_name": "ACRT-01",
-        "sensor_name": "PORCH",
+        "id_sensor_name": "ACRT-234",
+        "sensor_name": "TEST_234",
         "comment": ""
+    },
+    "167": {
+        "id_sensor_name": "ACRT-167",
+        "sensor_name": "TEST_167",
+        "comment": "this is a test sensor 2025-12-01 10:35"
     },
     "0": {
         "id_sensor_name": "DUMMY",

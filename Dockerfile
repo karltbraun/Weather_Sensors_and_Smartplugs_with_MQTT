@@ -11,15 +11,25 @@ RUN apt-get update && apt-get install -y \
     tzdata \
     && rm -rf /var/lib/apt/lists/*
 
-# Set working directory
+# Set working directory (creates /app with root ownership)
 WORKDIR /app
 
 # Copy dependency files
 COPY pyproject.toml requirements.txt ./
 
-# Install Python dependencies
+# Install Python dependencies as root (system-wide)
 RUN pip install --no-cache-dir --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
+
+# Create appuser with explicit UID/GID (1000:1000 is standard)
+RUN groupadd -g 1000 appuser && \
+    useradd -u 1000 -g appuser -m -s /bin/bash appuser
+
+# Set ownership of app directory
+RUN chown -R appuser:appuser /app
+
+# Switch to appuser
+USER appuser
 
 # Production stage
 
@@ -43,13 +53,23 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 
 # Copy application code
 COPY src/ ./src/
-COPY config/ ./config/
 COPY *.py ./
 COPY entrypoint.sh ./
 
-# Create required directories
-RUN mkdir -p logs data && \
-    chown -R appuser:appuser /app
+# Create required directories before copying config files
+RUN mkdir -p config data logs
+
+# Copy static configuration files (baked into image)
+# Note: runtime config like local_sensors.json comes from volume mount
+COPY config/broker_config.py ./config/
+COPY config/mqtt_config.py ./config/
+COPY config/logging_config.py ./config/
+COPY config/protocol_categories.json ./config/
+COPY config/rtl_433_protocols.json ./config/
+COPY config/tracked_protocols.json ./config/
+
+# Set ownership of all app directories
+RUN chown -R appuser:appuser /app
 
 # Make entrypoint executable
 RUN chmod +x entrypoint.sh

@@ -97,24 +97,6 @@ validate_environment() {
         echo "⚠ Cannot test MQTT connectivity (nc command not available)"
     fi
     
-    # Check if config directory is accessible
-    if [[ ! -d "/app/config" ]]; then
-        echo "WARNING: /app/config directory not found, creating it..."
-        mkdir -p /app/config
-    fi
-    
-    # Check if data directory is accessible
-    if [[ ! -d "/app/data" ]]; then
-        echo "INFO: Creating /app/data directory..."
-        mkdir -p /app/data
-    fi
-    
-    # Check if logs directory is accessible
-    if [[ ! -d "/app/logs" ]]; then
-        echo "INFO: Creating /app/logs directory..."
-        mkdir -p /app/logs
-    fi
-    
     # Display network information for debugging
     echo "Network Information:"
     echo "  Container IP: $(hostname -i 2>/dev/null || echo 'N/A')"
