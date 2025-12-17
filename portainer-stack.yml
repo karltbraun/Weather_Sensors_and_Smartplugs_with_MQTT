@@ -92,6 +92,8 @@ services:
       - PUB_TOPIC_ROOT=KTBMES
       - SUB_TOPICS_REPUBLISH=+/sensors/raw/#
       - MQTT_TOPIC_LOCAL_SENSORS_UPDATES=KTBMES/ROSA/sensors/config/local_sensors/update
+      - MQTT_TOPIC_LOCAL_SENSORS_CURRENT=KTBMES/VULTR/sensors/config/local_sensors/current
+      - SUB_TOPICS_REPUBLISH=+/sensors/raw/#,KTBMES/ROSA/sensors/config/local_sensors/update
       - MAX_BACKUPS=10
       - BACKUP_RETENTION_DAYS=30
     labels:
