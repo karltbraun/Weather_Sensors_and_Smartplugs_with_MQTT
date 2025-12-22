@@ -25,7 +25,7 @@ MQTT_BROKER = os.getenv("MQTT_BROKER", "vultr2")
 MQTT_PORT = int(os.getenv("MQTT_PORT", "1883"))
 MQTT_TOPIC = os.getenv(
     "MQTT_TOPIC_LOCAL_SENSORS_UPDATES",
-    "KTBMES/ROSA/sensors/config/local_sensors/update",
+    "KTBMES/sensors/config/local_sensors/updates",
 )
 
 

@@ -203,18 +203,23 @@ The system supports dynamic updates to local sensor configurations through MQTT 
 
 ### Configuration
 ```bash
-# Environment variable (required)
-MQTT_TOPIC_LOCAL_SENSORS_UPDATES="KTBMES/ROSA/sensors/config/local_sensors/update"
+# Environment variables (required)
+MQTT_TOPIC_LOCAL_SENSORS_UPDATES="KTBMES/sensors/config/local_sensors/updates"
+MQTT_TOPIC_LOCAL_SENSORS_CURRENT="KTBMES/sensors/config/local_sensors/current"
 
 # Backup retention settings (optional, defaults shown)
 # MAX_BACKUPS=10
 # BACKUP_RETENTION_DAYS=30
 ```
 
-### MQTT Topic & Payload Format
+### MQTT Topics
 
-**Topic**: Value from `MQTT_TOPIC_LOCAL_SENSORS_UPDATES` environment variable
-**Default**: `KTBMES/ROSA/sensors/config/local_sensors`
+**Updates Topic**: Value from `MQTT_TOPIC_LOCAL_SENSORS_UPDATES` environment variable
+**Default**: `KTBMES/sensors/config/local_sensors/updates`
+Publish sensor configuration updates to this topic.
+
+**Current Config Topic**: Value from `MQTT_TOPIC_LOCAL_SENSORS_CURRENT` environment variable
+**Default**: `KTBMES/sensors/config/local_sensors/current`
 
 **Payload Structure**:
 ```json
@@ -247,22 +252,21 @@ MQTT_TOPIC_LOCAL_SENSORS_UPDATES="KTBMES/ROSA/sensors/config/local_sensors/updat
 
 ### Example MQTT Messages
 
-#### Add/Update Sensors (Merge)
+#### Publish Configuration Update
 ```bash
-# Using mosquitto_pub
+# Using mosquitto_pub to update configuration
 mosquitto_pub -h your-mqtt-broker \
-  -t "KTBMES/ROSA/sensors/config/local_sensors" \
+  -t "KTBMES/sensors/config/local_sensors/updates" \
   -m '{
-    "mode": "merge",
-    "sensors": {
-      "12345": {
-        "name": "Living Room Temp",
-        "location": "Living Room"
-      },
-      "67890": {
-        "name": "Outdoor Weather",
-        "location": "Back Yard"
-      }
+    "12345": {
+      "sensor_name": "Living Room Temp",
+      "id_sensor_name": "living_room",
+      "comment": "Living Room Temperature Sensor"
+    },
+    "67890": {
+      "sensor_name": "Outdoor Weather",
+      "id_sensor_name": "outdoor",
+      "comment": "Back Yard Weather Station"
     }
   }'
 ```
@@ -270,23 +274,22 @@ mosquitto_pub -h your-mqtt-broker \
 #### Replace All Sensors
 ```bash
 mosquitto_pub -h your-mqtt-broker \
-  -t "KTBMES/ROSA/sensors/config/local_sensors" \
+  -t "KTBMES/sensors/config/local_sensors/updates" \
   -m '{
-    "mode": "replace",
-    "sensors": {
-      "11111": {
-        "name": "Kitchen Sensor",
-        "location": "Kitchen"
-      }
+    "11111": {
+      "sensor_name": "Kitchen Sensor",
+      "id_sensor_name": "kitchen",
+      "comment": "Kitchen Temperature"
     }
   }'
 ```
 
 ### Using MQTT Explorer
 1. Connect to your MQTT broker
-2. Navigate to the config topic: `KTBMES/ROSA/sensors/config/local_sensors`
-3. Publish a JSON payload with the desired sensor configuration
-4. Check container logs for confirmation
+2. Navigate to the updates topic: `KTBMES/sensors/config/local_sensors/updates`
+3. Publish a JSON payload with the complete sensor configuration
+4. The system will process the update and publish the new config to the 'current' topic
+5. Check container logs for confirmation
 
 ### Backup & Recovery
 

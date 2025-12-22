@@ -28,6 +28,7 @@ display it on a web page.
 
 import json
 import logging
+import os
 import time
 from datetime import datetime
 
@@ -138,13 +139,15 @@ if not check_mqtt_broker_accessibility(BROKER_ADDRESS, BROKER_PORT):
 
 
 # Helper to publish local sensors config to MQTT
-def publish_local_sensors_config(mqtt_client, config_data):
-    import os
-
-    topic = os.getenv(
-        "MQTT_TOPIC_LOCAL_SENSORS_CURRENT",
-        "KTBMES/ROSA/sensors/config/local_sensors/current",
-    )
+def publish_local_sensors_config(mqtt_client, config_data, topic):
+    """
+    Publish local sensors configuration to MQTT.
+    
+    Args:
+        mqtt_client: MQTT client instance
+        config_data: Sensor configuration data to publish
+        topic: MQTT topic to publish to
+    """
     payload = json.dumps(config_data)
     mqtt_client.publish(topic, payload, retain=True)
     logger.info(f"Published local sensors config to {topic} (retain=True)")
@@ -272,20 +275,26 @@ def main() -> None:
 
     SLEEP_TIME_S = 5  # pylint: disable=invalid-name
 
+    # Load MQTT topic configuration from environment
+    mqtt_topics = {
+        "updates": os.getenv(
+            "MQTT_TOPIC_LOCAL_SENSORS_UPDATES",
+            "KTBMES/sensors/config/local_sensors/updates",
+        ),
+        "current": os.getenv(
+            "MQTT_TOPIC_LOCAL_SENSORS_CURRENT",
+            "KTBMES/sensors/config/local_sensors/current",
+        ),
+    }
+
     # MQTT Topic(s)
     sub_topics: list = get_sub_topics("SUB_TOPICS_REPUBLISH")
 
     # Add config update topic to subscription list
-    import os
-
-    config_update_topic = os.getenv(
-        "MQTT_TOPIC_LOCAL_SENSORS_UPDATES",
-        "KTBMES/ROSA/sensors/config/local_sensors/update",
-    )
-    if config_update_topic not in sub_topics:
-        sub_topics.append(config_update_topic)
+    if mqtt_topics["updates"] not in sub_topics:
+        sub_topics.append(mqtt_topics["updates"])
         logger.info(
-            f"Added config update topic to subscriptions: {config_update_topic}"
+            f"Added config update topic to subscriptions: {mqtt_topics['updates']}"
         )
 
     pub_source = get_pub_source()
@@ -309,12 +318,16 @@ def main() -> None:
 
     Device.local_sensor_manager = local_sensor_manager
 
-    message_manager = MessageManager(local_sensor_manager)
+    message_manager = MessageManager(
+        local_sensor_manager, config_update_topic=mqtt_topics["updates"]
+    )
     device_registry: DeviceRegistry = DeviceRegistry()
     message_manager.device_registry = device_registry
 
-    # Publish initial local_sensors config on startup
-    publish_local_sensors_config(client, local_sensor_manager.sensors)
+    # Publish initial local_sensors config on startup (using file-based config for now)
+    publish_local_sensors_config(
+        client, local_sensor_manager.sensors, mqtt_topics["current"]
+    )
 
     # #########################  display banner  ####################### #
 
@@ -337,7 +350,7 @@ def main() -> None:
         pub_source,
         pub_topics,
         sub_topics,
-        config_update_topic,
+        mqtt_topics["updates"],
         local_sensor_manager.get_sensor_count(),
         logging_levels["console"],
         logging_levels["file"],
@@ -353,6 +366,61 @@ def main() -> None:
 
     logger.debug("Main: Starting MQTT loop\n")
     client.loop_start()
+
+    # Check for retained config message on startup
+    # Temporarily subscribe to 'current' topic to get retained message only
+    logger.info("Checking for retained config on MQTT...")
+    client.subscribe(mqtt_topics["current"])
+    time.sleep(2)  # Give time for retained message to arrive
+    
+    config_loaded_from_mqtt = False
+    # Check message queue for retained config message
+    temp_messages = []
+    while not message_queue.empty():
+        msg = message_queue.get()
+        if msg.topic == mqtt_topics["current"] and hasattr(msg, 'retain') and msg.retain:
+            # Found retained config message
+            try:
+                if isinstance(msg.payload, bytes):
+                    payload = msg.payload.decode("utf-8")
+                else:
+                    payload = msg.payload
+                config_data = json.loads(payload)
+                
+                # Validate and use the MQTT config
+                is_valid, validation_msg = local_sensor_manager.validate_sensor_data(config_data)
+                if is_valid:
+                    local_sensor_manager.sensors = config_data
+                    logger.info(
+                        f"Loaded {len(local_sensor_manager.sensors)} sensors from MQTT retained message"
+                    )
+                    config_loaded_from_mqtt = True
+                    # Republish to ensure it's current
+                    publish_local_sensors_config(
+                        client, local_sensor_manager.sensors, mqtt_topics["current"]
+                    )
+                else:
+                    logger.warning(
+                        f"MQTT config validation failed: {validation_msg}, using file config"
+                    )
+            except Exception as e:
+                logger.warning(
+                    f"Failed to load config from MQTT retained message: {e}, using file config"
+                )
+        else:
+            # Put non-config messages back in queue for processing
+            temp_messages.append(msg)
+    
+    # Unsubscribe from 'current' topic - we only needed the retained message
+    client.unsubscribe(mqtt_topics["current"])
+    logger.info(f"Unsubscribed from {mqtt_topics['current']} (only needed for startup)")
+    
+    # Put back any messages that weren't the config
+    for msg in temp_messages:
+        message_queue.put(msg)
+    
+    if not config_loaded_from_mqtt:
+        logger.info("No retained MQTT config found, using file config")
 
     try:
         while True:
@@ -377,31 +445,20 @@ def main() -> None:
                     message_queue.qsize(),
                 )
                 msg = message_queue.get()
-                # Check for config update topic
-                if msg.topic == os.getenv(
-                    "MQTT_TOPIC_LOCAL_SENSORS_UPDATES",
-                    "KTBMES/ROSA/sensors/config/local_sensors/update",
-                ):
-                    # Handle config update and publish new config
-                    success, _ = local_sensor_manager.handle_config_update(
-                        payload=msg.payload
+                # Process message (includes config update handling)
+                result = message_manager.process_message(msg, protocol_manager)
+                
+                # If config was updated, publish the new config
+                if result and result.get("config_updated"):
+                    # Refresh device names for all devices after config update
+                    for (
+                        device_id,
+                        device,
+                    ) in device_registry.devices.items():
+                        device.device_name_from_id_set(device_id)
+                    publish_local_sensors_config(
+                        client, local_sensor_manager.sensors, mqtt_topics["current"]
                     )
-                    if success:
-                        # Refresh device names for all devices after config update
-                        for (
-                            device_id,
-                            device,
-                        ) in device_registry.devices.items():
-                            device.device_name_from_id_set(device_id)
-                        publish_local_sensors_config(
-                            client, local_sensor_manager.sensors
-                        )
-                    else:
-                        logger.error(
-                            "Config update failed; not publishing new config."
-                        )
-                else:
-                    message_manager.process_message(msg, protocol_manager)
 
             # ################## publish all updated devices  ################### #
 

@@ -31,8 +31,9 @@ from src.managers.local_sensor_manager import LocalSensorManager
 class MessageManager:
     """MessageManager - class to manage incoming messages from the MQTT broker"""
 
-    def __init__(self, local_sensor_manager: LocalSensorManager):
+    def __init__(self, local_sensor_manager: LocalSensorManager, config_update_topic: str = None):
         self.local_sensor_manager = local_sensor_manager
+        self.config_update_topic = config_update_topic  # Store the topic for comparison
         self.device_registry = DeviceRegistry()
         self.logger = logging.getLogger(__name__)
 
@@ -49,10 +50,14 @@ class MessageManager:
 
     def is_config_update_message(self, topic: str) -> bool:
         """Check if the message is a configuration update message"""
-        return topic == self.local_sensor_manager.get_update_topic()
+        return self.config_update_topic and topic == self.config_update_topic
 
-    def handle_config_update_message(self, msg: mqtt.MQTTMessage) -> None:
-        """Handle configuration update messages"""
+    def handle_config_update_message(self, msg: mqtt.MQTTMessage) -> bool:
+        """Handle configuration update messages
+        
+        Returns:
+            bool: True if config update was successful, False otherwise
+        """
         try:
             self.logger.info(
                 f"Received config update message on topic: {msg.topic}"
@@ -69,15 +74,18 @@ class MessageManager:
                 self.logger.info(f"Config update successful: {message}")
             else:
                 self.logger.error(f"Config update failed: {message}")
+            
+            return success
 
         except Exception as e:
             self.logger.error(f"Error handling config update message: {e}")
+            return False
 
     def process_message(
         self,
         msg: mqtt.MQTTMessage,
         protocol_manager,
-    ) -> None:
+    ) -> dict:
         """process_message - process a single message from the message queue
         The message is on a subscribed-to topic received from the MQTT broker
         * Determine the device from the topic string
@@ -90,14 +98,17 @@ class MessageManager:
         * * some other routine will periodically publish the data in the dictionary under
             new topics
 
-        Enhanced to also handle configuration updates on KTBMES/ROSA/sensors/config/local_sensors
+        Enhanced to also handle configuration updates on KTBMES/sensors/config/local_sensors/updates
+        
+        Returns:
+            dict: Status dictionary with 'config_updated' key if config was updated
         """
         my_name = "process_message"
 
         # Check if this is a configuration update message
         if self.is_config_update_message(msg.topic):
-            self.handle_config_update_message(msg)
-            return  # Config messages don't go through normal sensor processing
+            success = self.handle_config_update_message(msg)
+            return {"config_updated": success}  # Return status to caller
 
         #
         # Get the device ID and a normalized tag from the topic
@@ -208,6 +219,8 @@ class MessageManager:
             device.psi_from_kpa_set(payload)
 
         # no additional processing needed
+        
+        return None  # No config update for sensor messages
 
     # ###################################################################### #
     #                             parse_topic
