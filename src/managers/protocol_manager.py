@@ -12,7 +12,26 @@ from src.managers.config_file_manager import ConfigurationFileManager
 
 
 class ProtocolManager:
-    """Protocol Manager to handle RTL_433 protocols"""
+    """Manages RTL-433 protocol information and categorization.
+
+    Provides access to protocol metadata including names, descriptions, and
+    category classifications (e.g., weather sensors, unknown sensors).
+
+    Attributes:
+        protocols_manager: ConfigurationFileManager for protocol definitions.
+        categories_manager: ConfigurationFileManager for protocol categorization.
+
+    Configuration Files:
+        rtl_433_protocols.json: Protocol ID to name/description mappings.
+        protocol_categories.json: Protocol category assignments.
+
+    Methods:
+        protocol_name(): Get protocol name from ID.
+        protocol_description(): Get protocol description from ID.
+        protocol_info(): Get both name and description.
+        is_weather_sensor(): Check if protocol ID is a weather sensor.
+        is_unk_weather_sensor(): Check if protocol is unknown weather sensor.
+    """
 
     def __init__(
         self,
@@ -41,7 +60,17 @@ class ProtocolManager:
     # ############################ get_protocl_info ############################ #
 
     def protocol_name(self, protocol_id: str) -> str:
-        """Get the protocol name for a protocol ID"""
+        """Get the protocol name for a given protocol ID.
+
+        Args:
+            protocol_id: RTL-433 protocol identifier.
+
+        Returns:
+            Protocol name string.
+
+        Raises:
+            ValueError: If protocol_id not found in configuration.
+        """
         self._load_configurations()
         protocol_info = self.protocols.get(protocol_id, {})
         if not protocol_info:

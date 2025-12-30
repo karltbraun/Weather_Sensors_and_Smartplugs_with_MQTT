@@ -6,17 +6,12 @@
     },
     "138": {
         "id_sensor_name": "SC91-B",
-        "sensor_name": "DECK",
+        "sensor_name": "PORCH",
         "comment": ""
     },
     "152": {
         "id_sensor_name": "SC91-A",
-        "sensor_name": "SHRINE_ROOM",
-        "comment": ""
-    },
-    "234": {
-        "id_sensor_name": "ACRT-01",
-        "sensor_name": "PORCH",
+        "sensor_name": "DECK",
         "comment": ""
     },
     "0": {

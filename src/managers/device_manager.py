@@ -1,3 +1,17 @@
+"""device_manager.py - Device and device registry management.
+
+This module provides classes for managing sensor devices and their data,
+including the Device class for individual device state and the DeviceRegistry
+for managing multiple devices.
+
+Key Classes:
+    - Device: Represents a single sensor device with attributes and timestamps
+    - DeviceRegistry: Manages a collection of Device instances
+
+Author: ktb
+Updated: 2024-12-30
+"""
+
 import logging
 from datetime import datetime
 from typing import Any, Dict, Tuple
@@ -26,11 +40,46 @@ attribute_map = {
 
 
 class Device:
+    """Represents a sensor device with attributes and state management.
+
+    Each Device instance maintains a dictionary of sensor attributes including
+    temperature, humidity, battery status, signal quality, and timestamps for
+    last seen and last published events.
+
+    Class Attributes:
+        local_sensor_manager: Shared LocalSensorManager instance for all devices.
+
+    Instance Attributes:
+        device: Dictionary containing all device attributes and metadata.
+
+    Attribute Suffixes:
+        _C: Celsius
+        _F: Fahrenheit
+        _kPa: Kilopascal (pressure)
+        _psi: Pounds per square inch (pressure)
+        _ts: Unix timestamp
+        _iso: ISO 8601 formatted datetime
+
+    Default Values:
+        - Numeric values: -999.0 (indicates no data)
+        - Battery: -1 (unknown status)
+        - String values: 'NO_*' (not set)
+        - Timestamps: Current time for last_seen, 0 for last_published
+    """
+
     # Class variable
     local_sensor_manager: LocalSensorManager = None
 
     # Instance stuff
     def __init__(self, device_id: str):
+        """Initialize a new Device instance.
+
+        Args:
+            device_id: Unique identifier for the device (typically RTL-433 ID).
+
+        Initializes device dictionary with default values for all standard
+        sensor attributes and sets time_last_seen to current time.
+        """
         # Suffixes:
         #   _C: Celsius
         #   _F: Fahrenheit
@@ -69,11 +118,26 @@ class Device:
         return str(self.device)
 
     def tag_value(self, tag) -> Any:
-        """get tag value"""
+        """Get value for a device attribute.
+
+        Args:
+            tag: Attribute name (e.g., 'temperature_C', 'humidity').
+
+        Returns:
+            Attribute value, or None if not found.
+        """
         return self.device.get(tag, None)
 
     def tag_value_set(self, tag: str, value: Any) -> None:
-        """set tag value and update last seen time"""
+        """Set value for a device attribute.
+
+        Args:
+            tag: Attribute name to set.
+            value: Value to assign to the attribute.
+
+        Note:
+            Logs when adding new attributes not in the default device dict.
+        """
         if tag not in self.device:
             logging.info(
                 "\ntag_value_set: Adding tag %s with value %s to device with id %s\n",
@@ -108,7 +172,13 @@ class Device:
         self.tag_value_set("time_last_seen_iso", iso_time)
 
     def time_last_seen_now_set(self) -> float:
-        """set last seen time to now in both timestamp and iso format"""
+        """Update last seen time to current time.
+
+        Sets both timestamp and ISO format representations.
+
+        Returns:
+            Unix timestamp of the current time.
+        """
         ts = datetime.now()
         self.time_last_seen_ts_set(ts.timestamp())
         self.time_last_seen_iso_set(ts.isoformat())
@@ -140,7 +210,18 @@ class Device:
     def publish_interval_max_exceeded(
         self, current_time: float, publish_interval_max_s: float
     ) -> bool:
-        """determine if the publish interval has been exceeded"""
+        """Check if maximum publish interval has been exceeded.
+
+        Determines if enough time has passed since last publish to warrant
+        republishing the device data, even if no new data has been received.
+
+        Args:
+            current_time: Current Unix timestamp.
+            publish_interval_max_s: Maximum seconds between publishes.
+
+        Returns:
+            True if interval exceeded and device should be republished.
+        """
         last_published_ts = self.time_last_published_ts()
         if (current_time - last_published_ts) > publish_interval_max_s:
             return True

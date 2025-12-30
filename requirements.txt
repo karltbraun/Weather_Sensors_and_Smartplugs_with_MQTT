@@ -1,2 +1,8 @@
+# Weather Sensors and Smart Plugs with MQTT
+# Python 3.12+ required
+
+# MQTT Client Library
 paho-mqtt==2.1.0
+
+# Environment Variable Management
 python-dotenv==1.0.1

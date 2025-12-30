@@ -1,5 +1,34 @@
-"""
-shelly_main.py 20241116
+"""shelly_main.py - MQTT processor for Shelly smart plug data.
+
+This script processes MQTT messages from Shelly smart plugs and republishes them
+in a standardized format with device metadata and room associations.
+
+Data Flow:
+    1. Subscribes to Shelly device topics (configured via SUB_TOPICS_SHELLY env var)
+    2. Processes incoming JSON messages with device status and power readings
+    3. Flattens nested JSON structures into individual attributes
+    4. Creates structured publication topics: <root>/<host>/<room>/smartplugs/<device>/<tag>
+    5. Publishes individual attributes to their respective topics
+
+Configuration:
+    - Loads broker settings from config/broker_config.py
+    - Maps devices to rooms via DEVICE_ROOM_MAP (in message_manager_shelly.py)
+    - Uses environment variables for topic configuration and logging
+
+Environment Variables:
+    PUB_SOURCE: Publishing host identifier (default: hostname)
+    PUB_TOPIC_ROOT: Root topic for publishing (required)
+    SUB_TOPICS_SHELLY: Comma-separated Shelly device topics to subscribe to
+    CONSOLE_LOG_LEVEL: Console logging level (default: DEBUG)
+    FILE_LOG_LEVEL: File logging level (default: DEBUG)
+    CLEAR_LOG_FILE: Clear log file on startup (default: True)
+
+Usage:
+    python shelly_main.py
+
+Author: ktb
+Date: 2024-11-16
+Updated: 2024-12-30
 """
 
 import logging
@@ -10,17 +39,18 @@ from queue import Queue
 from dotenv import load_dotenv
 
 from config.broker_config import load_broker_config
-# MQTT broker accessibility check utility
-from src.utils.mqtt_broker_check import check_mqtt_broker_accessibility
 from src.managers.message_manager_shelly import MessageManager
 from src.managers.mqtt_manager import MQTTManager
 from src.utils.logger_setup import logger_setup
 from src.utils.misc_utils import (
     get_logging_levels,
-    get_pub_topic_root,
     get_pub_source,
+    get_pub_topic_root,
     get_sub_topics,
 )
+
+# MQTT broker accessibility check utility
+from src.utils.mqtt_broker_check import check_mqtt_broker_accessibility
 
 load_dotenv()
 
@@ -53,13 +83,17 @@ def main() -> None:
     # load in broker information
 
     broker_config: dict = load_broker_config()
-    print(f"*** broker config:\n\ttype: {type(broker_config)}\n\t{broker_config}\n\t{broker_config}")
+    print(
+        f"*** broker config:\n\ttype: {type(broker_config)}\n\t{broker_config}\n\t{broker_config}"
+    )
     broker_address = broker_config["MQTT_BROKER_ADDRESS"]
     broker_port = broker_config.get("MQTT_BROKER_PORT", 1883)
 
     # Check MQTT broker accessibility before proceeding
     if not check_mqtt_broker_accessibility(broker_address, broker_port):
-        logger.error(f"MQTT broker {broker_address}:{broker_port} is not accessible. Exiting.")
+        logger.error(
+            f"MQTT broker {broker_address}:{broker_port} is not accessible. Exiting."
+        )
         exit(1)
 
     # MQTT Topic(s)

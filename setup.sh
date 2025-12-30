@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/usr/bin/env bash
 mkdir -p ./src/{models,managers,utils} ./data
 touch ./src/__init__.py
 touch ./src/models/__init__.py

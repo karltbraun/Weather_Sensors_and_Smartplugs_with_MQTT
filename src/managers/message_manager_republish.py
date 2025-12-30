@@ -29,11 +29,41 @@ from src.managers.local_sensor_manager import LocalSensorManager
 
 
 class MessageManager:
-    """MessageManager - class to manage incoming messages from the MQTT broker"""
+    """Manages processing of RTL-433 sensor messages and configuration updates.
 
-    def __init__(self, local_sensor_manager: LocalSensorManager, config_update_topic: str = None):
+    Processes incoming MQTT messages containing sensor attributes, aggregates them
+    by device, and handles dynamic configuration updates for local sensor definitions.
+
+    Attributes:
+        local_sensor_manager: Manager for local sensor configuration.
+        config_update_topic: MQTT topic for receiving config updates.
+        config_current_topic: MQTT topic for receiving current config.
+        device_registry: Registry of all known devices.
+        logger: Logger instance for this class.
+
+    Key Methods:
+        process_message(): Process sensor data or config update messages.
+        handle_config_update_message(): Handle config updates from MQTT.
+        parse_topic(): Extract device ID and attribute from topic.
+        normalize_payload(): Standardize attribute names and values.
+    """
+
+    def __init__(
+        self,
+        local_sensor_manager: LocalSensorManager,
+        config_update_topic: str = None,
+        config_current_topic: str = None,
+    ):
+        """Initialize the message manager.
+
+        Args:
+            local_sensor_manager: Manager for local sensor configurations.
+            config_update_topic: MQTT topic for config updates (optional).
+            config_current_topic: MQTT topic for current config (optional).
+        """
         self.local_sensor_manager = local_sensor_manager
-        self.config_update_topic = config_update_topic  # Store the topic for comparison
+        self.config_update_topic = config_update_topic  # Topic for updates (e.g., <root>/sensors/config/local_sensors/update)
+        self.config_current_topic = config_current_topic  # Global current topic (e.g., <root>/sensors/config/local_sensors/current)
         self.device_registry = DeviceRegistry()
         self.logger = logging.getLogger(__name__)
 
@@ -49,14 +79,35 @@ class MessageManager:
     # ##############################################################################
 
     def is_config_update_message(self, topic: str) -> bool:
-        """Check if the message is a configuration update message"""
-        return self.config_update_topic and topic == self.config_update_topic
+        """Check if message topic is a configuration update topic.
+
+        Args:
+            topic: MQTT topic string.
+
+        Returns:
+            True if topic matches config_update_topic or config_current_topic.
+        """
+        return (
+            self.config_update_topic and topic == self.config_update_topic
+        ) or (
+            self.config_current_topic
+            and topic == self.config_current_topic
+        )
 
     def handle_config_update_message(self, msg: mqtt.MQTTMessage) -> bool:
-        """Handle configuration update messages
-        
+        """Process configuration update messages.
+
+        Delegates to local_sensor_manager to handle the actual config update,
+        including validation, backup creation, and file persistence.
+
+        Args:
+            msg: MQTT message containing configuration JSON payload.
+
         Returns:
-            bool: True if config update was successful, False otherwise
+            True if update successful, False otherwise.
+
+        Logs:
+            Info messages for successful updates, errors for failures.
         """
         try:
             self.logger.info(
@@ -74,7 +125,7 @@ class MessageManager:
                 self.logger.info(f"Config update successful: {message}")
             else:
                 self.logger.error(f"Config update failed: {message}")
-            
+
             return success
 
         except Exception as e:
@@ -98,14 +149,16 @@ class MessageManager:
         * * some other routine will periodically publish the data in the dictionary under
             new topics
 
-        Enhanced to also handle configuration updates on KTBMES/sensors/config/local_sensors/updates
-        
+        Enhanced to handle configuration updates on both:
+        - <root>/sensors/config/local_sensors/update (update topic)
+        - <root>/sensors/config/local_sensors/current (global current topic)
+
         Returns:
             dict: Status dictionary with 'config_updated' key if config was updated
         """
         my_name = "process_message"
 
-        # Check if this is a configuration update message
+        # Check if this is a configuration update message (either 'update' or 'current' topic)
         if self.is_config_update_message(msg.topic):
             success = self.handle_config_update_message(msg)
             return {"config_updated": success}  # Return status to caller
@@ -219,7 +272,7 @@ class MessageManager:
             device.psi_from_kpa_set(payload)
 
         # no additional processing needed
-        
+
         return None  # No config update for sensor messages
 
     # ###################################################################### #

@@ -1,4 +1,20 @@
-"""temp module docstring"""
+"""mqtt_manager.py - MQTT client management and message handling.
+
+This module provides the MQTTManager class which handles MQTT client connections,
+subscriptions, message queueing, and publishing. It includes robust connection
+handling with DNS resolution, automatic reconnection, and comprehensive logging.
+
+Key Features:
+    - Automatic DNS resolution with fallback to IP addresses
+    - Retry logic for initial connection with configurable attempts
+    - Automatic reconnection on disconnect
+    - Message queueing for both incoming and outgoing messages
+    - Support for both flat (single value) and JSON (dictionary) publishing
+    - Comprehensive logging of connection events and errors
+
+Author: ktb
+Updated: 2024-12-30
+"""
 
 import json
 import logging
@@ -61,13 +77,21 @@ class MQTTManager:
         max_reconnect_retries=3,
         reconnect_delay=5,
     ):
-        """
-        Initialize the MQTTManager. broker_config is a dictionary containing the
-        configuration information for the MQTT broker found in broker_config.py.
-        publish_topic_root is the root topic string to which subsequent subtopics will be appended.
-        The message_queues are the input and output queues for the MQTTManager. The on_message callback
-        function will place incoming messages in the input queue. The message processing routines may
-        make use of the output queue or may publish messages directly to the broker.
+        """Initialize the MQTT Manager.
+
+        Args:
+            broker_config: Dictionary containing MQTT broker configuration
+                          (address, port, username, password, keepalive).
+            subscribe_topics: List of topics to subscribe to, or "#" for all.
+            publish_topic_root: Root topic for publishing messages.
+            max_initial_retries: Maximum connection attempts at startup (default: 3).
+            retry_delay: Seconds between initial connection retries (default: 5).
+            max_reconnect_retries: Maximum reconnection attempts (default: 3).
+            reconnect_delay: Seconds between reconnection attempts (default: 5).
+
+        The manager creates two message queues:
+            - message_queue_in: For incoming messages from subscribed topics
+            - message_queue_out: For outgoing messages to be published
         """
         self.broker_config = broker_config
         self.subscribe_topics: list = subscribe_topics
@@ -83,9 +107,20 @@ class MQTTManager:
     # ############################ mqtt_setup ############################ #
 
     def mqtt_setup(self) -> mqtt.Client:
-        """
-        Sets up and returns an MQTT client with the specified configuration.
-        Includes DNS resolution and retry logic for initial connection.
+        """Configure and connect the MQTT client with retry logic.
+
+        Performs DNS resolution, validates broker accessibility, and establishes
+        the MQTT connection. Includes automatic retry with exponential backoff.
+        Sets up all callback functions (on_connect, on_message, on_log, on_disconnect).
+
+        Returns:
+            Configured and connected MQTT client instance.
+
+        Raises:
+            SystemExit: If connection fails after max_initial_retries attempts.
+
+        Note:
+            Supports both hostnames (with DNS resolution) and IP addresses.
         """
         broker_addr = self.broker_config["MQTT_BROKER_ADDRESS"]
         broker_port = self.broker_config["MQTT_BROKER_PORT"]
@@ -145,7 +180,17 @@ class MQTTManager:
     # ############################ ON_CONNECT  ############################ #
 
     def on_connect(self, client, userdata, flags, rc, properties=None):
-        """executed when the client makes a successful connection to the broker"""
+        """Callback executed when client successfully connects to broker.
+
+        Subscribes to all configured topics and logs connection success.
+
+        Args:
+            client: MQTT client instance.
+            userdata: User data passed to callbacks (unused).
+            flags: Connection flags from broker.
+            rc: Connection result code (0 = success).
+            properties: MQTT v5 properties (optional).
+        """
 
         # topics = userdata["subscribed_topics"]
         topics: list = self.subscribe_topics
@@ -180,9 +225,17 @@ class MQTTManager:
         userdata,
         msg: mqtt.MQTTMessage,  # pylint: disable=unused-argument
     ) -> None:
-        """
-        Callback function for when a message is received from the MQTT broker.
-        It puts the received message into the inbound message queue for further processing.
+        """Callback for incoming MQTT messages.
+
+        Receives messages from subscribed topics and queues them for processing.
+
+        Args:
+            client: MQTT client instance.
+            userdata: User data passed to callbacks (unused).
+            msg: MQTT message containing topic, payload, qos, and retain flag.
+
+        Note:
+            Messages are placed in message_queue_in for asynchronous processing.
         """
 
         self.message_queue_in.put(msg)
@@ -196,7 +249,17 @@ class MQTTManager:
         level,
         buf,  # pylint: disable=unused-argument
     ) -> None:
-        """Callback function for when a log message is received from the broker"""
+        """Callback for MQTT client log messages.
+
+        Filters out routine messages (PUBLISH, PINGREQ, PINGRESP) and logs
+        significant events for debugging.
+
+        Args:
+            client: MQTT client instance.
+            userdata: User data passed to callbacks (unused).
+            level: Log level (integer).
+            buf: Log message string.
+        """
 
         # messages we don't care about logging
         exclude_messages = [
@@ -225,7 +288,21 @@ class MQTTManager:
         rc=None,
         properties=None,
     ) -> None:
-        """Callback for when a disconnect is received from the broker. Attempts to reconnect a limited number of times."""
+        """Callback for broker disconnection events with automatic reconnection.
+
+        Handles both graceful disconnects (rc=0) and unexpected disconnections.
+        Attempts to reconnect with exponential backoff up to max_reconnect_retries.
+
+        Args:
+            client: MQTT client instance.
+            userdata: User data passed to callbacks (unused).
+            disconnect_flags: Disconnection flags from broker.
+            rc: Disconnect reason code (0 = graceful, non-zero = error).
+            properties: MQTT v5 properties (optional).
+
+        Raises:
+            SystemExit: If reconnection fails after maximum attempts.
+        """
         if rc == 0 or rc is None:
             emsg = (
                 f"Graceful disconnection at {datetime.now().isoformat()}"
@@ -301,7 +378,21 @@ class MQTTManager:
         retain=False,  # pylint: disable=unused-argument
         properties=None,  # pylint: disable=unused-argument
     ) -> None:
-        """Publish a message to a flat MQTT message (key: value pair)"""
+        """Publish a single value to an MQTT topic (flat message format).
+
+        Publishes a simple string payload to the specified topic, typically used
+        for individual sensor attributes (e.g., temperature, humidity).
+
+        Args:
+            topic: Full MQTT topic path (e.g., 'KTBMES/sensors/device123/temp').
+            payload: String value to publish.
+            qos: Quality of Service level (default: 0, currently unused).
+            retain: Whether to retain message on broker (default: False, unused).
+            properties: MQTT v5 properties (optional, unused).
+
+        Example:
+            >>> manager.publish_flat('KTBMES/sensors/123/temperature', '23.5')
+        """
 
         my_name = "publish_flat"
         current_time = datetime.now().isoformat()
@@ -328,6 +419,22 @@ class MQTTManager:
         retain=False,  # pylint: disable=unused-argument
         properties=None,  # pylint: disable=unused-argument
     ) -> None:
+        """Publish device data as JSON-formatted MQTT message.
+
+        Converts a Device object to JSON and publishes it to the specified topic.
+        Used for publishing complete device state including all attributes.
+
+        Args:
+            topic: Full MQTT topic path for device data.
+            device_info: Device object containing sensor/device information.
+            qos: Quality of Service level (default: 0, currently unused).
+            retain: Whether to retain message on broker (default: False, unused).
+            properties: MQTT v5 properties (optional, unused).
+
+        Example:
+            >>> device = Device('sensor123')
+            >>> manager.publish_dict('KTBMES/devices/sensor123', device)
+        """
         """publish a dictionary as a JSON message to a specified MQTT topic.
         See also publish_flat()"""
 

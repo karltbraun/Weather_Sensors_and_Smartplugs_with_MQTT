@@ -17,7 +17,28 @@ CHECK_INTERVAL_S = 30
 
 
 class Tracked_Protocols:
-    """Manager for protocols we want to track separately"""
+    """Manager for tracking and categorizing RTL-433 protocols.
+
+    Maintains a list of protocol IDs that should receive special handling
+    or categorization in the sensor processing pipeline.
+
+    Attributes:
+        config_dir: Directory containing protocol configuration.
+        tracked_protocols_file: Filename of tracked protocols JSON.
+        tracked_protocols_file_path: Full path to config file.
+        last_check_time: Unix timestamp of last config check.
+        check_interval: Seconds between configuration checks.
+        tracked_protocols: List of protocol IDs to track.
+
+    Configuration File Format:
+        {
+            "protocols": [181, 40, 55, ...]
+        }
+
+    Example:
+        >>> tracker = Tracked_Protocols()
+        >>> protocols = tracker._load_tracked_protocols()
+    """
 
     def __init__(
         self,
@@ -35,7 +56,19 @@ class Tracked_Protocols:
         self.tracked_protocols = self._load_tracked_protocols()
 
     def _load_tracked_protocols(self) -> list:
-        """Load tracked protocols from the JSON file"""
+        """Load tracked protocol IDs from configuration file.
+
+        Reads the tracked_protocols.json file and extracts the list of
+        protocol IDs. Implements interval-based checking to avoid excessive
+        file reads.
+
+        Returns:
+            List of protocol IDs (integers) to track, or None if check
+            interval not exceeded.
+
+        Raises:
+            ValueError: If 'protocols' key not found in configuration file.
+        """
         current_time = time.time()
         if current_time - self.last_check_time < self.check_interval:
             return None

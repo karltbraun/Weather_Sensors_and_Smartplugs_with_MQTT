@@ -1,24 +1,48 @@
-"""
-republish_processed_sensors_main.py - 20250823 ktb
+"""republish_processed_sensors_main.py - Main entry point for RTL-433 sensor data processing.
 
-main entry point for the code to consume flat MQTT messages about sensors and
-republish them as devices with json payloads.
+This script processes raw sensor data from RTL-433 received via MQTT and republishes it
+as structured JSON payloads organized by device. It supports dynamic configuration updates
+via MQTT for managing local sensor definitions.
 
-This script subscribes to raw sensor data from an MQTT broker.
-The raw data consists of attributes published in their own subtopics for each device,
-e.g., KTBMES/raw/1234/temperature_C, KTBMES/raw/1234/channel, KTBMES/raw/1234/noise, etc.
+Data Flow:
+    1. Subscribes to raw sensor topics with individual attributes per subtopic
+       (e.g., <root>/raw/<device_id>/temperature_C, <root>/raw/<device_id>/humidity)
+    2. Aggregates attributes by device ID into unified device records
+    3. Enriches data with protocol information and local sensor metadata
+    4. Republishes as JSON payloads to device-specific topics
+    5. Persists device data to JSON file for analysis and web display
 
-The script collects attributes for each device (identified by device ID) and stores them
-in a dictionary indexed by the device ID. The value includes the time the data was last
-received, the protocol_id (which indicates how to parse the rest of the data),
-and the rest of the data as a sub-dictionary.
+Configuration:
+    - Loads broker settings from config/broker_config.py
+    - Manages local sensor definitions via LocalSensorManager
+    - Supports MQTT-based config updates on <root>/sensors/config/local_sensors/update
+    - Publishes current config to <root>/<host>/sensors/config/local_sensors/current
+    - Uses environment variables for topic roots, logging, and behavior settings
 
-Periodically, the dictionary of devices is written to a JSON file for further use.
-At startup, if the JSON file exists, it initializes the dictionary with the data from the file.
+Key Features:
+    - Automatic protocol identification via RTL-433 protocol IDs
+    - Device registry with last-seen timestamps and publish tracking
+    - Periodic data persistence with configurable intervals
+    - Temperature conversion (Celsius to Fahrenheit)
+    - MQTT broker accessibility checking before startup
+    - Dynamic configuration reload without restart
 
-The script handles known temperature sensors and other discovered devices, analyzing their data
-for potential use. The JSON file can be used to either republish the data to a new topic or
-display it on a web page.
+Environment Variables:
+    PUB_SOURCE: Publishing host identifier (default: hostname)
+    PUB_TOPIC_ROOT: Root topic for publishing (required)
+    SUB_TOPICS_SENSORS: Comma-separated subscription topics
+    CONSOLE_LOG_LEVEL: Console logging level (default: DEBUG)
+    FILE_LOG_LEVEL: File logging level (default: DEBUG)
+    CLEAR_LOG_FILE: Clear log file on startup (default: True)
+    PUBLISH_INTERVAL_MAX: Maximum seconds between republishing (default: 300)
+    CONFIG_SUBSCRIBE_TIMEOUT: Seconds to wait for config messages (default: 10)
+
+Usage:
+    python republish_processed_sensors_main.py
+
+Author: ktb
+Date: 2024-08-23
+Updated: 2024-12-30
 """
 
 
@@ -65,6 +89,7 @@ from src.utils.logger_setup import logger_setup
 
 # utility functions
 from src.utils.misc_utils import (
+    get_config_subscribe_timeout,
     get_logging_levels,  # get_pub_topic_root,
     get_pub_source,
     get_pub_topic_root,
@@ -142,7 +167,7 @@ if not check_mqtt_broker_accessibility(BROKER_ADDRESS, BROKER_PORT):
 def publish_local_sensors_config(mqtt_client, config_data, topic):
     """
     Publish local sensors configuration to MQTT.
-    
+
     Args:
         mqtt_client: MQTT client instance
         config_data: Sensor configuration data to publish
@@ -276,28 +301,31 @@ def main() -> None:
     SLEEP_TIME_S = 5  # pylint: disable=invalid-name
 
     # Load MQTT topic configuration from environment
+    pub_source = get_pub_source()
+    pub_root = get_pub_topic_root()
+
     mqtt_topics = {
-        "updates": os.getenv(
+        "update": os.getenv(
             "MQTT_TOPIC_LOCAL_SENSORS_UPDATES",
-            "KTBMES/sensors/config/local_sensors/updates",
+            f"{pub_root}/sensors/config/local_sensors/update",
         ),
-        "current": os.getenv(
-            "MQTT_TOPIC_LOCAL_SENSORS_CURRENT",
-            "KTBMES/sensors/config/local_sensors/current",
-        ),
+        "current_global": f"{pub_root}/sensors/config/local_sensors/current",  # Subscribe to global
+        "current_host": f"{pub_root}/{pub_source}/sensors/config/local_sensors/current",  # Publish with host
     }
+
+    config_subscribe_timeout = get_config_subscribe_timeout()
 
     # MQTT Topic(s)
     sub_topics: list = get_sub_topics("SUB_TOPICS_REPUBLISH")
 
     # Add config update topic to subscription list
-    if mqtt_topics["updates"] not in sub_topics:
-        sub_topics.append(mqtt_topics["updates"])
+    if mqtt_topics["update"] not in sub_topics:
+        sub_topics.append(mqtt_topics["update"])
         logger.info(
-            f"Added config update topic to subscriptions: {mqtt_topics['updates']}"
+            f"Added config update topic to subscriptions: {mqtt_topics['update']}"
         )
 
-    pub_source = get_pub_source()
+    # pub_source already retrieved above for topic construction
     pub_topics = generate_pub_topics(pub_source)
 
     # ############################ MQTT Setup ############################ #
@@ -319,14 +347,16 @@ def main() -> None:
     Device.local_sensor_manager = local_sensor_manager
 
     message_manager = MessageManager(
-        local_sensor_manager, config_update_topic=mqtt_topics["updates"]
+        local_sensor_manager,
+        config_update_topic=mqtt_topics["update"],
+        config_current_topic=mqtt_topics["current_global"],
     )
     device_registry: DeviceRegistry = DeviceRegistry()
     message_manager.device_registry = device_registry
 
-    # Publish initial local_sensors config on startup (using file-based config for now)
+    # Publish initial local_sensors config on startup (with host in path)
     publish_local_sensors_config(
-        client, local_sensor_manager.sensors, mqtt_topics["current"]
+        client, local_sensor_manager.sensors, mqtt_topics["current_host"]
     )
 
     # #########################  display banner  ####################### #
@@ -334,13 +364,16 @@ def main() -> None:
     logger.info(
         "\n#########################################################################\n"
         "          Starting up at %s with the following configuration:\n"
-        "  Version: 2025-11-10 (with dynamic config updates)\n"
+        "  Version: 2025-12-30 (with updated config topic structure)\n"
         "  Broker: %s\n"
         "  Source: %s\n"
         "  PUB_TOPICS:\n"
         "    %s\n"
         "  Subscription Topics: %s\n"
         "  Config Update Topic: %s\n"
+        "  Config Current Global Topic: %s\n"
+        "  Config Current Host Topic: %s\n"
+        "  Config Subscribe Timeout: %d seconds\n"
         "  Local Sensors: %d configured\n"
         "  Console log level: %s\n"
         "  File log level: %s\n"
@@ -350,7 +383,10 @@ def main() -> None:
         pub_source,
         pub_topics,
         sub_topics,
-        mqtt_topics["updates"],
+        mqtt_topics["update"],
+        mqtt_topics["current_global"],
+        mqtt_topics["current_host"],
+        config_subscribe_timeout,
         local_sensor_manager.get_sensor_count(),
         logging_levels["console"],
         logging_levels["file"],
@@ -368,59 +404,75 @@ def main() -> None:
     client.loop_start()
 
     # Check for retained config message on startup
-    # Temporarily subscribe to 'current' topic to get retained message only
-    logger.info("Checking for retained config on MQTT...")
-    client.subscribe(mqtt_topics["current"])
-    time.sleep(2)  # Give time for retained message to arrive
-    
+    # Subscribe to global 'current' topic to get retained message only
+    logger.info(
+        f"Checking for retained config on MQTT topic: {mqtt_topics['current_global']}..."
+    )
+    client.subscribe(mqtt_topics["current_global"])
+
+    # Wait for retained message with timeout
     config_loaded_from_mqtt = False
-    # Check message queue for retained config message
-    temp_messages = []
-    while not message_queue.empty():
-        msg = message_queue.get()
-        if msg.topic == mqtt_topics["current"] and hasattr(msg, 'retain') and msg.retain:
-            # Found retained config message
-            try:
-                if isinstance(msg.payload, bytes):
-                    payload = msg.payload.decode("utf-8")
-                else:
-                    payload = msg.payload
-                config_data = json.loads(payload)
-                
-                # Validate and use the MQTT config
-                is_valid, validation_msg = local_sensor_manager.validate_sensor_data(config_data)
-                if is_valid:
-                    local_sensor_manager.sensors = config_data
-                    logger.info(
-                        f"Loaded {len(local_sensor_manager.sensors)} sensors from MQTT retained message"
+    start_time = time.time()
+
+    while (time.time() - start_time) < config_subscribe_timeout:
+        if not message_queue.empty():
+            msg = message_queue.get()
+            if msg.topic == mqtt_topics["current_global"]:
+                # Found config message on global current topic
+                try:
+                    if isinstance(msg.payload, bytes):
+                        payload = msg.payload.decode("utf-8")
+                    else:
+                        payload = msg.payload
+                    config_data = json.loads(payload)
+
+                    # Validate and use the MQTT config
+                    is_valid, validation_msg = (
+                        local_sensor_manager.validate_sensor_data(
+                            config_data
+                        )
                     )
-                    config_loaded_from_mqtt = True
-                    # Republish to ensure it's current
-                    publish_local_sensors_config(
-                        client, local_sensor_manager.sensors, mqtt_topics["current"]
-                    )
-                else:
+                    if is_valid:
+                        local_sensor_manager.sensors = config_data
+                        logger.info(
+                            f"Loaded {len(local_sensor_manager.sensors)} sensors from MQTT retained message"
+                        )
+                        config_loaded_from_mqtt = True
+                        # Republish to host-specific topic to ensure it's current
+                        publish_local_sensors_config(
+                            client,
+                            local_sensor_manager.sensors,
+                            mqtt_topics["current_host"],
+                        )
+                        break  # Exit loop, we got what we needed
+                    else:
+                        logger.warning(
+                            f"MQTT config validation failed: {validation_msg}, using file config"
+                        )
+                        break
+                except Exception as e:
                     logger.warning(
-                        f"MQTT config validation failed: {validation_msg}, using file config"
+                        f"Failed to load config from MQTT retained message: {e}, using file config"
                     )
-            except Exception as e:
-                logger.warning(
-                    f"Failed to load config from MQTT retained message: {e}, using file config"
-                )
+                    break
+            else:
+                # Put non-config messages back in queue for processing
+                message_queue.put(msg)
         else:
-            # Put non-config messages back in queue for processing
-            temp_messages.append(msg)
-    
-    # Unsubscribe from 'current' topic - we only needed the retained message
-    client.unsubscribe(mqtt_topics["current"])
-    logger.info(f"Unsubscribed from {mqtt_topics['current']} (only needed for startup)")
-    
-    # Put back any messages that weren't the config
-    for msg in temp_messages:
-        message_queue.put(msg)
-    
+            # Queue empty, sleep briefly and check again
+            time.sleep(0.1)
+
+    # Unsubscribe from global 'current' topic - we only needed the retained message
+    client.unsubscribe(mqtt_topics["current_global"])
+    logger.info(
+        f"Unsubscribed from {mqtt_topics['current_global']} (only needed for startup)"
+    )
+
     if not config_loaded_from_mqtt:
-        logger.info("No retained MQTT config found, using file config")
+        elapsed = time.time() - start_time
+        logger.info(
+            f"No retained MQTT config found after {elapsed:.1f}s, using file config"
+        )
 
     try:
         while True:
@@ -446,8 +498,10 @@ def main() -> None:
                 )
                 msg = message_queue.get()
                 # Process message (includes config update handling)
-                result = message_manager.process_message(msg, protocol_manager)
-                
+                result = message_manager.process_message(
+                    msg, protocol_manager
+                )
+
                 # If config was updated, publish the new config
                 if result and result.get("config_updated"):
                     # Refresh device names for all devices after config update
@@ -456,8 +510,11 @@ def main() -> None:
                         device,
                     ) in device_registry.devices.items():
                         device.device_name_from_id_set(device_id)
+                    # Publish to host-specific current topic
                     publish_local_sensors_config(
-                        client, local_sensor_manager.sensors, mqtt_topics["current"]
+                        client,
+                        local_sensor_manager.sensors,
+                        mqtt_topics["current_host"],
                     )
 
             # ################## publish all updated devices  ################### #

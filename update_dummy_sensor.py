@@ -29,10 +29,30 @@ TOPIC_ROOT = "Pi1/sensors/raw"
 
 
 def fahrenheit_to_celsius(f):
+    """Convert temperature from Fahrenheit to Celsius.
+
+    Args:
+        f: Temperature in degrees Fahrenheit.
+
+    Returns:
+        Temperature in degrees Celsius.
+    """
     return (f - 32) * 5.0 / 9.0
 
 
 def main():
+    """Interactive command-line tool to publish dummy sensor data via MQTT.
+
+    Prompts user for device ID and temperature in Fahrenheit, converts to Celsius,
+    and publishes sensor readings to raw sensor topics. Used for testing and
+    development of sensor processing pipelines.
+
+    Published Topics:
+        <TOPIC_ROOT>/<device_id>/time: ISO timestamp
+        <TOPIC_ROOT>/<device_id>/temperature_F: Temperature in Fahrenheit
+        <TOPIC_ROOT>/<device_id>/temperature_C: Temperature in Celsius
+        <TOPIC_ROOT>/<device_id>/protocol: Protocol ID (181 for dummy)
+    """
     device_id = input("Enter device ID: ").strip()
     temp_f_str = input("Enter temperature (Fahrenheit): ").strip()
     try:

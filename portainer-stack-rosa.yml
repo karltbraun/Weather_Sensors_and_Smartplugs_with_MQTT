@@ -4,7 +4,7 @@
 
 # =============================================================================
 # Configuration:
-#   PUB_SOURCE: Mu
+#   PUB_SOURCE: ROSA
 #   Network Mode: host
 #   DEPLOYMENT_SCENARIO: host-networking
 # =============================================================================
@@ -69,15 +69,15 @@ services:
       - sensor-config:/app/config
     ###############################################################################
     # ENVIRONMENT VARIABLES
-    # Configuration for Mu
+    # Configuration for ROSA
     #  BROKER_NAME=n-vultr2
-    #  PUB_SOURCE=Mu
+    #  PUB_SOURCE=ROSA
     #  network_mode=host
     ###############################################################################
     environment:
       - DEPLOYMENT_SCENARIO=host-networking
-      - PUB_SOURCE=Mu
-      # PUB_SOURCE is set to Mu for this deployment
+      - PUB_SOURCE=ROSA
+      # PUB_SOURCE is set to ROSA for this deployment
       - BROKER_NAME=n-vultr2
       - TZ=America/Los_Angeles
       - PUBLISH_INTERVAL_MAX=60
@@ -142,14 +142,14 @@ services:
       - sensor-config:/app/config
     ###############################################################################
     # ENVIRONMENT VARIABLES
-    # Configuration for Mu
+    # Configuration for ROSA
     #  BROKER_NAME=n-vultr2
-    #  PUB_SOURCE=Mu
+    #  PUB_SOURCE=ROSA
     #  network_mode=host
     ###############################################################################
     environment:
       - DEPLOYMENT_SCENARIO=host-networking
-      - PUB_SOURCE=Mu
+      - PUB_SOURCE=ROSA
       - BROKER_NAME=n-vultr2
       - TZ=America/Los_Angeles
       - SERVICE=shelly
