@@ -277,25 +277,25 @@ def get_publish_interval_max() -> int:
 
 
 def get_config_update_topic() -> str:
-    """Get MQTT topic for receiving configuration updates.
+    """Get MQTT canonical topic for receiving configuration updates.
 
     Returns:
-        MQTT topic where configuration updates are published.
+        MQTT canonical topic where configuration updates are published.
 
     Raises:
-        ValueError: If MQTT_TOPIC_LOCAL_SENSORS_UPDATES is not set.
+        ValueError: If MQTT_TOPIC_LOCAL_SENSORS is not set.
 
     Environment Variables:
-        MQTT_TOPIC_LOCAL_SENSORS_UPDATES: Topic for sensor config updates.
+        MQTT_TOPIC_LOCAL_SENSORS: Canonical topic for sensor config updates.
 
     Example:
         >>> get_config_update_topic()
-        'KTBMES/sensors/config/local_sensors/update'
+        'KTBMES/sensors/config/local_sensors'
     """
-    topic = os.getenv("MQTT_TOPIC_LOCAL_SENSORS_UPDATES")
+    topic = os.getenv("MQTT_TOPIC_LOCAL_SENSORS")
     if topic is None:
         raise ValueError(
-            "MQTT_TOPIC_LOCAL_SENSORS_UPDATES environment variable is required but not set"
+            "MQTT_TOPIC_LOCAL_SENSORS environment variable is required but not set"
         )
     return topic
 

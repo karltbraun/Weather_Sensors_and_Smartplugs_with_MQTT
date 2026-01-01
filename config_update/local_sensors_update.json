@@ -11,7 +11,12 @@
     },
     "152": {
         "id_sensor_name": "SC91-A",
-        "sensor_name": "DECK",
+        "sensor_name": "DECK-2",
+        "comment": ""
+    },
+    "234": {
+        "id_sensor_name": "ACRT-1",
+        "sensor_name": "OFFICE",
         "comment": ""
     },
     "0": {

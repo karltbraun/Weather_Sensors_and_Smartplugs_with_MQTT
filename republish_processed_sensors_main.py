@@ -15,8 +15,8 @@ Data Flow:
 Configuration:
     - Loads broker settings from config/broker_config.py
     - Manages local sensor definitions via LocalSensorManager
-    - Supports MQTT-based config updates on <root>/sensors/config/local_sensors/update
-    - Publishes current config to <root>/<host>/sensors/config/local_sensors/current
+    - Supports MQTT-based config updates on <root>/sensors/config/local_sensors
+    - Publishes current config to <root>/<host>/sensors/config/local_sensors
     - Uses environment variables for topic roots, logging, and behavior settings
 
 Key Features:
@@ -305,12 +305,11 @@ def main() -> None:
     pub_root = get_pub_topic_root()
 
     mqtt_topics = {
-        "update": os.getenv(
-            "MQTT_TOPIC_LOCAL_SENSORS_UPDATES",
-            f"{pub_root}/sensors/config/local_sensors/update",
-        ),
-        "current_global": f"{pub_root}/sensors/config/local_sensors/current",  # Subscribe to global
-        "current_host": f"{pub_root}/{pub_source}/sensors/config/local_sensors/current",  # Publish with host
+        "canonical": os.getenv(
+            "MQTT_TOPIC_LOCAL_SENSORS",
+            f"{pub_root}/sensors/config/local_sensors",
+        ),  # Canonical source - all services subscribe to this
+        "host_specific": f"{pub_root}/{pub_source}/sensors/config/local_sensors",  # Host-specific publish topic
     }
 
     config_subscribe_timeout = get_config_subscribe_timeout()
@@ -318,11 +317,11 @@ def main() -> None:
     # MQTT Topic(s)
     sub_topics: list = get_sub_topics("SUB_TOPICS_REPUBLISH")
 
-    # Add config update topic to subscription list
-    if mqtt_topics["update"] not in sub_topics:
-        sub_topics.append(mqtt_topics["update"])
+    # Add canonical config topic to subscription list
+    if mqtt_topics["canonical"] not in sub_topics:
+        sub_topics.append(mqtt_topics["canonical"])
         logger.info(
-            f"Added config update topic to subscriptions: {mqtt_topics['update']}"
+            f"Added canonical config topic to subscriptions: {mqtt_topics['canonical']}"
         )
 
     # pub_source already retrieved above for topic construction
@@ -348,15 +347,15 @@ def main() -> None:
 
     message_manager = MessageManager(
         local_sensor_manager,
-        config_update_topic=mqtt_topics["update"],
-        config_current_topic=mqtt_topics["current_global"],
+        config_update_topic=mqtt_topics["canonical"],
+        config_current_topic=None,  # No longer using separate current topic
     )
     device_registry: DeviceRegistry = DeviceRegistry()
     message_manager.device_registry = device_registry
 
     # Publish initial local_sensors config on startup (with host in path)
     publish_local_sensors_config(
-        client, local_sensor_manager.sensors, mqtt_topics["current_host"]
+        client, local_sensor_manager.sensors, mqtt_topics["host_specific"]
     )
 
     # #########################  display banner  ####################### #
@@ -383,9 +382,8 @@ def main() -> None:
         pub_source,
         pub_topics,
         sub_topics,
-        mqtt_topics["update"],
-        mqtt_topics["current_global"],
-        mqtt_topics["current_host"],
+        mqtt_topics["canonical"],
+        mqtt_topics["host_specific"],
         config_subscribe_timeout,
         local_sensor_manager.get_sensor_count(),
         logging_levels["console"],
@@ -406,9 +404,9 @@ def main() -> None:
     # Check for retained config message on startup
     # Subscribe to global 'current' topic to get retained message only
     logger.info(
-        f"Checking for retained config on MQTT topic: {mqtt_topics['current_global']}..."
+        f"Checking for retained config on MQTT canonical topic: {mqtt_topics['canonical']}..."
     )
-    client.subscribe(mqtt_topics["current_global"])
+    client.subscribe(mqtt_topics["canonical"])
 
     # Wait for retained message with timeout
     config_loaded_from_mqtt = False
@@ -417,7 +415,7 @@ def main() -> None:
     while (time.time() - start_time) < config_subscribe_timeout:
         if not message_queue.empty():
             msg = message_queue.get()
-            if msg.topic == mqtt_topics["current_global"]:
+            if msg.topic == mqtt_topics["canonical"]:
                 # Found config message on global current topic
                 try:
                     if isinstance(msg.payload, bytes):
@@ -438,11 +436,11 @@ def main() -> None:
                             f"Loaded {len(local_sensor_manager.sensors)} sensors from MQTT retained message"
                         )
                         config_loaded_from_mqtt = True
-                        # Republish to host-specific topic to ensure it's current
+                        # Republish to host-specific topic
                         publish_local_sensors_config(
                             client,
                             local_sensor_manager.sensors,
-                            mqtt_topics["current_host"],
+                            mqtt_topics["host_specific"],
                         )
                         break  # Exit loop, we got what we needed
                     else:
@@ -462,10 +460,10 @@ def main() -> None:
             # Queue empty, sleep briefly and check again
             time.sleep(0.1)
 
-    # Unsubscribe from global 'current' topic - we only needed the retained message
-    client.unsubscribe(mqtt_topics["current_global"])
+    # Note: We stay subscribed to canonical topic to receive future updates
+    # No unsubscribe needed as we want ongoing updates
     logger.info(
-        f"Unsubscribed from {mqtt_topics['current_global']} (only needed for startup)"
+        f"Continuing to monitor {mqtt_topics['canonical']} for configuration updates"
     )
 
     if not config_loaded_from_mqtt:
@@ -510,11 +508,11 @@ def main() -> None:
                         device,
                     ) in device_registry.devices.items():
                         device.device_name_from_id_set(device_id)
-                    # Publish to host-specific current topic
+                    # Publish to host-specific topic
                     publish_local_sensors_config(
                         client,
                         local_sensor_manager.sensors,
-                        mqtt_topics["current_host"],
+                        mqtt_topics["host_specific"],
                     )
 
             # ################## publish all updated devices  ################### #

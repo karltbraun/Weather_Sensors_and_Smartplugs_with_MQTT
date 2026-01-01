@@ -58,12 +58,12 @@ class MessageManager:
 
         Args:
             local_sensor_manager: Manager for local sensor configurations.
-            config_update_topic: MQTT topic for config updates (optional).
-            config_current_topic: MQTT topic for current config (optional).
+            config_update_topic: MQTT canonical topic for config updates (optional).
+            config_current_topic: Deprecated, no longer used (kept for compatibility).
         """
         self.local_sensor_manager = local_sensor_manager
-        self.config_update_topic = config_update_topic  # Topic for updates (e.g., <root>/sensors/config/local_sensors/update)
-        self.config_current_topic = config_current_topic  # Global current topic (e.g., <root>/sensors/config/local_sensors/current)
+        self.config_update_topic = config_update_topic  # Canonical topic (e.g., <root>/sensors/config/local_sensors)
+        self.config_current_topic = config_current_topic  # Deprecated - no longer used
         self.device_registry = DeviceRegistry()
         self.logger = logging.getLogger(__name__)
 
@@ -85,13 +85,10 @@ class MessageManager:
             topic: MQTT topic string.
 
         Returns:
-            True if topic matches config_update_topic or config_current_topic.
+            True if topic matches the canonical config_update_topic.
         """
         return (
             self.config_update_topic and topic == self.config_update_topic
-        ) or (
-            self.config_current_topic
-            and topic == self.config_current_topic
         )
 
     def handle_config_update_message(self, msg: mqtt.MQTTMessage) -> bool:
@@ -149,9 +146,8 @@ class MessageManager:
         * * some other routine will periodically publish the data in the dictionary under
             new topics
 
-        Enhanced to handle configuration updates on both:
-        - <root>/sensors/config/local_sensors/update (update topic)
-        - <root>/sensors/config/local_sensors/current (global current topic)
+        Enhanced to handle configuration updates on canonical topic:
+        - <root>/sensors/config/local_sensors (canonical source)
 
         Returns:
             dict: Status dictionary with 'config_updated' key if config was updated

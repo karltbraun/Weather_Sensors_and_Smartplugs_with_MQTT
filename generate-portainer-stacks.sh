@@ -76,14 +76,19 @@ generate_stack() {
     
     # Determine network configuration based on mode
     local deployment_scenario
+    local top_level_network_section
     if [[ "$network_mode" == "host" ]]; then
         local network_config="    network_mode: host\n    # networks:\n      # - weather-sensors"
         local network_comment="Host networking enabled\n    #   - 'network_mode: host' is active\n    #   - 'networks:' is commented out\n    # To use bridge networking instead:\n    #   - Comment 'network_mode: host'\n    #   - Uncomment 'networks: - weather-sensors'"
         deployment_scenario="host-networking"
+        # For host networking, comment out the top-level networks section
+        top_level_network_section="# Using host networking mode - no bridge network needed\n# Services connect to localhost to reach MQTT broker on same VM\n\n# networks:\n#   weather-sensors:\n#     driver: bridge\n#     name: weather-sensors-network"
     else
         local network_config="    # network_mode: host\n    networks:\n      - weather-sensors"
         local network_comment="Bridge networking enabled\n    #   - 'networks:' assignment is active\n    #   - 'network_mode: host' is commented out\n    # To use host networking instead:\n    #   - Uncomment 'network_mode: host'\n    #   - Comment 'networks:' assignment"
         deployment_scenario="bridge-networking"
+        # For bridge networking, keep the networks section active
+        top_level_network_section="networks:\n  weather-sensors:\n    driver: bridge\n    name: weather-sensors-network"
     fi
     
     # Deployment comment - no PUB_SOURCE examples in any file
@@ -97,8 +102,10 @@ generate_stack() {
         -v pub_source="$pub_source" \
         -v pub_source_examples="$pub_source_examples" \
         -v deployment_comment="$deployment_comment" \
+        -v top_level_network="$top_level_network_section" \
         '{
             line = $0
+            gsub(/\{\{TOP_LEVEL_NETWORK\}\}/, top_level_network, line)
             gsub(/\{\{NETWORK_CONFIG\}\}/, network_config, line)
             gsub(/\{\{NETWORK_CONFIG_SHELLY\}\}/, network_config, line)
             gsub(/\{\{NETWORK_CONFIG_COMMENT\}\}/, network_comment, line)
@@ -205,16 +212,16 @@ main() {
                 generate_stack "$pub_src" "$custom_network_mode" "${SCRIPT_DIR}/portainer-stack-${lowercase_source}.yml"
                 ;;
             ROSA)
-                # ROSA uses host networking
+                # ROSA uses host networking (MQTT broker is a host service)
                 generate_stack "ROSA" "host" "${SCRIPT_DIR}/portainer-stack-rosa.yml"
                 ;;
             TWIX)
-                # TWIX uses host networking
+                # TWIX uses host networking (MQTT broker is a host service)
                 generate_stack "TWIX" "host" "${SCRIPT_DIR}/portainer-stack-twix.yml"
                 ;;
             VULTR2)
-                # VULTR2 uses host networking
-                generate_stack "VULTR2" "host" "${SCRIPT_DIR}/portainer-stack-vultr2.yml"
+                # VULTR2 uses bridge networking (MQTT broker is also a container on same VM)
+                generate_stack "VULTR2" "bridge" "${SCRIPT_DIR}/portainer-stack-vultr2.yml"
                 ;;
         esac
     done

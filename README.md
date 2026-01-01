@@ -99,7 +99,7 @@ CLEAR_LOG_FILE=True                 # Clear logs on startup
 PUBLISH_INTERVAL_MAX=300            # Max seconds between republishing
 
 # Configuration Update Topics
-MQTT_TOPIC_LOCAL_SENSORS_UPDATES=KTBMES/sensors/config/local_sensors/update
+MQTT_TOPIC_LOCAL_SENSORS=KTBMES/sensors/config/local_sensors
 CONFIG_SUBSCRIBE_TIMEOUT=10         # Timeout for startup config subscription
 
 # Backup Settings
@@ -162,7 +162,7 @@ docker-compose up -d
 ```bash
 # Using mosquitto_pub
 mosquitto_pub -h your-broker \
-  -t "KTBMES/sensors/config/local_sensors/update" \
+  -t "KTBMES/sensors/config/local_sensors" \
   -m '{
     "12345": {
       "sensor_name": "Kitchen",
@@ -304,13 +304,13 @@ Payload: {
 
 **Update Topic** (subscribe):
 ```
-KTBMES/sensors/config/local_sensors/update
+KTBMES/sensors/config/local_sensors
 ```
 
 **Current Config Topic** (publish, retained):
 ```
-KTBMES/Mu/sensors/config/local_sensors/current
-KTBMES/ROSA/sensors/config/local_sensors/current
+KTBMES/Mu/sensors/config/local_sensors
+KTBMES/ROSA/sensors/config/local_sensors
 ```
 
 See [QUICK_REFERENCE.md](QUICK_REFERENCE.md) for complete topic documentation.

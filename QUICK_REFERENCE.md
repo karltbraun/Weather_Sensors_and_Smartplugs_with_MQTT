@@ -367,7 +367,7 @@ python republish_processed_sensors_main.py
 ### Configuration Not Updating
 ```bash
 # 1. Check MQTT topic is correct
-echo $MQTT_TOPIC_LOCAL_SENSORS_UPDATES
+echo $MQTT_TOPIC_LOCAL_SENSORS
 
 # 2. Verify config file permissions
 docker exec <container_name> ls -la config/
@@ -380,7 +380,7 @@ docker logs -f <container_name>
 
 # 5. Manually trigger config update
 mosquitto_pub -h $MQTT_BROKER \
-  -t "KTBMES/sensors/config/local_sensors/update" \
+  -t "KTBMES/sensors/config/local_sensors" \
   -m '{"12345":{"sensor_name":"Test","id_sensor_name":"test","comment":"test"}}'
 ```
 
@@ -434,8 +434,8 @@ The system supports dynamic updates to local sensor configurations through MQTT 
 ### Configuration
 ```bash
 # Environment variables (required)
-MQTT_TOPIC_LOCAL_SENSORS_UPDATES="KTBMES/sensors/config/local_sensors/update"  # Note: singular 'update'
-MQTT_TOPIC_LOCAL_SENSORS_CURRENT="KTBMES/sensors/config/local_sensors/current"  # Not directly set, derived from PUB_TOPIC_ROOT
+MQTT_TOPIC_LOCAL_SENSORS="KTBMES/sensors/config/local_sensors"  # Note: singular 'update'
+MQTT_TOPIC_LOCAL_SENSORS="KTBMES/sensors/config/local_sensors"  # Canonical configuration topic
 CONFIG_SUBSCRIBE_TIMEOUT=10  # Timeout in seconds for startup config subscription
 
 # Backup retention settings (optional, defaults shown)
@@ -451,47 +451,47 @@ BACKUP_RETENTION_DAYS=30
 
 **Update Topic** (Global - Subscribe):
 ```
-<root>/sensors/config/local_sensors/update
+<root>/sensors/config/local_sensors
 ```
 - **Purpose**: Receive configuration updates from external sources
 - **Direction**: Subscribe only
-- **Default**: `KTBMES/sensors/config/local_sensors/update`
+- **Default**: `KTBMES/sensors/config/local_sensors`
 - **Usage**: Publish sensor configuration updates to this topic to update all listening services
 - **Retained**: No (updates are processed once when received)
 
 **Global Current Topic** (Subscribe at startup):
 ```
-<root>/sensors/config/local_sensors/current
+<root>/sensors/config/local_sensors
 ```
 - **Purpose**: Retrieve last known configuration at service startup
 - **Direction**: Subscribe (temporary, at startup only)
-- **Default**: `KTBMES/sensors/config/local_sensors/current`
+- **Default**: `KTBMES/sensors/config/local_sensors`
 - **Usage**: Service subscribes briefly at startup, unsubscribes after receiving retained message or timeout
 - **Retained**: Yes (last configuration persisted on broker)
 - **Timeout**: Controlled by `CONFIG_SUBSCRIBE_TIMEOUT` (default: 10 seconds)
 
 **Host-Specific Current Topic** (Publish):
 ```
-<root>/<host>/sensors/config/local_sensors/current
+<root>/<host>/sensors/config/local_sensors
 ```
 - **Purpose**: Publish current configuration from this specific host
 - **Direction**: Publish only (with retain=True)
-- **Example**: `KTBMES/ROSA/sensors/config/local_sensors/current`
+- **Example**: `KTBMES/ROSA/sensors/config/local_sensors`
 - **Usage**: Each host publishes its active config here after startup and after any updates
 - **Retained**: Yes (persists on broker for monitoring and debugging)
 
 **Topic Examples**:
 ```bash
 # Update topic (all hosts subscribe)
-KTBMES/sensors/config/local_sensors/update
+KTBMES/sensors/config/local_sensors
 
 # Global current (startup sync)
-KTBMES/sensors/config/local_sensors/current
+KTBMES/sensors/config/local_sensors
 
 # Host-specific current (each host publishes)
-KTBMES/ROSA/sensors/config/local_sensors/current
-KTBMES/TWIX/sensors/config/local_sensors/current
-KTBMES/VULTR2/sensors/config/local_sensors/current
+KTBMES/ROSA/sensors/config/local_sensors
+KTBMES/TWIX/sensors/config/local_sensors
+KTBMES/VULTR2/sensors/config/local_sensors
 ```
 
 ### Configuration Flow
@@ -500,26 +500,26 @@ KTBMES/VULTR2/sensors/config/local_sensors/current
 ```
 1. Load initial config from config/local_sensors.json file
 2. Connect to MQTT broker
-3. Subscribe to <root>/sensors/config/local_sensors/current (global retained)
+3. Subscribe to <root>/sensors/config/local_sensors (global retained)
 4. Wait CONFIG_SUBSCRIBE_TIMEOUT seconds for retained config message
 5. If received and valid:
    - Update in-memory configuration
    - Write to config/local_sensors.json
    - Create backup of previous config
-6. Publish current config to <root>/<host>/sensors/config/local_sensors/current (retained)
+6. Publish current config to <root>/<host>/sensors/config/local_sensors (retained)
 7. Unsubscribe from global current topic
-8. Subscribe to <root>/sensors/config/local_sensors/update for runtime updates
+8. Subscribe to <root>/sensors/config/local_sensors for runtime updates
 9. Continue normal operation
 ```
 
 #### 2. Runtime Updates (via /update topic)
 ```
-1. Receive message on <root>/sensors/config/local_sensors/update
+1. Receive message on <root>/sensors/config/local_sensors
 2. Validate JSON payload structure
 3. Create timestamped backup of current config/local_sensors.json
 4. Update in-memory configuration (complete replacement)
 5. Write new config to config/local_sensors.json file
-6. Publish updated config to <root>/<host>/sensors/config/local_sensors/current (retained)
+6. Publish updated config to <root>/<host>/sensors/config/local_sensors (retained)
 7. Refresh device names in device registry
 8. Continue processing with new configuration
 ```
@@ -589,7 +589,7 @@ The system always performs a complete replacement of the sensor configuration:
 ```bash
 # Using mosquitto_pub to update all sensors
 mosquitto_pub -h your-mqtt-broker -p 1883 \
-  -t "KTBMES/sensors/config/local_sensors/update" \
+  -t "KTBMES/sensors/config/local_sensors" \
   -m '{
     "12345": {
       "sensor_name": "Living Room Temp",
@@ -614,7 +614,7 @@ mosquitto_pub -h your-mqtt-broker -p 1883 \
 # WARNING: This replaces entire config, not just adding
 # Include ALL existing sensors plus the new one
 mosquitto_pub -h your-mqtt-broker -p 1883 \
-  -t "KTBMES/sensors/config/local_sensors/update" \
+  -t "KTBMES/sensors/config/local_sensors" \
   -m '{
     "12345": {"sensor_name": "Living Room", "id_sensor_name": "living_room", "comment": "Existing"},
     "67890": {"sensor_name": "Outdoor", "id_sensor_name": "outdoor", "comment": "Existing"},
@@ -626,7 +626,7 @@ mosquitto_pub -h your-mqtt-broker -p 1883 \
 ```bash
 # This will REMOVE all sensors except the one specified
 mosquitto_pub -h your-mqtt-broker -p 1883 \
-  -t "KTBMES/sensors/config/local_sensors/update" \
+  -t "KTBMES/sensors/config/local_sensors" \
   -m '{
     "12345": {
       "sensor_name": "Only Sensor",
@@ -656,7 +656,7 @@ sensors = {
 }
 
 publish.single(
-    topic="KTBMES/sensors/config/local_sensors/update",
+    topic="KTBMES/sensors/config/local_sensors",
     payload=json.dumps(sensors),
     hostname="your-mqtt-broker",
     port=1883
@@ -667,18 +667,18 @@ publish.single(
 ```bash
 # Subscribe to host-specific current topic to see active config
 mosquitto_sub -h your-mqtt-broker -p 1883 \
-  -t "KTBMES/ROSA/sensors/config/local_sensors/current" \
+  -t "KTBMES/ROSA/sensors/config/local_sensors" \
   -v
 
 # Or subscribe to all host configurations
 mosquitto_sub -h your-mqtt-broker -p 1883 \
-  -t "KTBMES/+/sensors/config/local_sensors/current" \
+  -t "KTBMES/+/sensors/config/local_sensors" \
   -v
 ```
 
 ### Using MQTT Explorer
 1. Connect to your MQTT broker
-2. Navigate to the updates topic: `KTBMES/sensors/config/local_sensors/updates`
+2. Navigate to the updates topic: `KTBMES/sensors/config/local_sensorss`
 3. Publish a JSON payload with the complete sensor configuration
 4. The system will process the update and publish the new config to the 'current' topic
 5. Check container logs for confirmation
@@ -742,7 +742,7 @@ Error: Failed to write config file: Permission denied
 # In logs
 INFO: Config update successful: Updated 3 sensors
 INFO: Created backup: config/local_sensors.json.backup.20241230_143022
-INFO: Published current config to KTBMES/ROSA/sensors/config/local_sensors/current
+INFO: Published current config to KTBMES/ROSA/sensors/config/local_sensors
 ```
 
 ### Testing the Configuration
@@ -765,7 +765,7 @@ INFO: Published current config to KTBMES/ROSA/sensors/config/local_sensors/curre
 ### Troubleshooting
 
 **Common Issues**:
-- **Topic not configured**: Ensure `MQTT_TOPIC_LOCAL_SENSORS_UPDATES` environment variable is set
+- **Topic not configured**: Ensure `MQTT_TOPIC_LOCAL_SENSORS` environment variable is set
 - **Invalid JSON**: Validate payload syntax before publishing
 - **Permission errors**: Check container file system permissions
 - **Network issues**: Verify MQTT broker connectivity

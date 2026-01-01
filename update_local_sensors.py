@@ -20,12 +20,12 @@ import sys
 import paho.mqtt.client as mqtt
 from dotenv import load_dotenv
 
-DEFAULT_INPUT_FILE = "./local_sensors_update.json"
+DEFAULT_INPUT_FILE = "./config_update/local_sensors_update.json"
 MQTT_BROKER = os.getenv("MQTT_BROKER", "vultr2")
 MQTT_PORT = int(os.getenv("MQTT_PORT", "1883"))
 MQTT_TOPIC = os.getenv(
-    "MQTT_TOPIC_LOCAL_SENSORS_UPDATES",
-    "KTBMES/sensors/config/local_sensors/updates",
+    "MQTT_TOPIC_LOCAL_SENSORS",
+    "KTBMES/sensors/config/local_sensors",
 )
 
 
@@ -50,6 +50,7 @@ def main():
     # determine input file
     input_file = get_input_file()
     try:
+        print(f"Reading sensor configuration from {input_file}...")
         with open(input_file, "r", encoding="utf-8") as f:
             payload = json.load(f)
     except Exception as e:

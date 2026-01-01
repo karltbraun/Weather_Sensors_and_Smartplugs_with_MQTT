@@ -5,8 +5,8 @@
 # =============================================================================
 # Configuration:
 #   PUB_SOURCE: VULTR2
-#   Network Mode: host
-#   DEPLOYMENT_SCENARIO: host-networking
+#   Network Mode: bridge
+#   DEPLOYMENT_SCENARIO: bridge-networking
 # =============================================================================
 
 # Weather Sensors MQTT Stack for Portainer - TEMPLATE
@@ -53,16 +53,16 @@ services:
     restart: on-failure:3
     ###############################################################################
     # NETWORK CONFIGURATION
-    # Host networking enabled
-    #   - 'network_mode: host' is active
-    #   - 'networks:' is commented out
-    # To use bridge networking instead:
-    #   - Comment 'network_mode: host'
-    #   - Uncomment 'networks: - weather-sensors'
+    # Bridge networking enabled
+    #   - 'networks:' assignment is active
+    #   - 'network_mode: host' is commented out
+    # To use host networking instead:
+    #   - Uncomment 'network_mode: host'
+    #   - Comment 'networks:' assignment
     ###############################################################################
-    network_mode: host
-    # networks:
-      # - weather-sensors
+    # network_mode: host
+    networks:
+      - weather-sensors
     volumes:
       - sensor-data:/app/data
       - sensor-logs:/app/logs
@@ -72,10 +72,10 @@ services:
     # Configuration for VULTR2
     #  BROKER_NAME=n-vultr2
     #  PUB_SOURCE=VULTR2
-    #  network_mode=host
+    #  network_mode=bridge
     ###############################################################################
     environment:
-      - DEPLOYMENT_SCENARIO=host-networking
+      - DEPLOYMENT_SCENARIO=bridge-networking
       - PUB_SOURCE=VULTR2
       # PUB_SOURCE is set to VULTR2 for this deployment
       - BROKER_NAME=n-vultr2
@@ -87,9 +87,8 @@ services:
       - CLEAR_LOG_FILE=true
       - MQTT_CONFIG_INFO={}
       - PUB_TOPIC_ROOT=KTBMES
-      - SUB_TOPICS_REPUBLISH=+/sensors/raw/#,KTBMES/sensors/config/local_sensors/update
-      - MQTT_TOPIC_LOCAL_SENSORS_UPDATES=KTBMES/sensors/config/local_sensors/update
-      - MQTT_TOPIC_LOCAL_SENSORS_CURRENT=KTBMES/sensors/config/local_sensors/current
+      - SUB_TOPICS_REPUBLISH=+/sensors/raw/#,KTBMES/sensors/config/local_sensors
+      - MQTT_TOPIC_LOCAL_SENSORS=KTBMES/sensors/config/local_sensors
       - CONFIG_SUBSCRIBE_TIMEOUT=10
       - MAX_BACKUPS=10
       - BACKUP_RETENTION_DAYS=30
@@ -126,16 +125,16 @@ services:
     restart: on-failure:3
     ###############################################################################
     # NETWORK CONFIGURATION
-    # Host networking enabled
-    #   - 'network_mode: host' is active
-    #   - 'networks:' is commented out
-    # To use bridge networking instead:
-    #   - Comment 'network_mode: host'
-    #   - Uncomment 'networks: - weather-sensors'
+    # Bridge networking enabled
+    #   - 'networks:' assignment is active
+    #   - 'network_mode: host' is commented out
+    # To use host networking instead:
+    #   - Uncomment 'network_mode: host'
+    #   - Comment 'networks:' assignment
     ###############################################################################
-    network_mode: host
-    # networks:
-      # - weather-sensors
+    # network_mode: host
+    networks:
+      - weather-sensors
     volumes:
       - sensor-data:/app/data
       - sensor-logs:/app/logs
@@ -145,10 +144,10 @@ services:
     # Configuration for VULTR2
     #  BROKER_NAME=n-vultr2
     #  PUB_SOURCE=VULTR2
-    #  network_mode=host
+    #  network_mode=bridge
     ###############################################################################
     environment:
-      - DEPLOYMENT_SCENARIO=host-networking
+      - DEPLOYMENT_SCENARIO=bridge-networking
       - PUB_SOURCE=VULTR2
       - BROKER_NAME=n-vultr2
       - TZ=America/Los_Angeles

@@ -23,10 +23,13 @@
 # NETWORK CONFIGURATION
 ###############################################################################
 
-networks:
-  weather-sensors:
-    driver: bridge
-    name: weather-sensors-network
+# Using host networking mode - no bridge network needed
+# Services connect to localhost to reach MQTT broker on same VM
+
+# networks:
+#   weather-sensors:
+#     driver: bridge
+#     name: weather-sensors-network
 
 volumes:
   sensor-data:
@@ -87,9 +90,8 @@ services:
       - CLEAR_LOG_FILE=true
       - MQTT_CONFIG_INFO={}
       - PUB_TOPIC_ROOT=KTBMES
-      - SUB_TOPICS_REPUBLISH=+/sensors/raw/#,KTBMES/sensors/config/local_sensors/update
-      - MQTT_TOPIC_LOCAL_SENSORS_UPDATES=KTBMES/sensors/config/local_sensors/update
-      - MQTT_TOPIC_LOCAL_SENSORS_CURRENT=KTBMES/sensors/config/local_sensors/current
+      - SUB_TOPICS_REPUBLISH=+/sensors/raw/#,KTBMES/sensors/config/local_sensors
+      - MQTT_TOPIC_LOCAL_SENSORS=KTBMES/sensors/config/local_sensors
       - CONFIG_SUBSCRIBE_TIMEOUT=10
       - MAX_BACKUPS=10
       - BACKUP_RETENTION_DAYS=30
