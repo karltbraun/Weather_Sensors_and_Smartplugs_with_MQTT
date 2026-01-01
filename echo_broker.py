@@ -1,24 +1,29 @@
-"""
-republish_processed_sensors_main.py - 20241119
+"""echo_broker.py - Diagnostic tool for MQTT broker connectivity and message flow.
 
-main entry point for the code to consume flat MQTT messages about sensors and
-republish them as devices with json payloads.
+This script is a testing/diagnostic utility that echoes MQTT messages back to the broker.
+It subscribes to specified topics, logs all received messages, and optionally republishes
+them to help verify broker connectivity and message flow.
 
-This script subscribes to raw sensor data from an MQTT broker.
-The raw data consists of attributes published in their own subtopics for each device,
-e.g., KTBMES/raw/1234/temperature_C, KTBMES/raw/1234/channel, KTBMES/raw/1234/noise, etc.
+Key Features:
+    - Subscribe to any MQTT topic pattern
+    - Echo received messages to console with detailed logging
+    - Optionally republish messages to test topics
+    - Broker connection diagnostics
+    - Message queue monitoring
 
-The script collects attributes for each device (identified by device ID) and stores them
-in a dictionary indexed by the device ID. The value includes the time the data was last
-received, the protocol_id (which indicates how to parse the rest of the data),
-and the rest of the data as a sub-dictionary.
+Environment Variables:
+    PUB_SOURCE: Publishing host identifier (default: hostname)
+    PUB_TOPIC_ROOT: Root topic for publishing (required)
+    SUB_TOPICS_REPUBLISH: Comma-separated subscription topics
+    CONSOLE_LOG_LEVEL: Console logging level (default: DEBUG)
+    FILE_LOG_LEVEL: File logging level (default: DEBUG)
 
-Periodically, the dictionary of devices is written to a JSON file for further use.
-At startup, if the JSON file exists, it initializes the dictionary with the data from the file.
+Usage:
+    python echo_broker.py
 
-The script handles known temperature sensors and other discovered devices, analyzing their data
-for potential use. The JSON file can be used to either republish the data to a new topic or
-display it on a web page.
+Author: ktb
+Date: 2024-11-19
+Updated: 2024-12-31
 """
 
 
@@ -65,8 +70,8 @@ from src.utils.logger_setup import logger_setup
 # utility functions
 from src.utils.misc_utils import (  # get_pub_topic_root,
     get_logging_levels,
-    get_pub_topic_root,
     get_pub_source,
+    get_pub_topic_root,
     get_publish_interval_max,
     get_sub_topics,
 )
