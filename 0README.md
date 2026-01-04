@@ -32,7 +32,7 @@ So in my setup, the "enterprise" is just the root of my namespace (or topic root
 
 ## Data Flow
 
-There are two sources of raw data:  Basic consumer-grade weather sensors that transmit data using the 433 MHz ISM band, and Shelly smart plugs that report their status and power usage over WiFi.
+There are two sources of raw data:  Basic consumer-grade weather sensors that transmit data using the 433 MHz band, and Shelly smart plugs that report their status and power usage over WiFi.
 
 ### Weather Sensors
 
@@ -58,6 +58,8 @@ where '<attribute>' is usually one of:
 - temperature (Celsius or Fahrenheit, depending on the model)
 - time (timestamp of the reading)
 
+the device_id is usually set by the device (not configurable) and is included in the json but also used as part of the topic structure.
+
 #### Processing Raw Sensor Data
 
 I wrote some Python scripts that subscribe to the raw sensor data topics (eg: Pi1/sensors/raw/#), aggregate the individual attributes into an object representing each device (by device_id), and periodically republish the aggregated device data to a new topic in my own name space, KTBMES.  The republished topic structure looks like this:
@@ -70,10 +72,10 @@ What this gives me is a topic per device in the name space.  The '<host>' is the
 
 #### Separating 'local' sensors vs others
 
-The unfiltered collection of data from 433 MHz devices produces an interesting challenge: the RTL system picks up not only my own sensors, but also those of my neighbors.  In addition, it picks up *anything* transmitting on that frequency, which can include various non-weather related devices, such as: 
+The unfiltered collection of data from 433 MHz devices produces an interesting challenge: the RTL system picks up not only my own sensors, but also those of my neighbors.  In addition, it picks up *anything* transmitting on that frequency, which can include various non-weather related devices, such as:
 
-- Tire pressure sensors, 
-- Security system equipment (eg: Simply Safe), 
+- Tire pressure sensors,
+- Security system equipment (eg: Simply Safe),
 - Automated gate keyfobs,
 - etc.
 
@@ -87,6 +89,7 @@ The final result of the topic structure then looks like this:
 
 ``` text
 KTBMES/<host>/sensors/house_weather_sensors/<device_name>
+KTBMES/<host>/sensors/other_weather_sensors/<device_name>
 KTBMES/<host>/sensors/other_pressure_sensors/<device_name>
 etc.
 ```
@@ -99,7 +102,7 @@ After everything was running properly on my development machine, I containerized
 
 #### Maintaining Local Device Lists
 
-After the project was containerized, I ran into a problem with maintaining the list of local device IDs and friendly names. This led to something I wanted to experiment with anyway: using a dynamic configuration.  Initially the python scripts would periodically re-read in the json file containing this information; after containerization, this was placed in a mounted volume.  But updates were still klunky.  
+After the project was containerized, I ran into a problem with maintaining the list of local device IDs and friendly names. This led to something I wanted to experiment with anyway: using a dynamic configuration.  Initially the python scripts would periodically re-read in the json file containing this information; after containerization, this was placed in a mounted volume.  Updates required modifying the json file, but modifying that either required logging into the container or rebuilding the container with an updated file. Not very efficient.
 
 I then modified the system so that the local sensors were published to their own name space, and any updates to that would cause an update to the running config for local_sensors.  The topic for this is: 
 
@@ -153,7 +156,7 @@ At the moment I'm only using Node-RED dashboards to visualize this.  If the Node
 
 That's the basic setup! This has been a fun project to learn about UNS architecture and MQTT patterns. Feel free to reach out if you have questions or want to chat about the design decisions I made.
 
-## A Word about ...
+## A Word about the development process
 
 Most of this was vibe-coded.  
 
