@@ -2,13 +2,23 @@
 
 A Python-based MQTT processing system for aggregating RTL-433 sensor data and Shelly smart plug readings into structured JSON payloads. Supports dynamic configuration updates via MQTT and flexible deployment across multiple hosts.
 
+These are really two separate projects, but they use a common set of python scripts (which I have yet to package into a library).
+
+The first project processes RTL-433 sensor data published to MQTT as flat topics (one topic per attribute) and republishes them as JSON device records, aggregating multiple attributes per device. 
+
+The second project processes Shelly smart plug data, flattening the JSON payloads and republishing individual attributes to flat MQTT topics with room associations.
+
+See the [MQTT Topics](#mqtt-topics) section below for detailed information on topic structure and conventions. This will clarify some of the environment variables defined below.
+
 ## 🚀 Features
 
 - **RTL-433 Sensor Processing**: Aggregates individual sensor attributes into unified device records
 - **Shelly Smart Plug Integration**: Processes and republishes smart plug data with room associations
 - **Dynamic Configuration**: Update sensor definitions via MQTT without restarts
-- **Multi-Host Deployment**: Support for home lab and cloud VM deployments
-- **Protocol Management**: Automatic protocol identification and categorization
+- **Multi-Host Deployment**: Support for deployments via 
+  - (1) hosts separate from the MQTT Broker host ("home-lab") and 
+  - (2) deployments on the same cloud-hosted VM as the MQTT Broker ("vultr-vm")
+- **Protocol Management**: Automatic RTL-433 device protocol identification and categorization
 - **Flexible Networking**: Bridge and host network modes for different deployment scenarios
 - **Comprehensive Logging**: Configurable logging levels for console and file output
 - **Docker Ready**: Containerized deployment with Portainer stack support
@@ -46,6 +56,8 @@ See [requirements.txt](requirements.txt) for exact versions.
 
 ### Local Development
 
+#### Standard pip setup
+
 ```bash
 # Clone the repository
 git clone https://github.com/karltbraun/Weather_Sensors_and_Smartplugs_with_MQTT.git
@@ -57,6 +69,30 @@ source .venv/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt
+
+# Copy environment template
+cp .env.template .env
+# Edit .env with your configuration
+```
+
+#### uv environment management setup
+
+[uv](https://docs.astral.sh/uv/) is a fast Python package installer and environment manager. It's recommended for faster dependency installation.
+
+```bash
+# Install uv (if not already installed)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Clone the repository
+git clone https://github.com/karltbraun/Weather_Sensors_and_Smartplugs_with_MQTT.git
+cd Weather_Sensors_and_Smartplugs_with_MQTT
+
+# Create virtual environment and install dependencies
+uv venv --python 3.12
+source .venv/bin/activate
+
+# Install dependencies with uv
+uv pip install -r requirements.txt
 
 # Copy environment template
 cp .env.template .env
@@ -275,6 +311,30 @@ See [PORTAINER_STACKS.md](PORTAINER_STACKS.md) for detailed documentation.
 
 ## 📡 MQTT Topics
 
+### Topic Structure and Conventions
+
+#### RTL-433 Topic Structure Breakdown
+- **Base Topic**: `KTBMES/raw/`
+- **Device ID**: Unique identifier for each sensor (e.g., `12345`)
+- **Attributes**: Sensor data attributes (e.g., `temperature_C`, `humidity`)
+
+#### Shelly Topic Structure Breakdown
+- **Base Topic**: `shellies/`
+- **Device ID**: Unique identifier for each Shelly device
+- **Attributes**: Flattened JSON attributes (e.g., `power`, `energy`)
+
+#### PUB_TOPIC_ROOT Usage
+- All published topics share a common root defined by `PUB_TOPIC_ROOT`
+- Example: If `PUB_TOPIC_ROOT=KTBMES`, the full topic for a device would be `KTBMES/devices/12345`
+
+#### PUB_SOURCE Identifier Usage
+- `PUB_SOURCE` is used to distinguish messages from different hosts
+- Appears in the topic hierarchy, e.g., `KTBMES/Mu/sensors/config/local_sensors`
+
+#### Topic Hierarchy Explanation
+- Topics are hierarchical, using slashes (`/`) to separate levels
+- Example: `KTBMES/raw/12345/temperature_C` indicates the temperature_C attribute of the device with ID 12345
+
 ### RTL-433 Sensor Topics
 
 **Subscribe** (input - flat attributes):
@@ -298,6 +358,20 @@ Payload: {
   "protocol_name": "Acurite-606TX",
   "time_last_seen_iso": "2024-12-30T10:30:00"
 }
+```
+
+### Shelly Device Topics
+
+**Subscribe** (input - JSON payloads):
+```
+shellies/1234567890
+```
+
+**Publish** (output - flat attributes):
+```
+KTBMES/shelly/1234567890/power
+KTBMES/shelly/1234567890/energy
+KTBMES/shelly/1234567890/temperature
 ```
 
 ### Configuration Topics
