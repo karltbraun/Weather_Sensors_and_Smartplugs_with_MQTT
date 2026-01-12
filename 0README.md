@@ -30,6 +30,26 @@ and you can extend it with more granular data sources as needed.  Like, a PLC in
 
 So in my setup, the "enterprise" is just the root of my namespace (or topic root).  I use KTBMES as this root.  I'll get into the specifics of this namespace below.
 
+### A Problem with the Name Space
+
+These two areas - weather and smart plugs - were initially developed separately.  It is only when I started developing common MQTT modules - and before I really understood how to develop python packages - that I combined them into a single repository.  At that point, I was interested in developing node-red dashboards for both of these and stopped working on properly modularizing the code.
+
+As a result the UNS namespace is a bit inconsistent between the two data sources.  
+
+The weather sensor data is organized under:
+
+```text
+<ROOT>/<host>/sensors/... (the subtopics are desribed elsewhere)
+```
+
+The smart plug data is organized under:
+
+```text
+<ROOT>/<host>/<room>/smartplugs/... (the subtopics are likewise desribed elsewhere)
+```
+
+Note that the room names in each of these sub-namespaces are not consistent.  While this is fine at one level, ideally there should be a consistent place where you can go for data from a specific room, whether it is energy usage or environmental data.  That will be addressed in a future release.  The problems with this inconsistency came to light when I started to work on an MCP server to go along with this, and realized how much better things would be to go with location-based data retrieval.
+
 ## Data Flow
 
 There are two sources of raw data:  Basic consumer-grade weather sensors that transmit data using the 433 MHz band, and Shelly smart plugs that report their status and power usage over WiFi.
@@ -46,7 +66,7 @@ The RTL_433 software knows how to decode a variety of devices, based on a common
 Pi1/sensors/raw/<device_id>/<attribute>
 ```
 
-where '<attribute>' is usually one of:
+where '\<attribute>' is usually one of:
 
 - battery_ok
 - button
