@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/karl/Development/KTB/Weather_Sensors_and_Smartplugs_with_MQTT/**)",
+      "Bash(sort -k2 -n)"
+    ]
+  }
+}

@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shelly Smart Plug Dashboard — 2026-04-02</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
+      background: #0f1117;
+      color: #e2e8f0;
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    /* ── Header ── */
+    .page-header {
+      border-bottom: 1px solid #2d3748;
+      padding-bottom: 16px;
+      margin-bottom: 24px;
+    }
+    .page-header h1 { font-size: 1.4rem; font-weight: 600; letter-spacing: 0.02em; color: #f7fafc; }
+    .page-header .meta { font-size: 0.78rem; color: #718096; margin-top: 4px; }
+    .page-header .meta span { margin-right: 20px; }
+
+    /* ── Alert banner ── */
+    .alert {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: #2d1a0e;
+      border: 1px solid #c05621;
+      border-left: 4px solid #dd6b20;
+      border-radius: 6px;
+      padding: 12px 16px;
+      margin-bottom: 24px;
+      font-size: 0.83rem;
+      line-height: 1.5;
+    }
+    .alert .alert-icon { font-size: 1.1rem; margin-top: 1px; flex-shrink: 0; }
+    .alert strong { color: #fbd38d; display: block; margin-bottom: 2px; }
+
+    /* ── Section label ── */
+    .section-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #718096;
+      margin-bottom: 12px;
+      margin-top: 28px;
+    }
+
+    /* ── Status cards ── */
+    .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    @media (max-width: 800px) { .cards { grid-template-columns: 1fr; } }
+
+    .card {
+      background: #1a202c;
+      border: 1px solid #2d3748;
+      border-radius: 10px;
+      padding: 18px 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+    }
+    .card.on::before  { background: #38a169; }
+    .card.off::before { background: #4a5568; }
+    .card.warn::before { background: #dd6b20; }
+
+    .card-location {
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #718096;
+      margin-bottom: 4px;
+    }
+    .card-name { font-size: 1.1rem; font-weight: 700; color: #f7fafc; margin-bottom: 14px; }
+
+    .card-state {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 3px 9px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+    }
+    .state-on  { background: #1c4532; color: #68d391; border: 1px solid #276749; }
+    .state-off { background: #2d3748; color: #a0aec0; border: 1px solid #4a5568; }
+
+    .dot { width: 7px; height: 7px; border-radius: 50%; }
+    .dot-on  { background: #68d391; box-shadow: 0 0 6px #68d391; }
+    .dot-off { background: #4a5568; }
+
+    .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .metric label {
+      font-size: 0.68rem;
+      color: #718096;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      display: block;
+      margin-bottom: 2px;
+    }
+    .metric .value { font-size: 1.25rem; font-weight: 700; color: #e2e8f0; }
+    .metric .unit  { font-size: 0.72rem; color: #718096; margin-left: 2px; }
+
+    .power-value { color: #63b3ed; }
+    .temp-value  { color: #fc8181; }
+    .energy-value { font-size: 1rem !important; }
+
+    .card-mac { font-size: 0.65rem; color: #4a5568; margin-top: 14px; font-family: monospace; }
+
+    /* ── Charts grid ── */
+    .charts-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; }
+    @media (max-width: 1000px) { .charts-grid { grid-template-columns: 1fr; } }
+
+    .chart-box {
+      background: #1a202c;
+      border: 1px solid #2d3748;
+      border-radius: 10px;
+      padding: 20px;
+    }
+    .chart-box h3 {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: #a0aec0;
+      margin-bottom: 4px;
+    }
+    .chart-box .chart-sub {
+      font-size: 0.7rem;
+      color: #4a5568;
+      margin-bottom: 14px;
+    }
+    .chart-box canvas { width: 100% !important; }
+
+    /* ── Energy totals bar ── */
+    .energy-bars { display: flex; flex-direction: column; gap: 14px; }
+    .energy-row label {
+      font-size: 0.75rem;
+      color: #a0aec0;
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 5px;
+    }
+    .energy-row label span { color: #e2e8f0; font-weight: 600; }
+    .bar-track {
+      height: 10px;
+      background: #2d3748;
+      border-radius: 5px;
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      border-radius: 5px;
+      transition: width 0.3s ease;
+    }
+    .bar-ev   { background: linear-gradient(90deg, #553c9a, #6b46c1); }
+    .bar-prod { background: linear-gradient(90deg, #2b6cb0, #4299e1); }
+    .bar-lab  { background: linear-gradient(90deg, #276749, #38a169); }
+
+    /* ── Minute energy table ── */
+    .minute-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin-top: 8px; }
+    .minute-table th {
+      text-align: left;
+      font-weight: 600;
+      color: #718096;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 0 8px 8px 0;
+      border-bottom: 1px solid #2d3748;
+    }
+    .minute-table td {
+      padding: 8px 8px 0 0;
+      color: #e2e8f0;
+      vertical-align: top;
+    }
+    .minute-table td:last-child { color: #a0aec0; font-size: 0.75rem; }
+    .mwh { color: #718096; font-size: 0.72rem; }
+
+    /* ── Source tag ── */
+    .source-tag {
+      display: inline-block;
+      font-size: 0.65rem;
+      font-family: monospace;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-top: 10px;
+    }
+    .source-button    { background: #1a365d; color: #90cdf4; border: 1px solid #2c5282; }
+    .source-overvolt  { background: #2d1a0e; color: #fbd38d; border: 1px solid #c05621; }
+    .source-loopback  { background: #1a202c; color: #718096; border: 1px solid #2d3748; }
+
+    /* ── Footer ── */
+    .footer {
+      margin-top: 32px;
+      padding-top: 16px;
+      border-top: 1px solid #2d3748;
+      font-size: 0.7rem;
+      color: #4a5568;
+      display: flex;
+      justify-content: space-between;
+    }
+  </style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>Shelly Smart Plug Dashboard</h1>
+  <div class="meta">
+    <span>Snapshot: 2026-04-02 13:07–13:11 UTC</span>
+    <span>Broker: vultr2:1883</span>
+    <span>Topic: KTBMES/TWIX/+/smartplugs/#</span>
+    <span>Static — based on observed data</span>
+  </div>
+</div>
+
+<!-- Alert -->
+<div class="alert">
+  <div class="alert-icon">⚠</div>
+  <div>
+    <strong>Shelly_Lab_01 — Overvoltage event detected</strong>
+    Every status event carries <code>source = overvoltage_clear</code>, indicating the plug tripped its overvoltage protection and has not reset its event state. Line voltage currently reads ~124.2 V (normal). The spike was likely transient. Recommend power-cycling the plug to reset; monitor for recurrence.
+  </div>
+</div>
+
+<!-- Status cards -->
+<div class="section-label">Live Status</div>
+<div class="cards">
+
+  <div class="card on">
+    <div class="card-location">Office</div>
+    <div class="card-name">Shelly_Prod</div>
+    <div class="card-state state-on"><div class="dot dot-on"></div>On</div>
+    <div class="metrics">
+      <div class="metric">
+        <label>Power</label>
+        <div class="value power-value">83 <span class="unit">W avg</span></div>
+      </div>
+      <div class="metric">
+        <label>Voltage</label>
+        <div class="value">124.6 <span class="unit">V</span></div>
+      </div>
+      <div class="metric">
+        <label>Current</label>
+        <div class="value">0.88 <span class="unit">A avg</span></div>
+      </div>
+      <div class="metric">
+        <label>Plug Temp</label>
+        <div class="value temp-value">50.1 <span class="unit">°C</span></div>
+      </div>
+      <div class="metric" style="grid-column: 1 / -1;">
+        <label>Lifetime Energy</label>
+        <div class="value energy-value">352,280 <span class="unit">Wh (352.3 kWh)</span></div>
+      </div>
+    </div>
+    <div><span class="source-tag source-button">source: button</span></div>
+    <div class="card-mac">shellyplugus-a0a3b3b8e8e0</div>
+  </div>
+
+  <div class="card warn">
+    <div class="card-location">Office</div>
+    <div class="card-name">Shelly_Lab_01</div>
+    <div class="card-state state-on"><div class="dot dot-on"></div>On</div>
+    <div class="metrics">
+      <div class="metric">
+        <label>Power</label>
+        <div class="value power-value">37 <span class="unit">W avg</span></div>
+      </div>
+      <div class="metric">
+        <label>Voltage</label>
+        <div class="value">124.2 <span class="unit">V</span></div>
+      </div>
+      <div class="metric">
+        <label>Current</label>
+        <div class="value">0.43 <span class="unit">A avg</span></div>
+      </div>
+      <div class="metric">
+        <label>Plug Temp</label>
+        <div class="value temp-value">43.1 <span class="unit">°C</span></div>
+      </div>
+      <div class="metric" style="grid-column: 1 / -1;">
+        <label>Lifetime Energy</label>
+        <div class="value energy-value">343,386 <span class="unit">Wh (343.4 kWh)</span></div>
+      </div>
+    </div>
+    <div><span class="source-tag source-overvolt">source: overvoltage_clear ⚠</span></div>
+    <div class="card-mac">shellyplugus-d4d4da090a3c</div>
+  </div>
+
+  <div class="card off">
+    <div class="card-location">Garage</div>
+    <div class="card-name">Shelly_EV</div>
+    <div class="card-state state-off"><div class="dot dot-off"></div>Off — not charging</div>
+    <div class="metrics">
+      <div class="metric">
+        <label>Power</label>
+        <div class="value" style="color:#718096;">0 <span class="unit">W</span></div>
+      </div>
+      <div class="metric">
+        <label>Voltage</label>
+        <div class="value">123.9 <span class="unit">V</span></div>
+      </div>
+      <div class="metric">
+        <label>Current</label>
+        <div class="value" style="color:#718096;">0.0 <span class="unit">A</span></div>
+      </div>
+      <div class="metric">
+        <label>Plug Temp</label>
+        <div class="value temp-value">38.5 <span class="unit">°C</span></div>
+      </div>
+      <div class="metric" style="grid-column: 1 / -1;">
+        <label>Lifetime Energy</label>
+        <div class="value energy-value" style="color:#b794f4;">1,426,555 <span class="unit">Wh (1,426.6 kWh)</span></div>
+      </div>
+    </div>
+    <div><span class="source-tag source-loopback">source: loopback</span></div>
+    <div class="card-mac">shellyplugus-d48afc781010</div>
+  </div>
+
+</div>
+
+<!-- Power trend chart -->
+<div class="section-label" style="margin-top:28px;">Power Consumption — 2-Minute Window (13:09 – 13:11)</div>
+<div class="charts-grid">
+
+  <div class="chart-box">
+    <h3>Instantaneous Active Power (W)</h3>
+    <div class="chart-sub">~2 s update interval for Shelly_Prod · ~8 s for Shelly_Lab_01</div>
+    <canvas id="powerChart" height="120"></canvas>
+  </div>
+
+  <div class="chart-box">
+    <h3>Lifetime Energy Comparison</h3>
+    <div class="chart-sub">Cumulative Wh since meter reset</div>
+    <div class="energy-bars" style="margin-top: 20px;">
+      <div class="energy-row">
+        <label>Shelly_EV <span>1,426,555 Wh</span></label>
+        <div class="bar-track"><div class="bar-fill bar-ev" style="width:100%"></div></div>
+      </div>
+      <div class="energy-row">
+        <label>Shelly_Prod <span>352,280 Wh</span></label>
+        <div class="bar-track"><div class="bar-fill bar-prod" style="width:24.7%"></div></div>
+      </div>
+      <div class="energy-row">
+        <label>Shelly_Lab_01 <span>343,386 Wh</span></label>
+        <div class="bar-track"><div class="bar-fill bar-lab" style="width:24.1%"></div></div>
+      </div>
+    </div>
+    <div style="font-size:0.7rem; color:#4a5568; margin-top:18px; line-height:1.6;">
+      Shelly_EV accounts for <strong style="color:#b794f4;">76%</strong> of total measured lifetime energy across all three plugs (4.0× either office plug).
+    </div>
+
+    <div style="margin-top: 20px; border-top: 1px solid #2d3748; padding-top: 16px;">
+      <h3>Completed-Minute Energy (mWh)</h3>
+      <div class="chart-sub">by_minute[1] and [2] — last two complete 60-second windows</div>
+      <table class="minute-table">
+        <thead>
+          <tr>
+            <th>Plug</th>
+            <th>T−1 min</th>
+            <th>T−2 min</th>
+            <th>Avg W</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Shelly_Prod</td>
+            <td>1,430 <span class="mwh">mWh</span></td>
+            <td>1,443 <span class="mwh">mWh</span></td>
+            <td>85.8 W</td>
+          </tr>
+          <tr>
+            <td>Shelly_Lab_01</td>
+            <td>609 <span class="mwh">mWh</span></td>
+            <td>605 <span class="mwh">mWh</span></td>
+            <td>36.4 W</td>
+          </tr>
+          <tr>
+            <td>Shelly_EV</td>
+            <td>0 <span class="mwh">mWh</span></td>
+            <td>0 <span class="mwh">mWh</span></td>
+            <td style="color:#4a5568;">— off</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- Device temp chart -->
+<div class="section-label">Device Temperature</div>
+<div class="chart-box" style="max-width: 520px;">
+  <h3>Plug Internal Temperature (°C)</h3>
+  <div class="chart-sub">Higher load → higher plug temperature — all within normal operating range</div>
+  <canvas id="tempChart" height="80"></canvas>
+</div>
+
+<div class="footer">
+  <span>Source: MQTT vultr2:1883 · KTBMES/TWIX/+/smartplugs/#</span>
+  <span>Snapshot 2026-04-02T13:07–13:11 UTC · Static dashboard</span>
+</div>
+
+<script>
+  // ── Colour palette ──
+  const C = {
+    prod:   { line: '#4299e1', fill: 'rgba(66,153,225,0.12)' },
+    lab:    { line: '#68d391', fill: 'rgba(104,211,145,0.10)' },
+    ev:     { line: '#9f7aea', fill: 'rgba(159,122,234,0.10)' },
+    grid:   '#2d3748',
+    tick:   '#718096',
+  };
+
+  Chart.defaults.color = C.tick;
+  Chart.defaults.borderColor = C.grid;
+
+  // ── Power time-series data ──
+  const prodData = [
+    { x: '13:09:19', y: 82.7 }, { x: '13:09:20', y: 88.8 }, { x: '13:09:21', y: 87.9 },
+    { x: '13:09:23', y: 83.9 }, { x: '13:09:25', y: 84.5 }, { x: '13:09:27', y: 87.3 },
+    { x: '13:09:29', y: 82.6 }, { x: '13:09:31', y: 83.7 }, { x: '13:09:35', y: 82.9 },
+    { x: '13:09:37', y: 96.3 }, { x: '13:09:38', y: 101.8 },{ x: '13:09:48', y: 93.1 },
+    { x: '13:09:49', y: 88.5 }, { x: '13:09:50', y: 87.1 }, { x: '13:09:51', y: 82.1 },
+    { x: '13:09:53', y: 74.8 }, { x: '13:09:55', y: 75.1 }, { x: '13:09:56', y: 82.9 },
+    { x: '13:09:58', y: 75.5 }, { x: '13:09:59', y: 74.4 }, { x: '13:10:00', y: 74.7 },
+    { x: '13:10:01', y: 74.9 }, { x: '13:10:05', y: 75.4 }, { x: '13:10:09', y: 79.2 },
+    { x: '13:10:10', y: 81.2 }, { x: '13:10:11', y: 76.3 }, { x: '13:10:15', y: 74.5 },
+    { x: '13:10:17', y: 75.5 }, { x: '13:10:19', y: 73.2 }, { x: '13:10:21', y: 73.7 },
+    { x: '13:10:23', y: 85.0 }, { x: '13:10:24', y: 76.4 }, { x: '13:10:25', y: 81.7 },
+    { x: '13:10:26', y: 75.3 }, { x: '13:10:27', y: 76.2 }, { x: '13:10:29', y: 75.2 },
+    { x: '13:10:31', y: 75.1 }, { x: '13:10:37', y: 77.7 }, { x: '13:10:41', y: 74.2 },
+    { x: '13:10:43', y: 79.5 }, { x: '13:10:45', y: 74.9 }, { x: '13:10:48', y: 81.6 },
+    { x: '13:10:49', y: 75.8 }, { x: '13:10:51', y: 74.6 }, { x: '13:10:53', y: 75.4 },
+    { x: '13:10:55', y: 74.0 }, { x: '13:10:57', y: 77.3 }, { x: '13:11:00', y: 74.5 },
+    { x: '13:11:01', y: 73.9 }, { x: '13:11:04', y: 80.3 }, { x: '13:11:05', y: 74.7 },
+    { x: '13:11:07', y: 77.4 }, { x: '13:11:09', y: 82.3 }, { x: '13:11:10', y: 75.3 },
+    { x: '13:11:11', y: 72.6 }, { x: '13:11:13', y: 84.7 }, { x: '13:11:15', y: 82.5 },
+    { x: '13:11:16', y: 76.6 },
+  ];
+
+  const labData = [
+    { x: '13:09:42', y: 38.2 }, { x: '13:09:46', y: 36.0 }, { x: '13:09:49', y: 37.8 },
+    { x: '13:10:00', y: 36.2 }, { x: '13:10:16', y: 35.5 }, { x: '13:10:23', y: 38.5 },
+    { x: '13:10:26', y: 36.4 }, { x: '13:10:42', y: 38.3 }, { x: '13:10:46', y: 36.2 },
+    { x: '13:11:00', y: 37.4 }, { x: '13:11:12', y: 38.3 }, { x: '13:11:13', y: 36.3 },
+    { x: '13:11:15', y: 38.8 }, { x: '13:11:16', y: 36.3 },
+  ];
+
+  // ── Power chart ──
+  new Chart(document.getElementById('powerChart'), {
+    type: 'line',
+    data: {
+      datasets: [
+        {
+          label: 'Shelly_Prod',
+          data: prodData,
+          borderColor: C.prod.line,
+          backgroundColor: C.prod.fill,
+          borderWidth: 1.5,
+          pointRadius: 2,
+          pointHoverRadius: 4,
+          fill: true,
+          tension: 0.3,
+          parsing: { xAxisKey: 'x', yAxisKey: 'y' },
+        },
+        {
+          label: 'Shelly_Lab_01',
+          data: labData,
+          borderColor: C.lab.line,
+          backgroundColor: C.lab.fill,
+          borderWidth: 1.5,
+          pointRadius: 3,
+          pointHoverRadius: 5,
+          fill: true,
+          tension: 0.3,
+          parsing: { xAxisKey: 'x', yAxisKey: 'y' },
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { labels: { boxWidth: 12, font: { size: 11 } } },
+        tooltip: {
+          callbacks: {
+            label: ctx => ` ${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)} W`,
+          },
+        },
+      },
+      scales: {
+        x: {
+          type: 'category',
+          ticks: { font: { size: 10 }, maxTicksLimit: 8, maxRotation: 0 },
+          grid: { color: C.grid },
+        },
+        y: {
+          title: { display: true, text: 'Watts (W)', font: { size: 10 }, color: C.tick },
+          min: 0,
+          max: 115,
+          grid: { color: C.grid },
+          ticks: { font: { size: 10 } },
+        },
+      },
+    },
+  });
+
+  // ── Temperature bar chart ──
+  new Chart(document.getElementById('tempChart'), {
+    type: 'bar',
+    data: {
+      labels: ['Shelly_Prod\n(office)', 'Shelly_Lab_01\n(office)', 'Shelly_EV\n(garage)'],
+      datasets: [{
+        label: 'Plug Temperature (°C)',
+        data: [50.1, 43.1, 38.5],
+        backgroundColor: ['rgba(252,129,129,0.7)', 'rgba(252,129,129,0.45)', 'rgba(252,129,129,0.25)'],
+        borderColor:     ['#fc8181', '#fc8181', '#fc8181'],
+        borderWidth: 1,
+        borderRadius: 4,
+      }],
+    },
+    options: {
+      responsive: true,
+      indexAxis: 'y',
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: { label: ctx => ` ${ctx.parsed.x.toFixed(1)} °C` },
+        },
+      },
+      scales: {
+        x: {
+          min: 30,
+          max: 60,
+          title: { display: true, text: '°C', font: { size: 10 }, color: C.tick },
+          grid: { color: C.grid },
+          ticks: { font: { size: 10 } },
+        },
+        y: {
+          grid: { display: false },
+          ticks: { font: { size: 11 } },
+        },
+      },
+    },
+  });
+</script>
+</body>
+</html>

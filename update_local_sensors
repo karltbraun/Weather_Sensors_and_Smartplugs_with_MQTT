@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 ################################################################################
-# update_local_sensors1.sh - Publish local sensor configuration via MQTT
+# update_local_sensors - Publish local sensor configuration via MQTT
 ################################################################################
 # Purpose: Reads sensor configuration from JSON file and publishes to MQTT
 #          This is a bash reimplementation of update_local_sensors.py
@@ -8,7 +8,10 @@
 # Author: Karl T. Braun
 # Created: 2026-01-01
 #
-# Usage: ./update_local_sensors1.sh [INPUT_FILE]
+# Usage: ./update_local_sensors [INPUT_FILE]
+#        cat file.json | ./update_local_sensors
+#
+#   INPUT_FILE: path to JSON input file; if omitted, reads from standard input
 #
 # Requirements:
 #   - mosquitto_pub must be installed and available in PATH
