@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Read(//Users/karl/Development/KTB/Weather_Sensors_and_Smartplugs_with_MQTT/**)",
-      "Bash(sort -k2 -n)"
+      "Bash(sort -k2 -n)",
+      "Bash(bash build-and-push.sh -l)",
+      "Bash(bash /Users/karl/Development/KTB/Weather_Sensors_and_Smartplugs_with_MQTT/build-and-push.sh -l)"
     ]
   }
 }

@@ -33,11 +33,13 @@ usage() {
     echo ""
     echo "Options:"
     echo "  --pub_source=VALUE      Generate stack with custom PUB_SOURCE value"
+    echo "  --broker_name=VALUE     Specify broker name from broker_config.py (default: n-vultr2)"
     echo "  --network_mode=MODE     Specify network mode (host or bridge), default: host"
-    echo "  --ROSA                  Generate stack for ROSA host"
-    echo "  --TWIX                  Generate stack for TWIX host"
-    echo "  --VULTR2                Generate stack for VULTR2 VM"
-    echo "  --all                   Generate all standard stacks (ROSA, TWIX, VULTR2)"
+    echo "  --ROSA                  Generate stack for ROSA host (broker: n-vultr2)"
+    echo "  --TWIX                  Generate stack for TWIX host (broker: n-vultr2)"
+    echo "  --VULTR2                Generate stack for VULTR2 VM (broker: n-vultr2)"
+    echo "  --PI2                   Generate stack for PI2 Raspberry Pi (broker: n-vultr3)"
+    echo "  --all                   Generate all standard stacks (ROSA, TWIX, VULTR2, PI2)"
     echo "  --help, -h              Display this help message"
     echo ""
     echo "Examples:"
@@ -60,11 +62,12 @@ usage() {
 }
 
 # Function to generate a stack file
-# Args: pub_source, network_mode, output_file
+# Args: pub_source, network_mode, output_file, broker_name
 generate_stack() {
     local pub_source="$1"
     local network_mode="$2"  # "bridge" or "host"
     local output_file="$3"
+    local broker_name="${4:-n-vultr2}"
     
     echo -e "${YELLOW}Generating: ${output_file}${NC}"
     
@@ -92,9 +95,9 @@ generate_stack() {
     fi
     
     # Deployment comment - no PUB_SOURCE examples in any file
-    local deployment_comment="Configuration for ${pub_source}\n    #  BROKER_NAME=n-vultr2\n    #  PUB_SOURCE=${pub_source}\n    #  network_mode=${network_mode}"
+    local deployment_comment="Configuration for ${pub_source}\n    #  BROKER_NAME=${broker_name}\n    #  PUB_SOURCE=${pub_source}\n    #  network_mode=${network_mode}"
     local pub_source_examples="      # PUB_SOURCE is set to ${pub_source} for this deployment"
-    
+
     # Read template and perform replacements using awk
     awk -v network_config="$network_config" \
         -v network_comment="$network_comment" \
@@ -103,6 +106,7 @@ generate_stack() {
         -v pub_source_examples="$pub_source_examples" \
         -v deployment_comment="$deployment_comment" \
         -v top_level_network="$top_level_network_section" \
+        -v broker_name="$broker_name" \
         '{
             line = $0
             gsub(/\{\{TOP_LEVEL_NETWORK\}\}/, top_level_network, line)
@@ -112,7 +116,7 @@ generate_stack() {
             gsub(/\{\{DEPLOYMENT_SCENARIO\}\}/, deployment_scenario, line)
             gsub(/\{\{PUB_SOURCE\}\}/, pub_source, line)
             gsub(/\{\{PUB_SOURCE_EXAMPLES\}\}/, pub_source_examples, line)
-            gsub(/\{\{BROKER_NAME\}\}/, "n-vultr2", line)
+            gsub(/\{\{BROKER_NAME\}\}/, broker_name, line)
             gsub(/\{\{DEPLOYMENT_COMMENT\}\}/, deployment_comment, line)
             print line
         }' "${TEMPLATE_FILE}" > "${output_file}.tmp"
@@ -128,6 +132,7 @@ generate_stack() {
 #   PUB_SOURCE: ${pub_source}
 #   Network Mode: ${network_mode}
 #   DEPLOYMENT_SCENARIO: ${deployment_scenario}
+#   BROKER_NAME: ${broker_name}
 # =============================================================================
 
 EOF
@@ -141,6 +146,7 @@ EOF
 main() {
     local custom_pub_source=""
     local custom_network_mode="host"  # Default to host
+    local custom_broker_name=""
     local targets=()
     
     # Parse command line arguments
@@ -165,6 +171,9 @@ main() {
                         exit 1
                     fi
                     ;;
+                --broker_name=*)
+                    custom_broker_name="${arg#*=}"
+                    ;;
                 --ROSA)
                     targets+=("ROSA")
                     ;;
@@ -174,8 +183,11 @@ main() {
                 --VULTR2)
                     targets+=("VULTR2")
                     ;;
+                --PI2)
+                    targets+=("PI2")
+                    ;;
                 --all)
-                    targets=("ROSA" "TWIX" "VULTR2")
+                    targets=("ROSA" "TWIX" "VULTR2" "PI2")
                     ;;
                 *)
                     echo -e "${RED}Error: Unknown option '$arg'${NC}"
@@ -187,8 +199,8 @@ main() {
         done
     fi
     
-    # If custom pub_source or network_mode specified but no targets, create custom target
-    if [[ -n "$custom_pub_source" || "$custom_network_mode" != "host" ]] && [[ ${#targets[@]} -eq 0 ]]; then
+    # If custom pub_source, broker_name, or network_mode specified but no targets, create custom target
+    if [[ -n "$custom_pub_source" || -n "$custom_broker_name" || "$custom_network_mode" != "host" ]] && [[ ${#targets[@]} -eq 0 ]]; then
         targets=("custom")
     fi
     
@@ -203,25 +215,31 @@ main() {
             default)
                 # Default: PUB_SOURCE=Mu, network_mode=host
                 local pub_src="${custom_pub_source:-Mu}"
-                generate_stack "$pub_src" "$custom_network_mode" "${SCRIPT_DIR}/portainer-stack.yml"
+                local broker="${custom_broker_name:-n-vultr2}"
+                generate_stack "$pub_src" "$custom_network_mode" "${SCRIPT_DIR}/portainer-stack.yml" "$broker"
                 ;;
             custom)
                 # Custom pub_source and/or network_mode
                 local pub_src="${custom_pub_source:-Mu}"
+                local broker="${custom_broker_name:-n-vultr2}"
                 local lowercase_source=$(echo "$pub_src" | tr '[:upper:]' '[:lower:]')
-                generate_stack "$pub_src" "$custom_network_mode" "${SCRIPT_DIR}/portainer-stack-${lowercase_source}.yml"
+                generate_stack "$pub_src" "$custom_network_mode" "${SCRIPT_DIR}/portainer-stack-${lowercase_source}.yml" "$broker"
                 ;;
             ROSA)
                 # ROSA uses host networking (MQTT broker is a host service)
-                generate_stack "ROSA" "host" "${SCRIPT_DIR}/portainer-stack-rosa.yml"
+                generate_stack "ROSA" "host" "${SCRIPT_DIR}/portainer-stack-rosa.yml" "n-vultr2"
                 ;;
             TWIX)
                 # TWIX uses host networking (MQTT broker is a host service)
-                generate_stack "TWIX" "host" "${SCRIPT_DIR}/portainer-stack-twix.yml"
+                generate_stack "TWIX" "host" "${SCRIPT_DIR}/portainer-stack-twix.yml" "n-vultr2"
                 ;;
             VULTR2)
                 # VULTR2 uses bridge networking (MQTT broker is also a container on same VM)
-                generate_stack "VULTR2" "bridge" "${SCRIPT_DIR}/portainer-stack-vultr2.yml"
+                generate_stack "VULTR2" "bridge" "${SCRIPT_DIR}/portainer-stack-vultr2.yml" "n-vultr2"
+                ;;
+            PI2)
+                # PI2 Raspberry Pi uses host networking, connects to n-vultr3 broker
+                generate_stack "PI2" "host" "${SCRIPT_DIR}/portainer-stack-pi2.yml" "n-vultr3"
                 ;;
         esac
     done

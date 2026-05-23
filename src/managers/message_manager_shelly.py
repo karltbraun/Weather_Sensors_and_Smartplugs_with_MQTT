@@ -51,6 +51,7 @@ logging.basicConfig(level=logging.DEBUG)
 DEVICE_ROOM_MAP = {
     "Shelly_EV": "garage",
     "Shelly_Lab_01": "office",
+    "Shelly_Lab_Pi": "office",
     "Shelly_Prod": "office",
 }
 

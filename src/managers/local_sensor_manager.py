@@ -57,7 +57,15 @@ class LocalSensorManager:
             return
 
         file_path = f"{self.config_dir}/{self.sensors_file}"
-        return load_json_file(file_path)
+        try:
+            return load_json_file(file_path)
+        except ValueError:
+            # File absent on first deploy; service will receive config via MQTT
+            logging.getLogger(__name__).warning(
+                "local_sensors.json not found — starting with empty sensor list. "
+                "Publish config via update_local_sensors to populate."
+            )
+            return {}
 
     def is_local_sensor(self, sensor_id: str) -> bool:
         """Check if sensor ID is a local sensor"""
