@@ -41,6 +41,7 @@ RUN groupadd -r appuser && useradd -r -g appuser appuser
 # Install runtime dependencies and tzdata
 RUN apt-get update && apt-get install -y \
     curl \
+    netcat-openbsd \
     tzdata \
     && rm -rf /var/lib/apt/lists/*
 

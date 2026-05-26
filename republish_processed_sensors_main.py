@@ -383,6 +383,7 @@ def main() -> None:
         pub_topics,
         sub_topics,
         mqtt_topics["canonical"],
+        mqtt_topics["canonical"],
         mqtt_topics["host_specific"],
         config_subscribe_timeout,
         local_sensor_manager.get_sensor_count(),

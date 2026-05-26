@@ -35,11 +35,11 @@ usage() {
     echo "  --pub_source=VALUE      Generate stack with custom PUB_SOURCE value"
     echo "  --broker_name=VALUE     Specify broker name from broker_config.py (default: n-vultr2)"
     echo "  --network_mode=MODE     Specify network mode (host or bridge), default: host"
-    echo "  --ROSA                  Generate stack for ROSA host (broker: n-vultr2)"
-    echo "  --TWIX                  Generate stack for TWIX host (broker: n-vultr2)"
-    echo "  --VULTR2                Generate stack for VULTR2 VM (broker: n-vultr2)"
+    echo "  --ROSA                  Generate stack for ROSA host (broker: n-vultr3)"
+    echo "  --TWIX                  Generate stack for TWIX host (broker: n-vultr3)"
+    echo "  --VULTR3                Generate stack for VULTR3 VM (broker: n-vultr3)"
     echo "  --PI2                   Generate stack for PI2 Raspberry Pi (broker: n-vultr3)"
-    echo "  --all                   Generate all standard stacks (ROSA, TWIX, VULTR2, PI2)"
+    echo "  --all                   Generate all standard stacks (ROSA, TWIX, VULTR3, PI2)"
     echo "  --help, -h              Display this help message"
     echo ""
     echo "Examples:"
@@ -54,7 +54,7 @@ usage() {
     echo "  --pub_source=VALUE      → portainer-stack-<value>.yml (lowercase)"
     echo "  --ROSA                  → portainer-stack-rosa.yml"
     echo "  --TWIX                  → portainer-stack-twix.yml"
-    echo "  --VULTR2                → portainer-stack-vultr2.yml"
+    echo "  --VULTR3                → portainer-stack-vultr3.yml"
     echo ""
     echo "Network Modes:"
     echo "  host   - Use host networking (default for all deployments)"
@@ -180,14 +180,14 @@ main() {
                 --TWIX)
                     targets+=("TWIX")
                     ;;
-                --VULTR2)
-                    targets+=("VULTR2")
+                --VULTR3)
+                    targets+=("VULTR3")
                     ;;
                 --PI2)
                     targets+=("PI2")
                     ;;
                 --all)
-                    targets=("ROSA" "TWIX" "VULTR2" "PI2")
+                    targets=("ROSA" "TWIX" "VULTR3" "PI2")
                     ;;
                 *)
                     echo -e "${RED}Error: Unknown option '$arg'${NC}"
@@ -226,16 +226,16 @@ main() {
                 generate_stack "$pub_src" "$custom_network_mode" "${SCRIPT_DIR}/portainer-stack-${lowercase_source}.yml" "$broker"
                 ;;
             ROSA)
-                # ROSA uses host networking (MQTT broker is a host service)
-                generate_stack "ROSA" "host" "${SCRIPT_DIR}/portainer-stack-rosa.yml" "n-vultr2"
+                # ROSA uses host networking, connects to n-vultr3 broker
+                generate_stack "ROSA" "host" "${SCRIPT_DIR}/portainer-stack-rosa.yml" "n-vultr3"
                 ;;
             TWIX)
-                # TWIX uses host networking (MQTT broker is a host service)
-                generate_stack "TWIX" "host" "${SCRIPT_DIR}/portainer-stack-twix.yml" "n-vultr2"
+                # TWIX uses host networking, connects to n-vultr3 broker
+                generate_stack "TWIX" "host" "${SCRIPT_DIR}/portainer-stack-twix.yml" "n-vultr3"
                 ;;
-            VULTR2)
-                # VULTR2 uses bridge networking (MQTT broker is also a container on same VM)
-                generate_stack "VULTR2" "bridge" "${SCRIPT_DIR}/portainer-stack-vultr2.yml" "n-vultr2"
+            VULTR3)
+                # VULTR3 uses bridge networking (MQTT broker is also a container on same VM)
+                generate_stack "VULTR3" "bridge" "${SCRIPT_DIR}/portainer-stack-vultr3.yml" "n-vultr3"
                 ;;
             PI2)
                 # PI2 Raspberry Pi uses host networking, connects to n-vultr3 broker

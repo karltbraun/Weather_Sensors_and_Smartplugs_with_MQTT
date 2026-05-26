@@ -4,9 +4,10 @@
 
 # =============================================================================
 # Configuration:
-#   PUB_SOURCE: VULTR2
+#   PUB_SOURCE: VULTR3
 #   Network Mode: bridge
 #   DEPLOYMENT_SCENARIO: bridge-networking
+#   BROKER_NAME: n-vultr3
 # =============================================================================
 
 # Weather Sensors MQTT Stack for Portainer - TEMPLATE
@@ -69,16 +70,16 @@ services:
       - sensor-config:/app/config
     ###############################################################################
     # ENVIRONMENT VARIABLES
-    # Configuration for VULTR2
-    #  BROKER_NAME=n-vultr2
-    #  PUB_SOURCE=VULTR2
+    # Configuration for VULTR3
+    #  BROKER_NAME=n-vultr3
+    #  PUB_SOURCE=VULTR3
     #  network_mode=bridge
     ###############################################################################
     environment:
       - DEPLOYMENT_SCENARIO=bridge-networking
-      - PUB_SOURCE=VULTR2
-      # PUB_SOURCE is set to VULTR2 for this deployment
-      - BROKER_NAME=n-vultr2
+      - PUB_SOURCE=VULTR3
+      # PUB_SOURCE is set to VULTR3 for this deployment
+      - BROKER_NAME=n-vultr3
       - TZ=America/Los_Angeles
       - PUBLISH_INTERVAL_MAX=60
       - SERVICE=republish
@@ -141,15 +142,15 @@ services:
       - sensor-config:/app/config
     ###############################################################################
     # ENVIRONMENT VARIABLES
-    # Configuration for VULTR2
-    #  BROKER_NAME=n-vultr2
-    #  PUB_SOURCE=VULTR2
+    # Configuration for VULTR3
+    #  BROKER_NAME=n-vultr3
+    #  PUB_SOURCE=VULTR3
     #  network_mode=bridge
     ###############################################################################
     environment:
       - DEPLOYMENT_SCENARIO=bridge-networking
-      - PUB_SOURCE=VULTR2
-      - BROKER_NAME=n-vultr2
+      - PUB_SOURCE=VULTR3
+      - BROKER_NAME=n-vultr3
       - TZ=America/Los_Angeles
       - SERVICE=shelly
       - CONSOLE_LOG_LEVEL=INFO

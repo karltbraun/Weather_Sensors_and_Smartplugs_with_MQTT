@@ -7,6 +7,7 @@
 #   PUB_SOURCE: TWIX
 #   Network Mode: host
 #   DEPLOYMENT_SCENARIO: host-networking
+#   BROKER_NAME: n-vultr3
 # =============================================================================
 
 # Weather Sensors MQTT Stack for Portainer - TEMPLATE
@@ -73,7 +74,7 @@ services:
     ###############################################################################
     # ENVIRONMENT VARIABLES
     # Configuration for TWIX
-    #  BROKER_NAME=n-vultr2
+    #  BROKER_NAME=n-vultr3
     #  PUB_SOURCE=TWIX
     #  network_mode=host
     ###############################################################################
@@ -81,7 +82,7 @@ services:
       - DEPLOYMENT_SCENARIO=host-networking
       - PUB_SOURCE=TWIX
       # PUB_SOURCE is set to TWIX for this deployment
-      - BROKER_NAME=n-vultr2
+      - BROKER_NAME=n-vultr3
       - TZ=America/Los_Angeles
       - PUBLISH_INTERVAL_MAX=60
       - SERVICE=republish
@@ -145,14 +146,14 @@ services:
     ###############################################################################
     # ENVIRONMENT VARIABLES
     # Configuration for TWIX
-    #  BROKER_NAME=n-vultr2
+    #  BROKER_NAME=n-vultr3
     #  PUB_SOURCE=TWIX
     #  network_mode=host
     ###############################################################################
     environment:
       - DEPLOYMENT_SCENARIO=host-networking
       - PUB_SOURCE=TWIX
-      - BROKER_NAME=n-vultr2
+      - BROKER_NAME=n-vultr3
       - TZ=America/Los_Angeles
       - SERVICE=shelly
       - CONSOLE_LOG_LEVEL=INFO
