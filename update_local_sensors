@@ -95,7 +95,7 @@ load_env_file() {
 # Function to get MQTT broker from environment
 get_mqtt_config() {
     # Set defaults
-    MQTT_BROKER="${MQTT_BROKER:-vultr2}"
+    MQTT_BROKER="${MQTT_BROKER:-vultr3}"
     MQTT_PORT="${MQTT_PORT:-1883}"
     MQTT_TOPIC="${MQTT_TOPIC_LOCAL_SENSORS:-KTBMES/sensors/config/local_sensors}"
 }
