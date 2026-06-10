@@ -38,9 +38,6 @@ volumes:
   sensor-logs:
     name: weather-sensors-logs
     driver: local
-  sensor-config:
-    name: weather-sensors-config
-    driver: local
 
 ###############################################################################
 # SENSOR REPUBLISHER SERVICE
@@ -69,7 +66,6 @@ services:
     volumes:
       - sensor-data:/app/data
       - sensor-logs:/app/logs
-      - sensor-config:/app/config
     ###############################################################################
     # ENVIRONMENT VARIABLES
     # Configuration for Mu
@@ -141,7 +137,6 @@ services:
     volumes:
       - sensor-data:/app/data
       - sensor-logs:/app/logs
-      - sensor-config:/app/config
     ###############################################################################
     # ENVIRONMENT VARIABLES
     # Configuration for Mu

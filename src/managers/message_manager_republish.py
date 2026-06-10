@@ -221,17 +221,16 @@ class MessageManager:
             protocol_name, protocol_description = (
                 protocol_manager.protocol_info(protocol_id)
             )
-            if protocol_name is None or protocol_description is None:
-                raise ValueError(
-                    "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
-                    f"{my_name}: Protocol ID \\{protocol_id}\\ not found\n"
-                    f"\ttag: {tag}\n\tpayload: {payload}\n"
-                    "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
-                )
-
             device.protocol_id_set(protocol_id)
-            device.protocol_name_set(protocol_name)
-            device.protocol_description_set(protocol_description)
+            if protocol_name is None:
+                logging.warning(
+                    "%s: Protocol ID %s not found in protocol database",
+                    my_name,
+                    protocol_id,
+                )
+            else:
+                device.protocol_name_set(protocol_name)
+                device.protocol_description_set(protocol_description)
 
             # well, this seems redundant
             # device.protocol_name_set(protocol_name)
